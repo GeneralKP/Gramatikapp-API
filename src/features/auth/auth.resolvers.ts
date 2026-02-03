@@ -7,6 +7,16 @@ import {
   generateToken,
 } from "./auth.service.js";
 
+// Default settings for new or incomplete users
+const DEFAULT_SETTINGS: UserSettings = {
+  soundEnabled: true,
+  selectSound: true,
+  successSound: true,
+  errorSound: true,
+  popSound: true,
+  darkMode: false,
+};
+
 // Helper to convert MongoDB doc to GraphQL format
 function toGraphQL(user: User | null) {
   if (!user) return null;
@@ -14,6 +24,10 @@ function toGraphQL(user: User | null) {
     ...user,
     id: user._id.toString(),
     createdAt: user.createdAt.toISOString(),
+    settings: {
+      ...DEFAULT_SETTINGS,
+      ...user.settings,
+    },
   };
 }
 
