@@ -1,0 +1,42 @@
+type User {
+  id: ID!
+  email: String!
+  authProvider: String!
+  settings: UserSettings!
+  createdAt: String!
+}
+
+type UserSettings {
+  soundEnabled: Boolean!
+  selectSound: Boolean!
+  successSound: Boolean!
+  errorSound: Boolean!
+  popSound: Boolean!
+  darkMode: Boolean!
+}
+
+input UserSettingsInput {
+  soundEnabled: Boolean
+  selectSound: Boolean
+  successSound: Boolean
+  errorSound: Boolean
+  popSound: Boolean
+  darkMode: Boolean
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type Query {
+  me: User
+  user(id: ID!): User
+  userByEmail(email: String!): User
+}
+
+type Mutation {
+  register(email: String!, password: String!): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+  syncSettings(userId: ID!, settings: UserSettingsInput!): User
+}

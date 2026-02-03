@@ -1,18 +1,22 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { connectDB } from "./config/db.js";
-import { typeDefs } from "./graphql/typeDefs.js";
-import { resolvers, GraphQLContext } from "./graphql/resolvers.js";
-import { getUserFromToken } from "./services/authService.js";
+import { connectDatabase, getDb } from "./lib/database.js";
+import { typeDefs, resolvers } from "./graphql/schema.js";
+import { getUserFromToken } from "./features/auth/auth.service.js";
+import { User } from "./features/auth/auth.types.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 
+export interface GraphQLContext {
+  user: User | null;
+}
+
 async function startServer() {
   // Connect to MongoDB
-  await connectDB();
+  await connectDatabase();
 
   // Create Apollo Server
   const server = new ApolloServer<GraphQLContext>({
@@ -29,7 +33,7 @@ async function startServer() {
       const token = authHeader.replace("Bearer ", "");
 
       // Get user from token if present
-      let user = null;
+      let user: User | null = null;
       if (token) {
         user = await getUserFromToken(token);
       }

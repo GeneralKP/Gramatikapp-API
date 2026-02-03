@@ -18,7 +18,7 @@ export interface SRSInput {
 
 /**
  * Calculate the next review date based on a rating
- * @param rating - User rating from 0-5 (Easy=5, Medium=4, Hard=3, Insane/Wrong=2 or lower)
+ * @param rating - User rating from 0-5
  * @param current - Current SRS state
  * @returns New SRS state with next due date
  */
@@ -30,9 +30,6 @@ export function calculateNextReview(
   let interval = current.interval ?? 0;
   let repetitions = current.repetitions ?? 0;
 
-  // Rating: 0-5
-  // mapping: Easy (5), Medium (4), Hard (3), Insane (2 or lower)
-
   if (rating >= 3) {
     if (repetitions === 0) {
       interval = 1;
@@ -43,7 +40,7 @@ export function calculateNextReview(
     }
     repetitions++;
   } else {
-    // Incorrect / Insane - reset
+    // Incorrect - reset
     repetitions = 0;
     interval = 1;
   }
@@ -65,10 +62,8 @@ export function calculateNextReview(
 
 /**
  * Check if a phrase is due for review
- * @param nextDueDate - The next due date
- * @returns true if due (or new), false otherwise
  */
 export function isDue(nextDueDate: Date | null | undefined): boolean {
-  if (!nextDueDate) return true; // Due if new
+  if (!nextDueDate) return true;
   return new Date(nextDueDate) <= new Date();
 }

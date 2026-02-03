@@ -1,0 +1,26 @@
+type UserProgress {
+  id: ID!
+  userId: ID!
+  phraseId: ID!
+  phrase: Phrase
+  ease: Float!
+  interval: Int!
+  repetitions: Int!
+  nextDueDate: String!
+  lastReviewed: String
+}
+
+type ReviewResult {
+  success: Boolean!
+  progress: UserProgress
+}
+
+extend type Query {
+  duePhrases(userId: ID!, limit: Int): [UserProgress!]!
+  userProgress(userId: ID!, phraseId: ID!): UserProgress
+  allProgress(userId: ID!): [UserProgress!]!
+}
+
+extend type Mutation {
+  reviewPhrase(userId: ID!, phraseId: ID!, rating: Int!): ReviewResult!
+}

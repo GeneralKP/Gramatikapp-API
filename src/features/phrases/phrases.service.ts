@@ -21,9 +21,6 @@ interface DeepLResponse {
 
 /**
  * Translate text using DeepL API
- * @param text - Text to translate
- * @param targetLang - Target language code (default: ES for Spanish)
- * @returns Translation result
  */
 export async function translate(
   text: string,
