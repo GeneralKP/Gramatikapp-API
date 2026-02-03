@@ -1,5 +1,9 @@
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+import { expressMiddleware } from "@apollo/server/express4";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import express from "express";
+import http from "http";
+import cors from "cors";
 import { connectDatabase, getDb } from "./lib/database.js";
 import { typeDefs, resolvers } from "./graphql/schema.js";
 import { getUserFromToken } from "./features/auth/auth.service.js";
@@ -18,32 +22,48 @@ async function startServer() {
   // Connect to MongoDB
   await connectDatabase();
 
-  // Create Apollo Server
+  // Create Express app and HTTP server
+  const app = express();
+  const httpServer = http.createServer(app);
+
+  // Create Apollo Server with drain plugin
   const server = new ApolloServer<GraphQLContext>({
     typeDefs,
     resolvers,
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
 
-  // Start the server with context
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: PORT },
-    context: async ({ req }): Promise<GraphQLContext> => {
-      // Extract token from Authorization header
-      const authHeader = req.headers.authorization || "";
-      const token = authHeader.replace("Bearer ", "");
+  await server.start();
 
-      // Get user from token if present
-      let user: User | null = null;
-      if (token) {
-        user = await getUserFromToken(token);
-      }
+  // Apply CORS and JSON middleware
+  app.use(cors({ origin: true, credentials: true }));
+  app.use(express.json());
 
-      return { user };
-    },
-  });
+  // Apply GraphQL endpoint
+  app.use(
+    "/graphql",
+    expressMiddleware(server, {
+      context: async ({ req }): Promise<GraphQLContext> => {
+        // Extract token from Authorization header
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.replace("Bearer ", "");
 
-  console.log(`🚀 Server ready at ${url}`);
-  console.log(`📊 GraphQL Playground available at ${url}`);
+        // Get user from token if present
+        let user: User | null = null;
+        if (token) {
+          user = await getUserFromToken(token);
+        }
+
+        return { user };
+      },
+    }) as unknown as express.RequestHandler,
+  );
+
+  await new Promise<void>((resolve) =>
+    httpServer.listen({ port: PORT }, resolve),
+  );
+
+  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
 }
 
 startServer().catch((error) => {
