@@ -1,8 +1,10 @@
 type UserProgress {
   id: ID!
   userId: ID!
-  phraseId: ID!
-  phrase: Phrase
+  itemId: ID!
+  itemType: String!
+  wordRelation: WordRelation
+  phraseRelation: PhraseRelation
   ease: Float!
   interval: Int!
   repetitions: Int!
@@ -15,12 +17,30 @@ type ReviewResult {
   progress: UserProgress
 }
 
+type LearningNode {
+  id: String!
+  name: String!
+  level: String!
+  isUnlocked: Boolean!
+  wordsTotal: Int!
+  wordsLearned: Int!
+  phrasesTotal: Int!
+  phrasesLearned: Int!
+}
+
 extend type Query {
-  duePhrases(userId: ID!, limit: Int): [UserProgress!]!
-  userProgress(userId: ID!, phraseId: ID!): UserProgress
-  allProgress(userId: ID!): [UserProgress!]!
+  dueItems(userId: ID!, limit: Int, itemType: String): [UserProgress!]!
+  userProgress(userId: ID!, itemId: ID!): UserProgress
+  allProgress(userId: ID!, itemType: String): [UserProgress!]!
+  itemsCount(itemType: String!): Int!
+  learningPath(userId: ID!): [LearningNode!]!
 }
 
 extend type Mutation {
-  reviewPhrase(userId: ID!, phraseId: ID!, rating: Int!): ReviewResult!
+  reviewItem(
+    userId: ID!
+    itemId: ID!
+    itemType: String!
+    rating: Int!
+  ): ReviewResult!
 }

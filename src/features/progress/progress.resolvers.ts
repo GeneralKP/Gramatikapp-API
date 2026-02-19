@@ -3,165 +3,320 @@ import { getDb } from "../../lib/database.js";
 import { UserProgress } from "./progress.types.js";
 import { calculateNextReview } from "./progress.service.js";
 
-// Helper to convert MongoDB doc to GraphQL format
-function toGraphQL(progress: UserProgress | null, phrase?: unknown) {
+function toGraphQL(progress: UserProgress | null) {
   if (!progress) return null;
   return {
     ...progress,
     id: progress._id.toString(),
     userId: progress.userId.toString(),
-    phraseId: progress.phraseId.toString(),
+    itemId: progress.itemId.toString(),
+    itemType: progress.itemType,
     nextDueDate: progress.nextDueDate.toISOString(),
     lastReviewed: progress.lastReviewed?.toISOString() || null,
-    phrase: phrase || null,
-  };
-}
-
-function phraseToGraphQL(
-  phrase: {
-    _id: ObjectId;
-    german: string;
-    spanish: string;
-    words?: string[];
-    tags: string[];
-    createdAt: Date;
-  } | null,
-) {
-  if (!phrase) return null;
-  return {
-    ...phrase,
-    id: phrase._id.toString(),
-    createdAt: phrase.createdAt.toISOString(),
   };
 }
 
 export const progressResolvers = {
   Query: {
-    duePhrases: async (
+    dueItems: async (
       _: unknown,
-      { userId, limit = 20 }: { userId: string; limit?: number },
+      {
+        userId,
+        limit = 20,
+        itemType,
+      }: { userId: string; limit?: number; itemType?: string },
     ) => {
       const db = getDb();
       const now = new Date();
       const userObjectId = new ObjectId(userId);
 
-      // Find due progress entries
-      let progressDocs = await db.progress
-        .find({
-          userId: userObjectId,
-          nextDueDate: { $lte: now },
-        })
-        .limit(limit)
-        .toArray();
+      const query: any = { userId: userObjectId, nextDueDate: { $lte: now } };
+      if (itemType) query.itemType = itemType;
 
-      // Get phrase details for existing progress
-      const phraseIds = progressDocs.map((p) => p.phraseId);
-      const phrases = await db.phrases
-        .find({ _id: { $in: phraseIds } })
-        .toArray();
-      const phraseMap = new Map(phrases.map((p) => [p._id.toString(), p]));
+      let progressDocs = await db.progress.find(query).limit(limit).toArray();
 
-      // If not enough, assign new phrases
       if (progressDocs.length < limit) {
-        const reviewedPhraseIds = await db.progress
-          .find({ userId: userObjectId })
-          .project({ phraseId: 1 })
+        const reviewedQuery: any = { userId: userObjectId };
+        if (itemType) reviewedQuery.itemType = itemType;
+
+        const reviewedIds = await db.progress
+          .find(reviewedQuery)
+          .project({ itemId: 1 })
           .toArray();
         const reviewedSet = new Set(
-          reviewedPhraseIds.map((p) => p.phraseId.toString()),
+          reviewedIds.map((p) => p.itemId.toString()),
         );
 
-        const newPhrases = await db.phrases
-          .find({
-            _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)) },
-          })
-          .limit(limit - progressDocs.length)
-          .toArray();
+        const needed = limit - progressDocs.length;
+        const newProgressDocs: UserProgress[] = [];
 
-        // Create progress entries for new phrases
-        if (newPhrases.length > 0) {
-          const newProgressDocs: UserProgress[] = newPhrases.map((phrase) => ({
-            _id: new ObjectId(),
-            userId: userObjectId,
-            phraseId: phrase._id,
-            ease: 2.5,
-            interval: 0,
-            repetitions: 0,
-            nextDueDate: new Date(),
-            lastReviewed: null,
-            createdAt: new Date(),
-          }));
+        if (!itemType || itemType === "WORD") {
+          const neededWords =
+            itemType === "WORD" ? needed : Math.ceil(needed / 2);
+          const newWords = await db.relationsWordsEsDe
+            .find({
+              _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)) },
+            })
+            .limit(neededWords)
+            .toArray();
 
-          await db.progress.insertMany(newProgressDocs);
+          for (const w of newWords) {
+            newProgressDocs.push({
+              _id: new ObjectId(),
+              userId: userObjectId,
+              itemId: w._id,
+              itemType: "WORD",
+              ease: 2.5,
+              interval: 0,
+              repetitions: 0,
+              nextDueDate: new Date(),
+              lastReviewed: null,
+              createdAt: new Date(),
+            });
+          }
+        }
 
-          // Add to phraseMap for response
-          newPhrases.forEach((p) => phraseMap.set(p._id.toString(), p));
-          progressDocs = [...progressDocs, ...newProgressDocs];
+        if (!itemType || itemType === "PHRASE") {
+          const neededPhrases =
+            itemType === "PHRASE" ? needed : Math.floor(needed / 2);
+          const newPhrases = await db.relationsPhrasesEsDe
+            .find({
+              _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)) },
+            })
+            .limit(neededPhrases)
+            .toArray();
+
+          for (const p of newPhrases) {
+            newProgressDocs.push({
+              _id: new ObjectId(),
+              userId: userObjectId,
+              itemId: p._id,
+              itemType: "PHRASE",
+              ease: 2.5,
+              interval: 0,
+              repetitions: 0,
+              nextDueDate: new Date(),
+              lastReviewed: null,
+              createdAt: new Date(),
+            });
+          }
+        }
+
+        if (newProgressDocs.length > 0) {
+          const docsToAdd = newProgressDocs.slice(0, needed);
+          await db.progress.insertMany(docsToAdd);
+          progressDocs = [...progressDocs, ...docsToAdd];
         }
       }
 
-      return progressDocs.map((p) =>
-        toGraphQL(
-          p,
-          phraseToGraphQL(phraseMap.get(p.phraseId.toString()) || null),
-        ),
-      );
+      return progressDocs.map(toGraphQL);
     },
 
     userProgress: async (
       _: unknown,
-      { userId, phraseId }: { userId: string; phraseId: string },
+      { userId, itemId }: { userId: string; itemId: string },
     ) => {
       const db = getDb();
       const progress = await db.progress.findOne({
         userId: new ObjectId(userId),
-        phraseId: new ObjectId(phraseId),
+        itemId: new ObjectId(itemId),
       });
-
-      if (!progress) return null;
-
-      const phrase = await db.phrases.findOne({ _id: new ObjectId(phraseId) });
-      return toGraphQL(progress, phraseToGraphQL(phrase));
+      return toGraphQL(progress);
     },
 
-    allProgress: async (_: unknown, { userId }: { userId: string }) => {
+    allProgress: async (
+      _: unknown,
+      { userId, itemType }: { userId: string; itemType?: string },
+    ) => {
       const db = getDb();
-      const progress = await db.progress
-        .find({ userId: new ObjectId(userId) })
+      const query: any = { userId: new ObjectId(userId) };
+      if (itemType) query.itemType = itemType;
+
+      const progress = await db.progress.find(query).toArray();
+      return progress.map(toGraphQL);
+    },
+
+    itemsCount: async (_: unknown, { itemType }: { itemType: string }) => {
+      const db = getDb();
+      if (itemType === "WORD") {
+        return await db.relationsWordsEsDe.countDocuments();
+      } else if (itemType === "PHRASE") {
+        return await db.relationsPhrasesEsDe.countDocuments();
+      }
+      return 0;
+    },
+
+    learningPath: async (_: unknown, { userId }: { userId: string }) => {
+      const db = getDb();
+      const userObjectId = new ObjectId(userId);
+
+      // ── Fetch RELATIONS (same collections used by dueItems) ──
+      // Progress.itemId stores the relation _id, so we must iterate
+      // over relations and join to the main word/phrase for context/level.
+      const wordRelations = await db.relationsWordsEsDe.find({}).toArray();
+      const phraseRelations = await db.relationsPhrasesEsDe.find({}).toArray();
+
+      // Build lookup maps: main word/phrase _id → { context, level }
+      const mainWordIds = wordRelations.map((wr) => wr.main);
+      const mainPhraseIds = phraseRelations.map((pr) => pr.main);
+
+      const wordsLookup = await db.wordsES
+        .find({ _id: { $in: mainWordIds } })
+        .project({ _id: 1, context: 1, level: 1 })
+        .toArray();
+      const phrasesLookup = await db.phrasesES
+        .find({ _id: { $in: mainPhraseIds } })
+        .project({ _id: 1, context: 1, level: 1 })
         .toArray();
 
-      const phraseIds = progress.map((p) => p.phraseId);
-      const phrases = await db.phrases
-        .find({ _id: { $in: phraseIds } })
-        .toArray();
-      const phraseMap = new Map(phrases.map((p) => [p._id.toString(), p]));
-
-      return progress.map((p) =>
-        toGraphQL(
-          p,
-          phraseToGraphQL(phraseMap.get(p.phraseId.toString()) || null),
-        ),
+      const wordMeta = new Map(
+        wordsLookup.map((w) => [
+          w._id.toString(),
+          { context: w.context, level: w.level },
+        ]),
       );
+      const phraseMeta = new Map(
+        phrasesLookup.map((p) => [
+          p._id.toString(),
+          { context: p.context, level: p.level },
+        ]),
+      );
+
+      // ── Fetch user progress (itemId = relation _id) ──
+      const progresses = await db.progress
+        .find({ userId: userObjectId })
+        .toArray();
+      const learnedSet = new Set(
+        progresses
+          .filter((p) => p.repetitions > 0)
+          .map((p) => p.itemId.toString()),
+      );
+
+      const nodesMap: Record<string, any> = {};
+
+      // ── Populate Word stats using relation IDs ──
+      for (const wr of wordRelations) {
+        const meta = wordMeta.get(wr.main.toString());
+        if (!meta?.context) continue;
+        const ctxId = meta.context;
+        if (!nodesMap[ctxId]) {
+          nodesMap[ctxId] = {
+            id: ctxId,
+            name: ctxId
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            level: meta.level || "A1",
+            isUnlocked: false,
+            wordsTotal: 0,
+            wordsLearned: 0,
+            phrasesTotal: 0,
+            phrasesLearned: 0,
+          };
+        }
+        nodesMap[ctxId].wordsTotal += 1;
+        // Check the RELATION _id against progress (this is the correct ID)
+        if (learnedSet.has(wr._id.toString())) {
+          nodesMap[ctxId].wordsLearned += 1;
+        }
+      }
+
+      // ── Populate Phrase stats using relation IDs ──
+      for (const pr of phraseRelations) {
+        const meta = phraseMeta.get(pr.main.toString());
+        if (!meta?.context) continue;
+        const ctxId = meta.context;
+        if (!nodesMap[ctxId]) {
+          nodesMap[ctxId] = {
+            id: ctxId,
+            name: ctxId
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            level: meta.level || "A1",
+            isUnlocked: false,
+            wordsTotal: 0,
+            wordsLearned: 0,
+            phrasesTotal: 0,
+            phrasesLearned: 0,
+          };
+        }
+        nodesMap[ctxId].phrasesTotal += 1;
+        if (learnedSet.has(pr._id.toString())) {
+          nodesMap[ctxId].phrasesLearned += 1;
+        }
+      }
+
+      const nodes = Object.values(nodesMap);
+
+      // Calculate unlock cascade
+      const levels = ["A1", "A2", "B1", "B2", "C1", "C2"];
+
+      // Calculate overall mastery per level
+      const masteryPerLevel: Record<string, number> = {};
+      for (const lvl of levels) {
+        const lvlNodes = nodes.filter((n) => n.level === lvl);
+        if (lvlNodes.length === 0) {
+          masteryPerLevel[lvl] = 100; // Auto-pass empty levels
+          continue;
+        }
+        const totalItems = lvlNodes.reduce(
+          (acc, n) => acc + n.wordsTotal + n.phrasesTotal,
+          0,
+        );
+        const totalLearned = lvlNodes.reduce(
+          (acc, n) => acc + n.wordsLearned + n.phrasesLearned,
+          0,
+        );
+        masteryPerLevel[lvl] =
+          totalItems > 0 ? (totalLearned / totalItems) * 100 : 0;
+      }
+
+      // Unlock logic: A1 is always unlocked. Next level unlocked if previous level > 50% mastery
+      for (const node of nodes) {
+        const lvlIdx = levels.indexOf(node.level);
+        if (lvlIdx === 0) {
+          node.isUnlocked = true;
+        } else {
+          const prevLvl = levels[lvlIdx - 1];
+          node.isUnlocked = masteryPerLevel[prevLvl] >= 50;
+        }
+
+        // Minor clean up on DB names
+        if (node.id === "lang_party") node.name = "Language Party";
+        if (node.id === "colombian_compliments")
+          node.name = "Colombian Compliments";
+      }
+
+      return nodes.sort((a, b) => {
+        const lvlDiff = levels.indexOf(a.level) - levels.indexOf(b.level);
+        if (lvlDiff !== 0) return lvlDiff;
+        return a.id.localeCompare(b.id);
+      });
     },
   },
 
   Mutation: {
-    reviewPhrase: async (
+    reviewItem: async (
       _: unknown,
       {
         userId,
-        phraseId,
+        itemId,
+        itemType,
         rating,
-      }: { userId: string; phraseId: string; rating: number },
+      }: {
+        userId: string;
+        itemId: string;
+        itemType: "WORD" | "PHRASE";
+        rating: number;
+      },
     ) => {
       try {
         const db = getDb();
         const userObjectId = new ObjectId(userId);
-        const phraseObjectId = new ObjectId(phraseId);
+        const itemObjectId = new ObjectId(itemId);
 
         let progress = await db.progress.findOne({
           userId: userObjectId,
-          phraseId: phraseObjectId,
+          itemId: itemObjectId,
         });
 
         const current = progress
@@ -179,10 +334,7 @@ export const progressResolvers = {
             { _id: progress._id },
             {
               $set: {
-                ease: srsResult.ease,
-                interval: srsResult.interval,
-                repetitions: srsResult.repetitions,
-                nextDueDate: srsResult.nextDueDate,
+                ...srsResult,
                 lastReviewed: new Date(),
                 updatedAt: new Date(),
               },
@@ -193,11 +345,9 @@ export const progressResolvers = {
           const newProgress: UserProgress = {
             _id: new ObjectId(),
             userId: userObjectId,
-            phraseId: phraseObjectId,
-            ease: srsResult.ease,
-            interval: srsResult.interval,
-            repetitions: srsResult.repetitions,
-            nextDueDate: srsResult.nextDueDate,
+            itemId: itemObjectId,
+            itemType: itemType,
+            ...srsResult,
             lastReviewed: new Date(),
             createdAt: new Date(),
           };
@@ -205,12 +355,7 @@ export const progressResolvers = {
           progress = newProgress;
         }
 
-        const phrase = await db.phrases.findOne({ _id: phraseObjectId });
-
-        return {
-          success: true,
-          progress: toGraphQL(progress, phraseToGraphQL(phrase)),
-        };
+        return { success: true, progress: toGraphQL(progress) };
       } catch (error) {
         console.error("Review error:", error);
         return { success: false, progress: null };
@@ -219,12 +364,31 @@ export const progressResolvers = {
   },
 
   UserProgress: {
-    phrase: async (parent: { phraseId: string }) => {
+    wordRelation: async (parent: { itemId: string; itemType: string }) => {
+      if (parent.itemType !== "WORD") return null;
       const db = getDb();
-      const phrase = await db.phrases.findOne({
-        _id: new ObjectId(parent.phraseId),
+      const rel = await db.relationsWordsEsDe.findOne({
+        _id: new ObjectId(parent.itemId),
       });
-      return phraseToGraphQL(phrase);
+      if (!rel) return null;
+      return {
+        ...rel,
+        id: rel._id.toString(),
+        createdAt: rel.createdAt?.toISOString(),
+      };
+    },
+    phraseRelation: async (parent: { itemId: string; itemType: string }) => {
+      if (parent.itemType !== "PHRASE") return null;
+      const db = getDb();
+      const rel = await db.relationsPhrasesEsDe.findOne({
+        _id: new ObjectId(parent.itemId),
+      });
+      if (!rel) return null;
+      return {
+        ...rel,
+        id: rel._id.toString(),
+        createdAt: rel.createdAt?.toISOString(),
+      };
     },
   },
 };

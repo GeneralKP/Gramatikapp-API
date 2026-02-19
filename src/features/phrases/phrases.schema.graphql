@@ -17,10 +17,43 @@ type TranslationResult {
   detectedSourceLanguage: String
 }
 
+type PerWordExplanation {
+  missing: String
+  misplaced: String
+  misspelled: String
+}
+
+type PerWordExplanationEntry {
+  key: String!
+  value: PerWordExplanation!
+}
+
+type NewPhrase {
+  id: ID!
+  phrase: String!
+  synonyms: [String!]
+  words: [Word!]!
+  perWordExplanation: [PerWordExplanationEntry!]
+  level: String
+  context: String
+  createdAt: String!
+}
+
+type PhraseRelation {
+  id: ID!
+  main: NewPhrase!
+  translated: NewPhrase!
+  createdAt: String!
+}
+
 extend type Query {
   phrases(filter: PhraseFilter, limit: Int, offset: Int): [Phrase!]!
   phrase(id: ID!): Phrase
   phrasesCount(filter: PhraseFilter): Int!
+
+  newPhrases(lang: String!, limit: Int, offset: Int): [NewPhrase!]!
+  newPhrase(lang: String!, id: ID!): NewPhrase
+  phraseRelations(limit: Int, offset: Int): [PhraseRelation!]!
 }
 
 extend type Mutation {

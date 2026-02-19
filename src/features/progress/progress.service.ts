@@ -30,24 +30,33 @@ export function calculateNextReview(
   let interval = current.interval ?? 0;
   let repetitions = current.repetitions ?? 0;
 
+  // Rating: 0-5
   if (rating >= 3) {
     if (repetitions === 0) {
       interval = 1;
     } else if (repetitions === 1) {
+      interval = 3;
+    } else if (repetitions === 2) {
       interval = 6;
     } else {
-      interval = Math.round(interval * ease);
+      // Modify interval with an ease multiplier, capped to avoid runaway intervals
+      const easeModifier =
+        rating === 5 ? ease + 0.15 : rating === 4 ? ease : ease - 0.15;
+      interval = Math.round(interval * easeModifier);
+      interval = Math.min(interval, 365); // Max interval of 1 year
     }
     repetitions++;
   } else {
-    // Incorrect - reset
+    // Incorrect - reset to learning phase but keep some ease
     repetitions = 0;
     interval = 1;
   }
 
   // Update ease factor using SM-2 formula
   ease = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
+  // Keep ease within bounds
   if (ease < 1.3) ease = 1.3;
+  if (ease > 3.0) ease = 3.0;
 
   const nextDueDate = new Date();
   nextDueDate.setDate(nextDueDate.getDate() + interval);

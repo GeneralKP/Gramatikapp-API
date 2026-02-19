@@ -1,0 +1,48 @@
+type WordForms {
+  perfect: String
+  past: String
+  imperativ: String
+  irregularConjugations: String
+  plural: String
+  gender: String
+  gramaticalCase: String
+}
+
+type RelatedWords {
+  synonyms: [String!]
+  antonyms: [String!]
+  homophones: [String!]
+  homonymous: [String!]
+  paronyms: [String!]
+  verbFamilies: [String!]
+}
+
+type Word {
+  id: ID!
+  word: String!
+  gramaticalCategory: String!
+  examples: [String!]!
+  relatedWords: RelatedWords
+  forms: WordForms
+  context: String
+  level: String
+  notes: String
+  createdAt: String!
+}
+
+type WordRelation {
+  id: ID!
+  main: Word!
+  translated: Word!
+  createdAt: String!
+}
+
+extend type Query {
+  words(lang: String!, limit: Int, offset: Int): [Word!]!
+  word(lang: String!, id: ID!): Word
+  wordRelations(limit: Int, offset: Int): [WordRelation!]!
+}
+
+extend type Mutation {
+  addWordRelation(mainId: ID!, translatedId: ID!): WordRelation!
+}

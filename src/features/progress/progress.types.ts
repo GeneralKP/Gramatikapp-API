@@ -3,7 +3,8 @@ import { ObjectId } from "mongodb";
 export interface UserProgress {
   _id: ObjectId;
   userId: ObjectId;
-  phraseId: ObjectId;
+  itemId: ObjectId;
+  itemType: "WORD" | "PHRASE";
   ease: number;
   interval: number;
   repetitions: number;
