@@ -1,5 +1,34 @@
 import { ObjectId } from "mongodb";
 
+export enum LearningContext {
+  TRAVEL_CAR = "travel_car",
+  TRAVEL_TRAIN = "travel_train",
+  TRAVEL_BOAT = "travel_boat",
+  TRAVEL_PLANE = "travel_plane",
+  TRAVEL_WALKING = "travel_walking",
+  HOSPITAL = "hospital",
+  SURGERY = "surgery",
+  PRAXIS = "praxis",
+  PARTY = "party",
+  LANG_PARTY = "lang_party",
+  CHURCH = "church",
+  WORSHIP = "worship",
+  ADVENTIST = "adventist",
+  FLIRTING = "flirting",
+  MOVING = "moving",
+  ROBBERY = "robbery",
+  COLOMBIAN = "colombian",
+  COLOMBIAN_COMPLIMENTS = "colombian_compliments",
+  DEBATE = "debate",
+  UNIVERSITY = "university",
+  COURT = "court",
+  IMMIGRATION = "immigration",
+  CHINA = "china",
+  BEGGING = "begging",
+  RAFFLES = "raffles",
+  CARTOON_CONVENTION = "cartoon_convention",
+}
+
 export enum GrammaticalCategory {
   NOUN = "NOUN",
   VERB = "VERB",
@@ -10,6 +39,7 @@ export enum GrammaticalCategory {
   CONJUNCTION = "CONJUNCTION",
   INTERJECTION = "INTERJECTION",
   ARTICLE = "ARTICLE",
+  UNKNOWN = "UNKNOWN",
 }
 
 export interface WordForms {
@@ -43,11 +73,11 @@ export enum WordLevel {
 export interface Word {
   _id: ObjectId;
   word: string;
-  gramaticalCategory: GrammaticalCategory;
+  gramaticalCategories: GrammaticalCategory[];
   examples: string[];
   relatedWords?: RelatedWords;
   forms?: WordForms;
-  context?: string;
+  contexts: LearningContext[];
   level?: WordLevel;
   notes?: string;
   createdAt: Date;

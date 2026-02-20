@@ -1,0 +1,1590 @@
+{
+  "esPhrases": [
+    {
+      "_id": "69979de7cf36789b54b5fdf7",
+      "phrase": "Hola, ¿cómo estás?"
+    },
+    {
+      "_id": "69979de8cf36789b54b5fdfa",
+      "phrase": "Me llamo Juan."
+    },
+    {
+      "_id": "69979de8cf36789b54b5fdfd",
+      "phrase": "¿Dónde está la estación?"
+    },
+    {
+      "_id": "69979de8cf36789b54b5fe00",
+      "phrase": "Quiero un café, por favor."
+    },
+    {
+      "_id": "69979de9cf36789b54b5fe03",
+      "phrase": "Eso cuesta diez euros."
+    },
+    {
+      "_id": "69979de9cf36789b54b5fe06",
+      "phrase": "Ayer fui al médico porque me dolía la cabeza."
+    },
+    {
+      "_id": "69979de9cf36789b54b5fe09",
+      "phrase": "Mi hermano trabaja en un hospital."
+    },
+    {
+      "_id": "69979deacf36789b54b5fe0c",
+      "phrase": "El tren llega a las tres de la tarde."
+    },
+    {
+      "_id": "69979deacf36789b54b5fe0f",
+      "phrase": "Me gusta mucho esta fiesta."
+    },
+    {
+      "_id": "69979deacf36789b54b5fe12",
+      "phrase": "Necesito comprar un billete."
+    },
+    {
+      "_id": "69979deacf36789b54b5fe15",
+      "phrase": "Aunque el GPS indicaba otra ruta, decidimos tomar la autopista porque había menos tráfico."
+    },
+    {
+      "_id": "69979debcf36789b54b5fe18",
+      "phrase": "El maquinista anunció que el tren haría una parada no programada debido a las obras en la vía."
+    },
+    {
+      "_id": "69979debcf36789b54b5fe1b",
+      "phrase": "Si hubiéramos llegado cinco minutos antes, habríamos alcanzado el ferry."
+    },
+    {
+      "_id": "69979debcf36789b54b5fe1e",
+      "phrase": "Les pedimos a los pasajeros que abrocharan sus cinturones porque estábamos atravesando una zona de turbulencias."
+    },
+    {
+      "_id": "69979deccf36789b54b5fe21",
+      "phrase": "Después de caminar durante cuatro horas por el sendero, encontramos un refugio donde pudimos descansar."
+    },
+    {
+      "_id": "69979deccf36789b54b5fe24",
+      "phrase": "El médico me explicó que debía tomar el medicamento tres veces al día después de las comidas."
+    },
+    {
+      "_id": "69979deccf36789b54b5fe27",
+      "phrase": "Mi abuela fue ingresada en el hospital porque se desmayó en la calle."
+    },
+    {
+      "_id": "69979dedcf36789b54b5fe2a",
+      "phrase": "Había tanta gente en la fiesta que casi no podíamos movernos."
+    },
+    {
+      "_id": "69979dedcf36789b54b5fe2d",
+      "phrase": "El coro cantó tan hermosamente que muchos de los presentes se conmovieron hasta las lágrimas."
+    },
+    {
+      "_id": "69979dedcf36789b54b5fe30",
+      "phrase": "Cuando la vi sonreír por primera vez, supe que quería conocerla mejor."
+    },
+    {
+      "_id": "69979deecf36789b54b5fe33",
+      "phrase": "No pude dejar de mirarte desde que entraste por la puerta."
+    },
+    {
+      "_id": "69979deecf36789b54b5fe36",
+      "phrase": "Parce, esa rumba estuvo tan bacana que no queríamos irnos."
+    },
+    {
+      "_id": "69979deecf36789b54b5fe39",
+      "phrase": "Oye, tú no caminas, tú desfilas. Se nota que naciste para brillar."
+    },
+    {
+      "_id": "69979deecf36789b54b5fe3c",
+      "phrase": "Si me dieras la oportunidad de explicarte mi punto de vista, estoy seguro de que cambiarías de opinión."
+    },
+    {
+      "_id": "69979defcf36789b54b5fe3f",
+      "phrase": "Creo que deberías pensarlo mejor antes de tomar una decisión tan importante."
+    },
+    {
+      "_id": "69979defcf36789b54b5fe42",
+      "phrase": "Los ladrones entraron por la ventana trasera mientras los dueños dormían."
+    },
+    {
+      "_id": "69979defcf36789b54b5fe45",
+      "phrase": "Cuando terminamos la mudanza, nos dimos cuenta de que habíamos olvidado las cajas más importantes."
+    },
+    {
+      "_id": "69979df0cf36789b54b5fe48",
+      "phrase": "El profesor nos dijo que el examen final contaría el sesenta por ciento de la nota."
+    },
+    {
+      "_id": "69979df0cf36789b54b5fe4b",
+      "phrase": "En la reunión de idiomas conocí a personas de más de diez países diferentes."
+    },
+    {
+      "_id": "69979df0cf36789b54b5fe4e",
+      "phrase": "Tuve que presentar muchos documentos para solicitar mi permiso de residencia."
+    },
+    {
+      "_id": "69979df1cf36789b54b5fe51",
+      "phrase": "El anciano que mendigaba en la esquina me contó que había perdido su casa en un incendio."
+    },
+    {
+      "_id": "69979df1cf36789b54b5fe54",
+      "phrase": "Nunca pensé que ganaría el sorteo, pero la suerte me sonrió ese día."
+    },
+    {
+      "_id": "69979df1cf36789b54b5fe57",
+      "phrase": "Los fans se disfrazaron de sus personajes favoritos y desfilaron por todo el recinto."
+    },
+    {
+      "_id": "69979df2cf36789b54b5fe5a",
+      "phrase": "El abogado defensor pidió al juez que considerara las circunstancias atenuantes."
+    },
+    {
+      "_id": "69979df2cf36789b54b5fe5d",
+      "phrase": "Si no me hubieran multado por exceso de velocidad, habría llegado antes que tú."
+    },
+    {
+      "_id": "69979df2cf36789b54b5fe60",
+      "phrase": "Habría sido preferible reservar un billete de primera clase, puesto que el viaje duraba más de diez horas."
+    },
+    {
+      "_id": "69979df3cf36789b54b5fe63",
+      "phrase": "La tripulación del barco nos advirtió que las condiciones climáticas empeorarían considerablemente durante la noche."
+    },
+    {
+      "_id": "69979df3cf36789b54b5fe66",
+      "phrase": "Me resulta incomprensible que las aerolíneas sigan cobrando por el equipaje de mano cuando los billetes ya son tan caros."
+    },
+    {
+      "_id": "69979df3cf36789b54b5fe69",
+      "phrase": "A pesar de que el cirujano le había explicado los riesgos, ella insistió en someterse a la operación."
+    },
+    {
+      "_id": "69979df3cf36789b54b5fe6c",
+      "phrase": "Me encantaría que me dejaras invitarte a cenar para que pudiéramos conocernos sin prisas."
+    },
+    {
+      "_id": "69979df4cf36789b54b5fe6f",
+      "phrase": "Si el destino nos puso en el mismo lugar, será porque tenemos algo pendiente, ¿no crees?"
+    },
+    {
+      "_id": "69979df4cf36789b54b5fe72",
+      "phrase": "De todas las personas en este lugar, eres la única que logra que mi corazón lata más rápido."
+    },
+    {
+      "_id": "69979df4cf36789b54b5fe75",
+      "phrase": "Mami, tú no necesitas filtro ni en las fotos ni en la vida, porque eres pura belleza natural."
+    },
+    {
+      "_id": "69979df5cf36789b54b5fe78",
+      "phrase": "¡Parcero, usted es más berraco que un tinto a las cinco de la mañana en una finca cafetera!"
+    },
+    {
+      "_id": "69979df5cf36789b54b5fe7b",
+      "phrase": "Las personas tienden a aceptar una propuesta cuando sienten que se les está dando la libertad de elegir."
+    },
+    {
+      "_id": "69979df5cf36789b54b5fe7e",
+      "phrase": "Si quieres convencer a alguien, primero deberías demostrarle que entiendes su posición."
+    },
+    {
+      "_id": "69979df6cf36789b54b5fe81",
+      "phrase": "El sesgo de confirmación nos hace buscar información que refuerce nuestras creencias ya existentes."
+    },
+    {
+      "_id": "69979df6cf36789b54b5fe84",
+      "phrase": "La empatía no consiste solo en entender lo que siente el otro, sino en hacerle saber que lo comprendes."
+    },
+    {
+      "_id": "69979df6cf36789b54b5fe87",
+      "phrase": "El fiscal presentó pruebas contundentes que demostraban la participación del acusado en el atraco."
+    },
+    {
+      "_id": "69979df7cf36789b54b5fe8a",
+      "phrase": "En la escuela adventista nos enseñaron que guardar el sábado es un acto de fe y obediencia."
+    },
+    {
+      "_id": "69979df7cf36789b54b5fe8d",
+      "phrase": "Durante el servicio de adoración, la congregación entonó himnos que reflejaban una profunda gratitud."
+    },
+    {
+      "_id": "69979df7cf36789b54b5fe90",
+      "phrase": "La Gran Muralla no solo protegía contra invasiones, sino que también servía como ruta comercial."
+    },
+    {
+      "_id": "69979df7cf36789b54b5fe93",
+      "phrase": "El proceso de integración sería mucho más sencillo si los inmigrantes tuvieran acceso a cursos de idiomas gratuitos."
+    },
+    {
+      "_id": "69979df8cf36789b54b5fe96",
+      "phrase": "El comité académico rechazó su propuesta de tesis porque carecía de una metodología rigurosa."
+    },
+    {
+      "_id": "69979df8cf36789b54b5fe99",
+      "phrase": "Las organizaciones benéficas argumentan que la mendicidad debería abordarse como un problema social, no como un delito."
+    },
+    {
+      "_id": "69979df8cf36789b54b5fe9c",
+      "phrase": "Los organizadores aseguraron que el sorteo se llevaría a cabo de manera transparente ante un notario público."
+    },
+    {
+      "_id": "69979df9cf36789b54b5fe9f",
+      "phrase": "El artista invitado reveló que su personaje favorito había sido inspirado por sus propias experiencias de infancia."
+    },
+    {
+      "_id": "69979df9cf36789b54b5fea2",
+      "phrase": "Si hubiéramos contratado una empresa de mudanzas, no habríamos pasado todo el fin de semana cargando muebles."
+    },
+    {
+      "_id": "69979df9cf36789b54b5fea5",
+      "phrase": "Dado que el perito mecánico había dictaminado que los frenos estaban defectuosos, la aseguradora se vio obligada a asumir la responsabilidad del accidente."
+    },
+    {
+      "_id": "69979dfacf36789b54b5fea8",
+      "phrase": "La huelga de maquinistas puso de manifiesto la fragilidad del sistema ferroviario, que lleva años sufriendo una desinversión sistemática."
+    },
+    {
+      "_id": "69979dfacf36789b54b5feab",
+      "phrase": "Cuanto más profundizamos en las técnicas de persuasión, más evidente se hace que la manipulación emocional es una herramienta omnipresente en el discurso político."
+    },
+    {
+      "_id": "69979dfacf36789b54b5feae",
+      "phrase": "La disonancia cognitiva que experimentamos al sostener dos creencias contradictorias nos impulsa a racionalizar nuestro comportamiento de formas insospechadas."
+    },
+    {
+      "_id": "69979dfbcf36789b54b5feb1",
+      "phrase": "Un negociador hábil sabe que es preferible formular preguntas abiertas antes que imponer afirmaciones categóricas."
+    },
+    {
+      "_id": "69979dfbcf36789b54b5feb4",
+      "phrase": "Habría que cuestionar por qué la sociedad estigmatiza la vulnerabilidad emocional en los hombres en lugar de promover su expresión saludable."
+    },
+    {
+      "_id": "69979dfbcf36789b54b5feb7",
+      "phrase": "La cirugía reconstructiva a la que fue sometido el paciente requirió la coordinación de un equipo multidisciplinario durante más de ocho horas."
+    },
+    {
+      "_id": "69979dfccf36789b54b5feba",
+      "phrase": "Si me permitieras demostrarte con hechos lo que siento, entenderías por qué no puedo sacarte de mi mente."
+    },
+    {
+      "_id": "69979dfccf36789b54b5febd",
+      "phrase": "No es que me falten palabras para describirte, es que la lengua alemana no ha inventado aún las suficientes."
+    },
+    {
+      "_id": "69979dfccf36789b54b5fec0",
+      "phrase": "Una colombiana en Alemania es como un rayo de sol atravesando las nubes grises de noviembre: imposible de ignorar."
+    },
+    {
+      "_id": "69979dfccf36789b54b5fec3",
+      "phrase": "Eres tan berraca que si te propusieras conquistar el mundo, empezarías pidiéndole permiso al destino."
+    },
+    {
+      "_id": "69979dfdcf36789b54b5fec6",
+      "phrase": "La defensa alegó que las pruebas habían sido obtenidas mediante procedimientos que vulneraban los derechos fundamentales del acusado."
+    },
+    {
+      "_id": "69979dfdcf36789b54b5fec9",
+      "phrase": "El jurado deliberó durante tres días antes de emitir un veredicto unánime de culpabilidad."
+    },
+    {
+      "_id": "69979dfdcf36789b54b5fecc",
+      "phrase": "La teología adventista sostiene que la observancia del sábado constituye un sello de la relación pactual entre Dios y su pueblo."
+    },
+    {
+      "_id": "69979dfecf36789b54b5fecf",
+      "phrase": "El pastor reflexionó sobre cómo la fe auténtica debería trascender los rituales vacíos y manifestarse en actos concretos de compasión."
+    },
+    {
+      "_id": "69979dfecf36789b54b5fed2",
+      "phrase": "La filosofía confuciana ha moldeado las estructuras jerárquicas de la sociedad china de un modo que resulta difícil de comprender para los occidentales."
+    },
+    {
+      "_id": "69979dfecf36789b54b5fed5",
+      "phrase": "Las políticas migratorias restrictivas no solo dificultan la integración, sino que también fomentan economías sumergidas que explotan a los más vulnerables."
+    },
+    {
+      "_id": "69979dffcf36789b54b5fed8",
+      "phrase": "La interdisciplinariedad en la investigación académica ha demostrado que los problemas complejos requieren abordajes que trasciendan las fronteras de una sola disciplina."
+    },
+    {
+      "_id": "69979dffcf36789b54b5fedb",
+      "phrase": "El testimonio del testigo clave resultó ser determinante para que el tribunal condenara al autor intelectual del robo."
+    },
+    {
+      "_id": "69979dffcf36789b54b5fede",
+      "phrase": "Resulta paradójico que en una sociedad tan próspera aún haya personas que se ven obligadas a mendigar para cubrir sus necesidades básicas."
+    },
+    {
+      "_id": "69979e00cf36789b54b5fee1",
+      "phrase": "El fenómeno de la interferencia lingüística se manifiesta de manera particularmente interesante cuando hablantes de lenguas romances intentan producir las vocales del alemán."
+    },
+    {
+      "_id": "69979e00cf36789b54b5fee4",
+      "phrase": "Lo que empezó como una reunión informal entre colegas terminó convirtiéndose en una celebración que se prolongó hasta el amanecer."
+    },
+    {
+      "_id": "69979e00cf36789b54b5fee7",
+      "phrase": "Habría preferido que los operarios hubieran tenido más cuidado con los muebles antiguos, puesto que algunos sufrieron daños irreparables durante el traslado."
+    },
+    {
+      "_id": "69979e01cf36789b54b5feea",
+      "phrase": "La evolución del manga japonés ha ejercido una influencia tan profunda en la narrativa gráfica occidental que resulta imposible estudiar una sin hacer referencia a la otra."
+    },
+    {
+      "_id": "69979e01cf36789b54b5feed",
+      "phrase": "Habida cuenta de que los sensores del vehículo autónomo no habían sido calibrados conforme a las especificaciones del fabricante, cabría preguntarse si la responsabilidad civil recae sobre el propietario o sobre el proveedor tecnológico."
+    },
+    {
+      "_id": "69979e01cf36789b54b5fef0",
+      "phrase": "La retórica sofista, lejos de haber quedado relegada a los anales de la Antigüedad, permea cada fibra del debate público contemporáneo con una eficacia que habría asombrado al mismísimo Gorgias."
+    },
+    {
+      "_id": "69979e01cf36789b54b5fef3",
+      "phrase": "El principio de reciprocidad, piedra angular de la influencia social según Cialdini, explota nuestra necesidad innata de corresponder favores, aun cuando dichos favores hayan sido impuestos sin nuestro consentimiento."
+    },
+    {
+      "_id": "69979e02cf36789b54b5fef6",
+      "phrase": "La que fuera otrora la ruta marítima más peligrosa del mundo ha sido transformada, merced a los avances en navegación satelital, en un corredor comercial de una previsibilidad casi absoluta."
+    },
+    {
+      "_id": "69979e02cf36789b54b5fef9",
+      "phrase": "El gaslighting, en cuanto forma refinada de manipulación psicológica, opera mediante la desestabilización sistemática de la percepción de la realidad de la víctima hasta el punto de hacerle dudar de su propia cordura."
+    },
+    {
+      "_id": "69979e02cf36789b54b5fefc",
+      "phrase": "Permíteme hacerte una confesión que quizá debiera haber reservado para un momento más íntimo: desde que te conocí, cada conversación contigo me parece insuficiente."
+    },
+    {
+      "_id": "69979e03cf36789b54b5feff",
+      "phrase": "Lo que siento por ti no se deja encasillar en ninguna de las categorías que la psicología ha inventado para clasificar las emociones humanas."
+    },
+    {
+      "_id": "69979e03cf36789b54b5ff02",
+      "phrase": "Si la seducción fuera un arte, tú serías el Renacimiento entero: clásica en tu elegancia, revolucionaria en tu efecto."
+    },
+    {
+      "_id": "69979e03cf36789b54b5ff05",
+      "phrase": "Mami, si pudiera embotellarte, abriría una cadena de perfumerías que quebrantaría todas las leyes de la economía, porque la demanda sería infinita."
+    },
+    {
+      "_id": "69979e04cf36789b54b5ff08",
+      "phrase": "Magia, en mi tierra dicen que Dios no hizo a la humanidad perfecta, pero cuando te creó a ti, se le fue la mano con la belleza."
+    },
+    {
+      "_id": "69979e04cf36789b54b5ff0b",
+      "phrase": "La casación interpuesta por la defensa se fundamentó en que el tribunal de instancia había incurrido en una errónea valoración de las pruebas circunstanciales, vulnerando así el principio de presunción de inocencia."
+    },
+    {
+      "_id": "69979e04cf36789b54b5ff0e",
+      "phrase": "La microanastomosis vascular que requirió el trasplante de tejido libre constituyó uno de los procedimientos más exigentes a los que se haya enfrentado el equipo quirúrgico en la última década."
+    },
+    {
+      "_id": "69979e05cf36789b54b5ff11",
+      "phrase": "La escatología adventista, enraizada en una hermenéutica historicista, interpreta las profecías apocalípticas como un continuum que se extiende desde la antigüedad bíblica hasta la consumación de los tiempos."
+    },
+    {
+      "_id": "69979e05cf36789b54b5ff14",
+      "phrase": "La estrategia geopolítica de la Franja y la Ruta, heredera conceptual de la antigua Ruta de la Seda, ha suscitado tanto admiración por su ambición como recelos por sus implicaciones neocoloniales."
+    },
+    {
+      "_id": "69979e05cf36789b54b5ff17",
+      "phrase": "Las diásporas contemporáneas configuran identidades transnacionales cuya complejidad desafía las nociones decimonónicas de ciudadanía y pertenencia que aún rigen la mayoría de los marcos jurídicos."
+    },
+    {
+      "_id": "69979e06cf36789b54b5ff1a",
+      "phrase": "La mercantilización del conocimiento académico, fenómeno exacerbado por la dependencia de métricas bibliométricas, amenaza con socavar la libertad intelectual que constituye el fundamento mismo de la investigación científica."
+    },
+    {
+      "_id": "69979e06cf36789b54b5ff1d",
+      "phrase": "La fenomenología de la mendicidad urbana revela que tras la aparente homogeneidad de la pobreza visible se esconden trayectorias vitales tan diversas como las fuerzas estructurales que las produjeron."
+    },
+    {
+      "_id": "69979e06cf36789b54b5ff20",
+      "phrase": "Los mecanismos probabilísticos que subyacen a los sorteos, por más que sean explicados de forma transparente, no consiguen disuadir al jugador compulsivo de su convicción irracional de que la suerte puede ser domesticada."
+    },
+    {
+      "_id": "69979e06cf36789b54b5ff23",
+      "phrase": "La semiótica del cosplay trasciende la mera imitación: constituye un acto performativo mediante el cual el individuo negocia su identidad en la intersección entre la ficción y la autopercepción."
+    },
+    {
+      "_id": "69979e07cf36789b54b5ff26",
+      "phrase": "La adquisición de una segunda lengua en la edad adulta reconfigura las redes neuronales del hemisferio izquierdo de un modo que, según estudios de neuroimagen funcional, se asemeja más a la plasticidad infantil de lo que se creía hasta hace poco."
+    },
+    {
+      "_id": "69979e07cf36789b54b5ff29",
+      "phrase": "Aquella velada, que comenzó con una cortesía protocolaria y culminó en una catarsis colectiva, puso de relieve la función antropológica de la celebración como mecanismo de cohesión social."
+    },
+    {
+      "_id": "69979e07cf36789b54b5ff2c",
+      "phrase": "La doxología trinitaria, en cuanto expresión litúrgica de la fe, articula una comprensión de lo divino que trasciende las categorías ontológicas del pensamiento filosófico occidental."
+    },
+    {
+      "_id": "69979e08cf36789b54b5ff2f",
+      "phrase": "El desarraigo que conlleva una mudanza transnacional pone a prueba la resiliencia emocional del individuo de un modo que solo quienes lo han experimentado pueden verdaderamente comprender."
+    },
+    {
+      "_id": "69979e08cf36789b54b5ff32",
+      "phrase": "La relación médico-paciente ha experimentado una transformación paradigmática: del paternalismo hipocrático decimonónico hemos transitado hacia un modelo de decisión compartida que, paradójicamente, incrementa la ansiedad del paciente ante la responsabilidad de elegir."
+    },
+    {
+      "_id": "69979e08cf36789b54b5ff35",
+      "phrase": "El burnout entre los profesionales sanitarios, exacerbado por la pandemia, ha alcanzado proporciones tales que amenaza la sostenibilidad misma del sistema de salud pública."
+    },
+    {
+      "_id": "69979e09cf36789b54b5ff38",
+      "phrase": "Si yo fuera tú, habría pedido disculpas antes de que fuera demasiado tarde."
+    },
+    {
+      "_id": "69979e09cf36789b54b5ff3b",
+      "phrase": "Me habría gustado que me hubieras avisado antes, porque habría podido preparar todo a tiempo."
+    },
+    {
+      "_id": "69979e09cf36789b54b5ff3e",
+      "phrase": "Aunque habría sido mejor tomar el tren, decidimos conducir porque el coche ya estaba cargado."
+    },
+    {
+      "_id": "69979e0acf36789b54b5ff41",
+      "phrase": "El paciente, que ya había sido operado dos veces, dijo que no se sometería a otra intervención."
+    },
+    {
+      "_id": "69979e0acf36789b54b5ff44",
+      "phrase": "Si hubiéramos sabido que el vuelo estaba cancelado, habríamos reservado otro con anticipación."
+    },
+    {
+      "_id": "69979e0acf36789b54b5ff47",
+      "phrase": "El testigo declaró que había sido amenazado por los acusados, razón por la cual no se había atrevido a hablar antes."
+    },
+    {
+      "_id": "69979e0bcf36789b54b5ff4a",
+      "phrase": "Ella dijo que habría ido a la fiesta si no hubiera tenido que estudiar para el examen del día siguiente."
+    },
+    {
+      "_id": "69979e0bcf36789b54b5ff4d",
+      "phrase": "El sermón del pastor, escuchado con atención por toda la congregación, trató sobre el perdón que nos había sido concedido."
+    },
+    {
+      "_id": "69979e0bcf36789b54b5ff50",
+      "phrase": "Habría querido decirte lo que siento, pero temía que no hubieras entendido lo que realmente significas para mí."
+    },
+    {
+      "_id": "69979e0bcf36789b54b5ff53",
+      "phrase": "Si pudiéramos volver a ese momento en que nos conocimos, haría exactamente lo mismo: mirarte y sonreír."
+    },
+    {
+      "_id": "69979e0ccf36789b54b5ff56",
+      "phrase": "Si me hubieras escuchado cuando te lo dije, no te habrías encontrado en una situación tan comprometida."
+    },
+    {
+      "_id": "69979e0ccf36789b54b5ff59",
+      "phrase": "La propuesta, que habría sido aprobada por unanimidad en circunstancias normales, fue rechazada debido a un vicio de forma descubierto a última hora."
+    },
+    {
+      "_id": "69979e0ccf36789b54b5ff5c",
+      "phrase": "Si no te hubiera visto esa noche en la fiesta, me habría perdido la oportunidad de conocer a la persona más fascinante que he conocido."
+    },
+    {
+      "_id": "69979e0dcf36789b54b5ff5f",
+      "phrase": "Ojalá me hubieras dado la oportunidad de explicarte por qué había actuado de esa manera antes de juzgarme."
+    },
+    {
+      "_id": "69979e0dcf36789b54b5ff62",
+      "phrase": "El acusado, habiendo sido interrogado durante más de ocho horas sin abogado, habría hecho cualquier confesión que le hubieran pedido."
+    },
+    {
+      "_id": "69979e0dcf36789b54b5ff65",
+      "phrase": "La mercancía, transportada en condiciones que no habrían sido aprobadas por ningún inspector, llegó dañada al puerto de destino."
+    },
+    {
+      "_id": "69979e0ecf36789b54b5ff68",
+      "phrase": "Siendo colombiano, habría esperado que los alemanes fueran más fríos, pero descubrí que, una vez roto el hielo, son personas increíblemente cálidas."
+    },
+    {
+      "_id": "69979e0ecf36789b54b5ff6b",
+      "phrase": "Parce, si yo hubiera sabido que esta chimba de ciudad existía, me habría venido mucho antes y no habría perdido tanto tiempo."
+    },
+    {
+      "_id": "69979e0ecf36789b54b5ff6e",
+      "phrase": "Si un psicólogo te hubiera dicho hace un año que cambiarías de opinión, probablemente te habrías reído, pero mira dónde estás ahora."
+    },
+    {
+      "_id": "69979e0fcf36789b54b5ff71",
+      "phrase": "El manipulador, habiendo identificado las inseguridades de su víctima, las habría utilizado como palancas emocionales para conseguir lo que deseaba."
+    },
+    {
+      "_id": "69979e0fcf36789b54b5ff74",
+      "phrase": "La documentación, habiendo sido revisada por tres instancias diferentes, habría sido suficiente si no hubiera faltado la firma del notario."
+    },
+    {
+      "_id": "69979e0fcf36789b54b5ff77",
+      "phrase": "Si los adventistas no hubieran mantenido su posición respecto al sábado, habrían perdido una de las señas de identidad que más los distingue."
+    },
+    {
+      "_id": "69979e10cf36789b54b5ff7a",
+      "phrase": "Habría sido imposible que la cirugía hubiera salido bien si el equipo no hubiera sido coordinado con tanta precisión."
+    },
+    {
+      "_id": "69979e10cf36789b54b5ff7d",
+      "phrase": "Si la beca me hubiera sido concedida a tiempo, habría podido comenzar el semestre sin preocupaciones financieras."
+    },
+    {
+      "_id": "69979e10cf36789b54b5ff80",
+      "phrase": "El senderista, agotado después de haber caminado durante siete horas por un terreno que no había sido cartografiado, decidió acampar al borde del río."
+    },
+    {
+      "_id": "69979e11cf36789b54b5ff83",
+      "phrase": "Habría sido inconcebible que el cirujano, a quien se le había confiado una operación tan delicada, no hubiera verificado personalmente que todos los instrumentos estuvieran esterilizados."
+    },
+    {
+      "_id": "69979e11cf36789b54b5ff86",
+      "phrase": "Si los inmigrantes, cuyas solicitudes habían sido rechazadas por motivos meramente burocráticos, hubieran tenido acceso a asesoría legal, muchos de ellos habrían obtenido el asilo que merecían."
+    },
+    {
+      "_id": "69979e11cf36789b54b5ff89",
+      "phrase": "La evidencia, recopilada durante meses por investigadores que habían sido seleccionados específicamente para este caso, habría bastado para dictar sentencia si el juez no hubiera declarado un vicio procesal."
+    },
+    {
+      "_id": "69979e11cf36789b54b5ff8c",
+      "phrase": "Si te hubiera conocido en otra vida, estoy seguro de que habría cruzado océanos para encontrarte, porque un alma como la tuya no pasa desapercibida."
+    },
+    {
+      "_id": "69979e12cf36789b54b5ff8f",
+      "phrase": "Si mis ojos, acostumbrados a las sombras de la soledad, no te hubieran encontrado aquella noche, habrían seguido buscándote sin saber lo que buscaban."
+    },
+    {
+      "_id": "69979e12cf36789b54b5ff92",
+      "phrase": "Parce, si a mí me hubieran dicho que un colombiano sobreviviría un invierno alemán sin quejarse, habría dicho que era más mentiroso que un político en campaña."
+    },
+    {
+      "_id": "69979e12cf36789b54b5ff95",
+      "phrase": "Mami, si la belleza hubiera sido repartida de forma justa, el universo entero habría protestado porque a ti te dieron más de lo que le correspondía a una sola persona."
+    },
+    {
+      "_id": "69979e13cf36789b54b5ff98",
+      "phrase": "Si el persuasor hubiera comprendido que la resistencia del interlocutor estaba motivada por el miedo y no por la convicción, habría ajustado su estrategia comunicativa antes de perder credibilidad."
+    },
+    {
+      "_id": "69979e13cf36789b54b5ff9b",
+      "phrase": "La tesis, que habría sido defendida con éxito si el doctorando no hubiera omitido datos cruciales, tuvo que ser reescrita desde cero bajo la supervisión de un nuevo director."
+    },
+    {
+      "_id": "69979e13cf36789b54b5ff9e",
+      "phrase": "Los fondos, recaudados mediante sorteos que habían sido organizados por voluntarios comprometidos, habrían alcanzado para financiar el proyecto si no hubieran sido malversados por la junta directiva."
+    },
+    {
+      "_id": "69979e14cf36789b54b5ffa1",
+      "phrase": "El anciano, que habría sido recogido por los servicios sociales si alguien hubiera denunciado su situación, llevaba meses sobreviviendo gracias a la caridad de los transeúntes."
+    },
+    {
+      "_id": "69979e14cf36789b54b5ffa4",
+      "phrase": "El cosplayer, cuyo disfraz habría sido premiado en cualquier otra convención, fue descalificado porque los materiales utilizados no habían sido declarados según el reglamento."
+    },
+    {
+      "_id": "69979e14cf36789b54b5ffa7",
+      "phrase": "La mudanza, que habría transcurrido sin incidentes si la empresa contratada hubiera cumplido con las condiciones pactadas, terminó siendo un desastre logístico de proporciones épicas."
+    },
+    {
+      "_id": "69979e15cf36789b54b5ffaa",
+      "phrase": "Si los fieles no hubieran sido advertidos por el pastor sobre los peligros del materialismo, muchos habrían caído en la trampa del consumismo sin cuestionar sus valores."
+    },
+    {
+      "_id": "69979e15cf36789b54b5ffad",
+      "phrase": "En China, habiendo sido testigos de la transformación económica más rápida de la historia, los ciudadanos mayores a menudo se preguntan si la modernidad ha sido alcanzada a costa de la tradición."
+    },
+    {
+      "_id": "69979e15cf36789b54b5ffb0",
+      "phrase": "Si el acusado, habiendo sido absuelto en primera instancia por un tribunal que no habría debido ignorar las pruebas periciales, hubiera sido juzgado de nuevo conforme a las normas que habrían regido un proceso imparcial, el resultado habría sido diametralmente opuesto."
+    },
+    {
+      "_id": "69979e16cf36789b54b5ffb3",
+      "phrase": "Habría bastado con que el cirujano, a quien se le había encomendado la intervención más compleja que se hubiera realizado en aquella clínica, hubiera consultado los resultados de la resonancia que ya habían sido analizados por el equipo de radiología."
+    },
+    {
+      "_id": "69979e16cf36789b54b5ffb6",
+      "phrase": "Si la persuasión, entendida no como manipulación sino como el arte de hacer visible aquello que el interlocutor ya habría aceptado de no haber sido cegado por sus propios sesgos, hubiera sido enseñada en las escuelas, la calidad del debate público habría mejorado inconmensurablemente."
+    },
+    {
+      "_id": "69979e16cf36789b54b5ffb9",
+      "phrase": "Si alguna vez me preguntaran cuál habría sido el momento de mi vida que habría cambiado por nada en el mundo, diría sin vacilar que fue aquel en que, habiéndote conocido apenas unas horas antes, supe que mi corazón ya te había elegido."
+    },
+    {
+      "_id": "69979e16cf36789b54b5ffbc",
+      "phrase": "Si las palabras que habría querido decirte aquella noche no hubieran quedado atrapadas en mi garganta, habrías sabido que cada sílaba que pronuncio desde entonces ha sido una forma encubierta de buscarte."
+    },
+    {
+      "_id": "69979e17cf36789b54b5ffbf",
+      "phrase": "Mami, si la belleza hubiera sido medida con los instrumentos que la ciencia moderna ha inventado, los científicos habrían tenido que crear una nueva unidad de medida solo para cuantificar la tuya."
+    },
+    {
+      "_id": "69979e17cf36789b54b5ffc2",
+      "phrase": "Parce, si a Colombia le hubieran concedido un peso por cada vez que un colombiano en el extranjero ha dicho que extraña el tinto de la esquina, habríamos pagado la deuda externa hace rato."
+    },
+    {
+      "_id": "69979e17cf36789b54b5ffc5",
+      "phrase": "El fenómeno del anclaje cognitivo, habiendo sido analizado en innumerables estudios que habrían pasado desapercibidos sin la difusión mediática, demuestra que la primera información recibida moldea irreversiblemente el marco dentro del cual las decisiones posteriores son tomadas."
+    },
+    {
+      "_id": "69979e18cf36789b54b5ffc8",
+      "phrase": "Las políticas de asilo, que habrían sido reformadas si los legisladores hubieran escuchado a las organizaciones que durante décadas habían documentado las consecuencias de la burocracia sobre los solicitantes, permanecen estancadas en un paradigma que ya habría sido abandonado en cualquier sistema verdaderamente democrático."
+    },
+    {
+      "_id": "69979e18cf36789b54b5ffcb",
+      "phrase": "La ruta de la seda, habiendo sido recorrida por mercaderes cuyas fortunas habrían sido impensables sin la tolerancia de los kanes mongoles, constituyó un precedente de globalización que no habría podido reproducirse si las condiciones geopolíticas hubieran sido diferentes."
+    },
+    {
+      "_id": "69979e18cf36789b54b5ffce",
+      "phrase": "Si el sistema ferroviario alemán, cuya puntualidad habría sido considerada legendaria por cualquier pasajero que no hubiera experimentado en carne propia los constantes retrasos de la Deutsche Bahn, funcionara como los folletos prometen, los viajeros no se habrían visto obligados a planificar márgenes de error cada vez más absurdos."
+    },
+    {
+      "_id": "69979e19cf36789b54b5ffd1",
+      "phrase": "La doxología adventista, habiendo sido entonada por generaciones de fieles cuyos antepasados habrían sido perseguidos por las mismas creencias que ahora son celebradas en templos construidos con sacrificio, resuena con una profundidad teológica que solo puede ser comprendida por quienes han hecho del sábado un acto de resistencia espiritual."
+    },
+    {
+      "_id": "69979e19cf36789b54b5ffd4",
+      "phrase": "La tesis doctoral, que habría sido publicada en una revista de alto impacto si el comité evaluador no hubiera cuestionado la metodología que ya había sido validada por dos pares externos, tuvo que ser sometida a una revisión tan exhaustiva que habría desmoralizado a cualquier investigador menos perseverante."
+    },
+    {
+      "_id": "69979e19cf36789b54b5ffd7",
+      "phrase": "Si la lotería, cuyos premios habrían sido repartidos de forma equitativa en un mundo ideal, no hubiera sido diseñada para explotar el sesgo de optimismo que nos impide calcular correctamente las probabilidades, las colas frente a los puntos de venta habrían desaparecido hace décadas."
+    },
+    {
+      "_id": "69979e1acf36789b54b5ffda",
+      "phrase": "Si hubiéramos caminado más rápido, habríamos llegado al refugio antes de que empezara la tormenta."
+    },
+    {
+      "_id": "69979e1acf36789b54b5ffdd",
+      "phrase": "Me dijeron que la consulta ya había sido cancelada cuando llamé para confirmar mi cita."
+    },
+    {
+      "_id": "69979e1acf36789b54b5ffe0",
+      "phrase": "El paquete, que debería haber sido entregado la semana pasada, todavía no ha llegado a su destino."
+    },
+    {
+      "_id": "69979e1bcf36789b54b5ffe3",
+      "phrase": "Habría sido mejor si hubieras hablado conmigo antes de tomar esa decisión sin consultarme."
+    },
+    {
+      "_id": "69979e1bcf36789b54b5ffe6",
+      "phrase": "Desde que nos conocimos en aquella fiesta de intercambio de idiomas, no he podido dejar de pensar en ti."
+    },
+    {
+      "_id": "69979e1bcf36789b54b5ffe9",
+      "phrase": "Parcero, si supieras lo que se siente llegar a Alemania y que la gente te mire raro porque sonríes demasiado."
+    },
+    {
+      "_id": "69979e1bcf36789b54b5ffec",
+      "phrase": "Aunque el juez le había advertido que no debía abandonar el país, el sospechoso fue detectado en el aeropuerto."
+    },
+    {
+      "_id": "69979e1ccf36789b54b5ffef",
+      "phrase": "Si la oración que pronunciamos cada sábado fuera escuchada con el corazón y no solo con los oídos, transformaría nuestra vida."
+    },
+    {
+      "_id": "69979e1ccf36789b54b5fff2",
+      "phrase": "Si la psicología nos ha enseñado algo, es que las personas toman decisiones emocionales que luego justifican con argumentos racionales."
+    },
+    {
+      "_id": "69979e1ccf36789b54b5fff5",
+      "phrase": "El efecto de mera exposición, descubierto por Zajonc, demuestra que tendemos a preferir aquello que nos resulta familiar, incluso cuando no somos conscientes de haberlo visto antes."
+    },
+    {
+      "_id": "69979e1dcf36789b54b5fff8",
+      "phrase": "Habría dado cualquier cosa por haberte conocido en un momento de mi vida en que hubiera estado preparado para amarte como mereces."
+    },
+    {
+      "_id": "69979e1dcf36789b54b5fffb",
+      "phrase": "Mamacita, eres como un vallenato de Diomedes Díaz: te escucho una vez y ya no puedo sacarte de la cabeza."
+    },
+    {
+      "_id": "69979e1dcf36789b54b5fffe",
+      "phrase": "Parce, a un colombiano en el extranjero se le reconoce porque es el único que saluda al entrar en el ascensor."
+    },
+    {
+      "_id": "69979e1ecf36789b54b60001",
+      "phrase": "Si los miembros de la iglesia hubieran sido formados en pensamiento crítico, habrían podido distinguir entre fe genuina y manipulación religiosa."
+    },
+    {
+      "_id": "69979e1ecf36789b54b60004",
+      "phrase": "La sentencia, fundamentada en pruebas que habían sido recopiladas de manera irregular, fue anulada por el tribunal de apelación."
+    },
+    {
+      "_id": "69979e1ecf36789b54b60007",
+      "phrase": "Si el barco no hubiera sido equipado con sistemas de navegación modernos, la travesía habría sido mucho más peligrosa."
+    },
+    {
+      "_id": "69979e1fcf36789b54b6000a",
+      "phrase": "Habría sido más sensato esperar a que el atasco se hubiera despejado antes de intentar tomar la autopista."
+    },
+    {
+      "_id": "69979e1fcf36789b54b6000d",
+      "phrase": "El estudiante, cuya beca había sido condicionada a mantener un promedio alto, se vio obligado a renunciar a su vida social."
+    },
+    {
+      "_id": "69979e1fcf36789b54b60010",
+      "phrase": "Si la técnica del pie en la puerta, mediante la cual se obtiene primero un pequeño compromiso para después solicitar uno mayor, hubiera sido aplicada de forma ética, habría constituido una herramienta educativa valiosa."
+    },
+    {
+      "_id": "69979e20cf36789b54b60013",
+      "phrase": "El efecto Dunning-Kruger, habiendo sido malinterpretado por quienes lo citan sin haberlo leído, se ha convertido paradójicamente en un ejemplo de aquello mismo que pretende describir."
+    },
+    {
+      "_id": "69979e20cf36789b54b60016",
+      "phrase": "Si te hubiera dicho aquella noche lo que sentía, tal vez habríamos evitado meses de incertidumbre en los que ambos jugábamos a fingir indiferencia."
+    },
+    {
+      "_id": "69979e20cf36789b54b60019",
+      "phrase": "Hermosa, si alguien te hubiera explicado el efecto que causas cuando entras en una habitación, habrías entendido por qué no puedo apartar la mirada."
+    },
+    {
+      "_id": "69979e21cf36789b54b6001c",
+      "phrase": "Parce, le dije al alemán que en Colombia el almuerzo sin sopa es como un carro sin gasolina, y me miró como si le hubiera hablado en klingon."
+    },
+    {
+      "_id": "69979e21cf36789b54b6001f",
+      "phrase": "Los mecanismos de defensa inconscientes, habiendo sido teorizados por Anna Freud como extensión de la obra de su padre, habrían permanecido en la oscuridad académica si no hubieran sido popularizados por la psicoterapia moderna."
+    },
+    {
+      "_id": "69979e21cf36789b54b60022",
+      "phrase": "Si las autoridades de inmigración hubieran procesado las solicitudes con la diligencia que su propio reglamento exige, cientos de familias no habrían permanecido separadas durante años."
+    },
+    {
+      "_id": "69979e22cf36789b54b60025",
+      "phrase": "El cirujano, habiendo sido informado de que el paciente presentaba una reacción adversa a la anestesia que no había sido prevista por los análisis preoperatorios, tuvo que improvisar un protocolo de emergencia."
+    },
+    {
+      "_id": "69979e22cf36789b54b60028",
+      "phrase": "Si la Gran Muralla, habiendo sido construida a lo largo de varios siglos por millones de trabajadores forzados, hubiera sido documentada con la tecnología actual, habríamos podido comprender mejor las condiciones de su construcción."
+    },
+    {
+      "_id": "69979e22cf36789b54b6002b",
+      "phrase": "Habría sido deseable que la congregación, que había sido testigo de tantos cambios doctrinales, hubiera recibido una explicación más transparente antes de que las nuevas directrices fueran implementadas."
+    },
+    {
+      "_id": "69979e22cf36789b54b6002e",
+      "phrase": "Si el arte de la seducción, tal como fue conceptualizado por los poetas del Siglo de Oro, no hubiera sido despojado de su dimensión lírica por la mercantilización contemporánea del romance, habríamos conservado una forma de cortejo en la que la palabra fuera valorada como el más exquisito de los presentes."
+    },
+    {
+      "_id": "69979e23cf36789b54b60031",
+      "phrase": "Magia, si pudiera recoger cada mirada que me has dedicado y convertirla en una constelación, habría inventado un firmamento nuevo que los astrónomos no habrían podido explicar con ninguna de sus teorías."
+    },
+    {
+      "_id": "69979e23cf36789b54b60034",
+      "phrase": "La ventana de Overton, habiendo sido concebida como un modelo para comprender cómo las ideas marginales son gradualmente normalizadas mediante la repetición estratégica, habría sido una herramienta inocua si no hubiera sido cooptada por ideólogos cuyo objetivo es desplazar los límites del discurso aceptable."
+    },
+    {
+      "_id": "69979e23cf36789b54b60037",
+      "phrase": "Si el sesgo de autoridad, mediante el cual las personas tienden a obedecer instrucciones de figuras percibidas como superiores sin cuestionar su legitimidad, no hubiera sido documentado por Milgram en su célebre experimento, la psicología social habría carecido de uno de sus pilares empíricos más perturbadores."
+    },
+    {
+      "_id": "69979e24cf36789b54b6003a",
+      "phrase": "Parce, el día que un colombiano deje de decir 'quiubo' al contestar el teléfono, ese día sabremos que la globalización le habrá ganado la batalla a nuestra identidad, y la arepa habrá sido reemplazada por un croissant."
+    },
+    {
+      "_id": "69979e24cf36789b54b6003d",
+      "phrase": "Si las técnicas de interrogatorio, que habían sido clasificadas como tortura por múltiples organismos internacionales, no hubieran sido normalizadas bajo el eufemismo de 'técnicas de interrogatorio mejoradas', la opinión pública habría reaccionado con la indignación que la gravedad de los hechos demandaba."
+    },
+    {
+      "_id": "69979e24cf36789b54b60040",
+      "phrase": "La gentrificación de los barrios donde tradicionalmente mendigaban los más desfavorecidos ha tenido la consecuencia perversa de invisibilizar la pobreza, desplazándola hacia zonas periféricas donde la solidaridad vecinal, que habría podido amortiguar sus efectos, es prácticamente inexistente."
+    },
+    {
+      "_id": "69979e25cf36789b54b60043",
+      "phrase": "El trasplante hepático, que habría sido considerado ciencia ficción hace apenas medio siglo, se ha convertido en un procedimiento cuya tasa de éxito, habiendo sido incrementada gracias a los avances en inmunosupresión, supera ya el noventa por ciento en los centros especializados."
+    },
+    {
+      "_id": "69979e25cf36789b54b60046",
+      "phrase": "Si el Confucianismo, cuyas enseñanzas habrían sido olvidadas si no hubieran sido compiladas por discípulos que comprendieron la trascendencia del maestro, no hubiera permeado cada estrato de la sociedad china, la concepción oriental de la jerarquía y la piedad filial habría seguido un curso radicalmente diferente."
+    }
+  ],
+  "dePhrases": [
+    {
+      "_id": "69979de7cf36789b54b5fdf8",
+      "phrase": "Hallo, wie geht es dir?"
+    },
+    {
+      "_id": "69979de8cf36789b54b5fdfb",
+      "phrase": "Ich heiße Juan."
+    },
+    {
+      "_id": "69979de8cf36789b54b5fdfe",
+      "phrase": "Wo ist der Bahnhof?"
+    },
+    {
+      "_id": "69979de8cf36789b54b5fe01",
+      "phrase": "Ich möchte einen Kaffee, bitte."
+    },
+    {
+      "_id": "69979de9cf36789b54b5fe04",
+      "phrase": "Das kostet zehn Euro."
+    },
+    {
+      "_id": "69979de9cf36789b54b5fe07",
+      "phrase": "Gestern bin ich zum Arzt gegangen, weil ich Kopfschmerzen hatte."
+    },
+    {
+      "_id": "69979de9cf36789b54b5fe0a",
+      "phrase": "Mein Bruder arbeitet in einem Krankenhaus."
+    },
+    {
+      "_id": "69979deacf36789b54b5fe0d",
+      "phrase": "Der Zug kommt um drei Uhr nachmittags an."
+    },
+    {
+      "_id": "69979deacf36789b54b5fe10",
+      "phrase": "Mir gefällt diese Party sehr gut."
+    },
+    {
+      "_id": "69979deacf36789b54b5fe13",
+      "phrase": "Ich muss eine Fahrkarte kaufen."
+    },
+    {
+      "_id": "69979deacf36789b54b5fe16",
+      "phrase": "Obwohl das Navi eine andere Route anzeigte, entschieden wir uns für die Autobahn, weil es weniger Verkehr gab."
+    },
+    {
+      "_id": "69979debcf36789b54b5fe19",
+      "phrase": "Der Lokführer teilte mit, dass der Zug wegen Gleisbauarbeiten einen außerplanmäßigen Halt einlegen würde."
+    },
+    {
+      "_id": "69979debcf36789b54b5fe1c",
+      "phrase": "Wenn wir fünf Minuten früher angekommen wären, hätten wir die Fähre noch erreicht."
+    },
+    {
+      "_id": "69979debcf36789b54b5fe1f",
+      "phrase": "Wir baten die Passagiere, sich anzuschnallen, da wir ein Gebiet mit Turbulenzen durchflogen."
+    },
+    {
+      "_id": "69979deccf36789b54b5fe22",
+      "phrase": "Nachdem wir vier Stunden lang den Wanderweg entlangelaufen waren, fanden wir eine Hütte, in der wir uns ausruhen konnten."
+    },
+    {
+      "_id": "69979deccf36789b54b5fe25",
+      "phrase": "Der Arzt erklärte mir, dass ich das Medikament dreimal täglich nach dem Essen einnehmen müsse."
+    },
+    {
+      "_id": "69979deccf36789b54b5fe28",
+      "phrase": "Meine Großmutter wurde ins Krankenhaus eingeliefert, weil sie auf der Straße ohnmächtig geworden war."
+    },
+    {
+      "_id": "69979dedcf36789b54b5fe2b",
+      "phrase": "Auf der Party waren so viele Leute, dass wir uns kaum bewegen konnten."
+    },
+    {
+      "_id": "69979dedcf36789b54b5fe2e",
+      "phrase": "Der Chor sang so schön, dass viele der Anwesenden zu Tränen gerührt waren."
+    },
+    {
+      "_id": "69979dedcf36789b54b5fe31",
+      "phrase": "Als ich sie zum ersten Mal lächeln sah, wusste ich, dass ich sie besser kennenlernen wollte."
+    },
+    {
+      "_id": "69979deecf36789b54b5fe34",
+      "phrase": "Ich konnte nicht aufhören, dich anzuschauen, seit du durch die Tür gekommen bist."
+    },
+    {
+      "_id": "69979deecf36789b54b5fe37",
+      "phrase": "Kumpel, die Party war so großartig, dass wir nicht gehen wollten."
+    },
+    {
+      "_id": "69979deecf36789b54b5fe3a",
+      "phrase": "Hey, du gehst nicht, du stolzierst. Man merkt, dass du zum Strahlen geboren bist."
+    },
+    {
+      "_id": "69979deecf36789b54b5fe3d",
+      "phrase": "Wenn du mir die Gelegenheit geben würdest, dir meinen Standpunkt zu erklären, bin ich sicher, dass du deine Meinung ändern würdest."
+    },
+    {
+      "_id": "69979defcf36789b54b5fe40",
+      "phrase": "Ich glaube, du solltest es dir besser überlegen, bevor du eine so wichtige Entscheidung triffst."
+    },
+    {
+      "_id": "69979defcf36789b54b5fe43",
+      "phrase": "Die Diebe stiegen durch das hintere Fenster ein, während die Besitzer schliefen."
+    },
+    {
+      "_id": "69979defcf36789b54b5fe46",
+      "phrase": "Als wir den Umzug beendet hatten, stellten wir fest, dass wir die wichtigsten Kartons vergessen hatten."
+    },
+    {
+      "_id": "69979df0cf36789b54b5fe49",
+      "phrase": "Der Professor sagte uns, dass die Abschlussprüfung sechzig Prozent der Note ausmachen würde."
+    },
+    {
+      "_id": "69979df0cf36789b54b5fe4c",
+      "phrase": "Beim Sprachaustausch habe ich Menschen aus mehr als zehn verschiedenen Ländern kennengelernt."
+    },
+    {
+      "_id": "69979df0cf36789b54b5fe4f",
+      "phrase": "Ich musste viele Unterlagen einreichen, um meine Aufenthaltserlaubnis zu beantragen."
+    },
+    {
+      "_id": "69979df1cf36789b54b5fe52",
+      "phrase": "Der alte Mann, der an der Ecke bettelte, erzählte mir, dass er sein Haus bei einem Brand verloren hatte."
+    },
+    {
+      "_id": "69979df1cf36789b54b5fe55",
+      "phrase": "Ich hätte nie gedacht, dass ich die Verlosung gewinnen würde, aber das Glück lächelte mir an diesem Tag."
+    },
+    {
+      "_id": "69979df1cf36789b54b5fe58",
+      "phrase": "Die Fans verkleideten sich als ihre Lieblingsfiguren und paradierten durch das gesamte Gelände."
+    },
+    {
+      "_id": "69979df2cf36789b54b5fe5b",
+      "phrase": "Der Verteidiger bat den Richter, die mildernden Umstände zu berücksichtigen."
+    },
+    {
+      "_id": "69979df2cf36789b54b5fe5e",
+      "phrase": "Wenn ich nicht wegen Geschwindigkeitsüberschreitung einen Strafzettel bekommen hätte, wäre ich vor dir angekommen."
+    },
+    {
+      "_id": "69979df2cf36789b54b5fe61",
+      "phrase": "Es wäre besser gewesen, ein Erste-Klasse-Ticket zu buchen, da die Reise länger als zehn Stunden dauerte."
+    },
+    {
+      "_id": "69979df3cf36789b54b5fe64",
+      "phrase": "Die Besatzung des Schiffes warnte uns, dass sich die Wetterbedingungen im Laufe der Nacht erheblich verschlechtern würden."
+    },
+    {
+      "_id": "69979df3cf36789b54b5fe67",
+      "phrase": "Es ist mir unbegreiflich, dass die Fluggesellschaften weiterhin für Handgepäck Gebühren erheben, obwohl die Tickets bereits so teuer sind."
+    },
+    {
+      "_id": "69979df3cf36789b54b5fe6a",
+      "phrase": "Obwohl der Chirurg ihr die Risiken erklärt hatte, bestand sie darauf, sich der Operation zu unterziehen."
+    },
+    {
+      "_id": "69979df3cf36789b54b5fe6d",
+      "phrase": "Ich würde mich freuen, wenn du mich dich zum Abendessen einladen lassen würdest, damit wir uns ohne Eile kennenlernen könnten."
+    },
+    {
+      "_id": "69979df4cf36789b54b5fe70",
+      "phrase": "Wenn das Schicksal uns an denselben Ort geführt hat, dann bestimmt, weil wir noch etwas offen haben, meinst du nicht?"
+    },
+    {
+      "_id": "69979df4cf36789b54b5fe73",
+      "phrase": "Von allen Menschen an diesem Ort bist du die Einzige, die es schafft, dass mein Herz schneller schlägt."
+    },
+    {
+      "_id": "69979df4cf36789b54b5fe76",
+      "phrase": "Schöne, du brauchst weder in Fotos noch im Leben einen Filter, denn du bist pure natürliche Schönheit."
+    },
+    {
+      "_id": "69979df5cf36789b54b5fe79",
+      "phrase": "Kumpel, du bist härter im Nehmen als ein Kaffee um fünf Uhr morgens auf einer Kaffeeplantage!"
+    },
+    {
+      "_id": "69979df5cf36789b54b5fe7c",
+      "phrase": "Menschen neigen dazu, einen Vorschlag anzunehmen, wenn sie das Gefühl haben, dass ihnen die Freiheit der Wahl gelassen wird."
+    },
+    {
+      "_id": "69979df5cf36789b54b5fe7f",
+      "phrase": "Wenn du jemanden überzeugen willst, solltest du ihm zuerst zeigen, dass du seine Position verstehst."
+    },
+    {
+      "_id": "69979df6cf36789b54b5fe82",
+      "phrase": "Der Bestätigungsfehler lässt uns nach Informationen suchen, die unsere bereits bestehenden Überzeugungen bestätigen."
+    },
+    {
+      "_id": "69979df6cf36789b54b5fe85",
+      "phrase": "Empathie besteht nicht nur darin, zu verstehen, was der andere fühlt, sondern ihm zu zeigen, dass man ihn versteht."
+    },
+    {
+      "_id": "69979df6cf36789b54b5fe88",
+      "phrase": "Der Staatsanwalt legte überzeugende Beweise vor, die die Beteiligung des Angeklagten an dem Überfall belegten."
+    },
+    {
+      "_id": "69979df7cf36789b54b5fe8b",
+      "phrase": "In der adventistischen Schule lehrte man uns, dass das Halten des Sabbats ein Akt des Glaubens und des Gehorsams ist."
+    },
+    {
+      "_id": "69979df7cf36789b54b5fe8e",
+      "phrase": "Während des Gottesdienstes sang die Gemeinde Lieder, die eine tiefe Dankbarkeit widerspiegelten."
+    },
+    {
+      "_id": "69979df7cf36789b54b5fe91",
+      "phrase": "Die Große Mauer schützte nicht nur vor Invasionen, sondern diente auch als Handelsroute."
+    },
+    {
+      "_id": "69979df7cf36789b54b5fe94",
+      "phrase": "Der Integrationsprozess wäre viel einfacher, wenn die Einwanderer Zugang zu kostenlosen Sprachkursen hätten."
+    },
+    {
+      "_id": "69979df8cf36789b54b5fe97",
+      "phrase": "Der akademische Ausschuss lehnte seinen Dissertationsvorschlag ab, weil es ihm an einer strengen Methodik fehlte."
+    },
+    {
+      "_id": "69979df8cf36789b54b5fe9a",
+      "phrase": "Wohltätigkeitsorganisationen argumentieren, dass Bettelei als soziales Problem und nicht als Straftat behandelt werden sollte."
+    },
+    {
+      "_id": "69979df8cf36789b54b5fe9d",
+      "phrase": "Die Veranstalter versicherten, dass die Verlosung in transparenter Weise vor einem Notar durchgeführt werden würde."
+    },
+    {
+      "_id": "69979df9cf36789b54b5fea0",
+      "phrase": "Der eingeladene Künstler verriet, dass seine Lieblingsfigur von seinen eigenen Kindheitserlebnissen inspiriert worden war."
+    },
+    {
+      "_id": "69979df9cf36789b54b5fea3",
+      "phrase": "Hätten wir ein Umzugsunternehmen beauftragt, hätten wir nicht das ganze Wochenende Möbel geschleppt."
+    },
+    {
+      "_id": "69979df9cf36789b54b5fea6",
+      "phrase": "Da der Kfz-Sachverständige festgestellt hatte, dass die Bremsen defekt waren, sah sich die Versicherung gezwungen, die Verantwortung für den Unfall zu übernehmen."
+    },
+    {
+      "_id": "69979dfacf36789b54b5fea9",
+      "phrase": "Der Lokführerstreik hat die Fragilität des Eisenbahnsystems offengelegt, das seit Jahren unter systematischer Desinvestition leidet."
+    },
+    {
+      "_id": "69979dfacf36789b54b5feac",
+      "phrase": "Je tiefer wir in die Überzeugungstechniken eintauchen, desto deutlicher wird, dass emotionale Manipulation ein allgegenwärtiges Instrument im politischen Diskurs ist."
+    },
+    {
+      "_id": "69979dfacf36789b54b5feaf",
+      "phrase": "Die kognitive Dissonanz, die wir erleben, wenn wir zwei widersprüchliche Überzeugungen aufrechterhalten, treibt uns dazu, unser Verhalten auf ungeahnte Weise zu rationalisieren."
+    },
+    {
+      "_id": "69979dfbcf36789b54b5feb2",
+      "phrase": "Ein geschickter Verhandlungsführer weiß, dass es vorzuziehen ist, offene Fragen zu stellen, anstatt kategorische Behauptungen aufzudrängen."
+    },
+    {
+      "_id": "69979dfbcf36789b54b5feb5",
+      "phrase": "Man sollte hinterfragen, warum die Gesellschaft emotionale Verletzlichkeit bei Männern stigmatisiert, anstatt deren gesunden Ausdruck zu fördern."
+    },
+    {
+      "_id": "69979dfbcf36789b54b5feb8",
+      "phrase": "Die rekonstruktive Chirurgie, der der Patient unterzogen wurde, erforderte die Koordination eines interdisziplinären Teams über mehr als acht Stunden."
+    },
+    {
+      "_id": "69979dfccf36789b54b5febb",
+      "phrase": "Wenn du mir erlauben würdest, dir mit Taten zu zeigen, was ich fühle, würdest du verstehen, warum ich dich nicht aus meinem Kopf bekomme."
+    },
+    {
+      "_id": "69979dfccf36789b54b5febe",
+      "phrase": "Es ist nicht so, dass mir die Worte fehlen, um dich zu beschreiben, es ist, dass die deutsche Sprache noch nicht genügend erfunden hat."
+    },
+    {
+      "_id": "69979dfccf36789b54b5fec1",
+      "phrase": "Eine Kolumbianerin in Deutschland ist wie ein Sonnenstrahl, der die grauen Novemberwolken durchbricht: unmöglich zu ignorieren."
+    },
+    {
+      "_id": "69979dfccf36789b54b5fec4",
+      "phrase": "Du bist so stark, dass wenn du dir vornehmen würdest, die Welt zu erobern, du damit anfangen würdest, das Schicksal um Erlaubnis zu bitten."
+    },
+    {
+      "_id": "69979dfdcf36789b54b5fec7",
+      "phrase": "Die Verteidigung führte an, dass die Beweise durch Verfahren erlangt worden seien, die die Grundrechte des Angeklagten verletzten."
+    },
+    {
+      "_id": "69979dfdcf36789b54b5feca",
+      "phrase": "Die Geschworenen berieten drei Tage lang, bevor sie ein einstimmiges Schuldurteil fällten."
+    },
+    {
+      "_id": "69979dfdcf36789b54b5fecd",
+      "phrase": "Die adventistische Theologie vertritt die Auffassung, dass die Sabbathaltung ein Siegel der Bundesbeziehung zwischen Gott und seinem Volk darstellt."
+    },
+    {
+      "_id": "69979dfecf36789b54b5fed0",
+      "phrase": "Der Pastor reflektierte darüber, wie der authentische Glaube leere Rituale überwinden und sich in konkreten Akten des Mitgefühls manifestieren sollte."
+    },
+    {
+      "_id": "69979dfecf36789b54b5fed3",
+      "phrase": "Die konfuzianische Philosophie hat die hierarchischen Strukturen der chinesischen Gesellschaft auf eine Weise geprägt, die für Westler schwer zu begreifen ist."
+    },
+    {
+      "_id": "69979dfecf36789b54b5fed6",
+      "phrase": "Restriktive Einwanderungspolitiken erschweren nicht nur die Integration, sondern begünstigen auch Schattenwirtschaften, die die Schwächsten ausbeuten."
+    },
+    {
+      "_id": "69979dffcf36789b54b5fed9",
+      "phrase": "Interdisziplinarität in der akademischen Forschung hat gezeigt, dass komplexe Probleme Ansätze erfordern, die über die Grenzen einer einzelnen Disziplin hinausgehen."
+    },
+    {
+      "_id": "69979dffcf36789b54b5fedc",
+      "phrase": "Die Aussage des Schlüsselzeugen erwies sich als ausschlaggebend dafür, dass das Gericht den geistigen Urheber des Raubes verurteilte."
+    },
+    {
+      "_id": "69979dffcf36789b54b5fedf",
+      "phrase": "Es ist paradox, dass es in einer so wohlhabenden Gesellschaft immer noch Menschen gibt, die gezwungen sind, zu betteln, um ihre Grundbedürfnisse zu decken."
+    },
+    {
+      "_id": "69979e00cf36789b54b5fee2",
+      "phrase": "Das Phänomen der Sprachinterferenz manifestiert sich auf besonders interessante Weise, wenn Sprecher romanischer Sprachen versuchen, die deutschen Vokale zu produzieren."
+    },
+    {
+      "_id": "69979e00cf36789b54b5fee5",
+      "phrase": "Was als ein informelles Treffen unter Kollegen begann, endete als eine Feier, die sich bis zum Morgengrauen hinzog."
+    },
+    {
+      "_id": "69979e00cf36789b54b5fee8",
+      "phrase": "Ich hätte es vorgezogen, wenn die Arbeiter mit den antiken Möbeln vorsichtiger umgegangen wären, da einige beim Transport irreparable Schäden erlitten."
+    },
+    {
+      "_id": "69979e01cf36789b54b5feeb",
+      "phrase": "Die Entwicklung des japanischen Manga hat einen so tiefgreifenden Einfluss auf die westliche grafische Erzählung ausgeübt, dass es unmöglich ist, das eine ohne Bezug auf das andere zu studieren."
+    },
+    {
+      "_id": "69979e01cf36789b54b5feee",
+      "phrase": "Angesichts der Tatsache, dass die Sensoren des autonomen Fahrzeugs nicht gemäß den Herstellerangaben kalibriert worden waren, stellt sich die Frage, ob die zivilrechtliche Haftung beim Eigentümer oder beim Technologieanbieter liegt."
+    },
+    {
+      "_id": "69979e01cf36789b54b5fef1",
+      "phrase": "Die sophistische Rhetorik, weit davon entfernt, in die Annalen der Antike verbannt worden zu sein, durchdringt jede Faser der zeitgenössischen öffentlichen Debatte mit einer Wirksamkeit, die Gorgias selbst erstaunt hätte."
+    },
+    {
+      "_id": "69979e01cf36789b54b5fef4",
+      "phrase": "Das Prinzip der Reziprozität, der Grundstein sozialen Einflusses nach Cialdini, nutzt unser angeborenes Bedürfnis aus, Gefallen zu erwidern, selbst wenn diese Gefallen ohne unsere Zustimmung auferlegt wurden."
+    },
+    {
+      "_id": "69979e02cf36789b54b5fef7",
+      "phrase": "Was einst die gefährlichste Seeroute der Welt war, wurde dank der Fortschritte in der Satellitennavigation zu einem Handelskorridor von nahezu absoluter Vorhersehbarkeit transformiert."
+    },
+    {
+      "_id": "69979e02cf36789b54b5fefa",
+      "phrase": "Gaslighting als raffinierte Form psychologischer Manipulation operiert durch die systematische Destabilisierung der Realitätswahrnehmung des Opfers, bis es an seinem eigenen Verstand zweifelt."
+    },
+    {
+      "_id": "69979e02cf36789b54b5fefd",
+      "phrase": "Erlaube mir, dir ein Geständnis zu machen, das ich vielleicht für einen intimeren Moment hätte aufheben sollen: Seit ich dich kenne, erscheint mir jedes Gespräch mit dir unzureichend."
+    },
+    {
+      "_id": "69979e03cf36789b54b5ff00",
+      "phrase": "Was ich für dich empfinde, lässt sich in keine der Kategorien einordnen, die die Psychologie erfunden hat, um menschliche Emotionen zu klassifizieren."
+    },
+    {
+      "_id": "69979e03cf36789b54b5ff03",
+      "phrase": "Wenn Verführung eine Kunst wäre, wärst du die gesamte Renaissance: klassisch in deiner Eleganz, revolutionär in deiner Wirkung."
+    },
+    {
+      "_id": "69979e03cf36789b54b5ff06",
+      "phrase": "Schöne, wenn ich dich in Flaschen abfüllen könnte, würde ich eine Parfümeriekette eröffnen, die alle Gesetze der Wirtschaft brechen würde, weil die Nachfrage unendlich wäre."
+    },
+    {
+      "_id": "69979e04cf36789b54b5ff09",
+      "phrase": "Zauberhafte, in meiner Heimat sagt man, dass Gott die Menschheit nicht perfekt gemacht hat, aber als er dich erschuf, hat er es mit der Schönheit übertrieben."
+    },
+    {
+      "_id": "69979e04cf36789b54b5ff0c",
+      "phrase": "Die von der Verteidigung eingelegte Revision stützte sich darauf, dass das Instanzgericht eine fehlerhafte Bewertung der Indizienbeweise vorgenommen und damit den Grundsatz der Unschuldsvermutung verletzt habe."
+    },
+    {
+      "_id": "69979e04cf36789b54b5ff0f",
+      "phrase": "Die vaskuläre Mikroanastomose, die die freie Gewebetransplantation erforderte, stellte eines der anspruchsvollsten Verfahren dar, denen sich das chirurgische Team im letzten Jahrzehnt gestellt hat."
+    },
+    {
+      "_id": "69979e05cf36789b54b5ff12",
+      "phrase": "Die adventistische Eschatologie, verwurzelt in einer historistischen Hermeneutik, interpretiert die apokalyptischen Prophezeiungen als ein Kontinuum, das sich von der biblischen Antike bis zur Vollendung der Zeiten erstreckt."
+    },
+    {
+      "_id": "69979e05cf36789b54b5ff15",
+      "phrase": "Die geopolitische Strategie der Neuen Seidenstraße, konzeptuelle Erbin der antiken Seidenstraße, hat sowohl Bewunderung für ihren Ehrgeiz als auch Misstrauen wegen ihrer neokolonialen Implikationen hervorgerufen."
+    },
+    {
+      "_id": "69979e05cf36789b54b5ff18",
+      "phrase": "Zeitgenössische Diasporen formen transnationale Identitäten, deren Komplexität die Vorstellungen des 19. Jahrhunderts von Staatsbürgerschaft und Zugehörigkeit herausfordert, die immer noch die meisten Rechtsrahmen bestimmen."
+    },
+    {
+      "_id": "69979e06cf36789b54b5ff1b",
+      "phrase": "Die Kommerzialisierung akademischen Wissens, ein durch die Abhängigkeit von bibliometrischen Kennzahlen verschärftes Phänomen, droht die intellektuelle Freiheit zu untergraben, die das Fundament der wissenschaftlichen Forschung selbst bildet."
+    },
+    {
+      "_id": "69979e06cf36789b54b5ff1e",
+      "phrase": "Die Phänomenologie der städtischen Bettelei offenbart, dass sich hinter der scheinbaren Homogenität der sichtbaren Armut Lebensläufe verbergen, die so vielfältig sind wie die strukturellen Kräfte, die sie hervorgebracht haben."
+    },
+    {
+      "_id": "69979e06cf36789b54b5ff21",
+      "phrase": "Die probabilistischen Mechanismen, die den Verlosungen zugrunde liegen, vermögen es, so transparent sie auch erklärt werden, den zwanghaften Spieler nicht von seiner irrationalen Überzeugung abzubringen, dass das Glück gezähmt werden kann."
+    },
+    {
+      "_id": "69979e06cf36789b54b5ff24",
+      "phrase": "Die Semiotik des Cosplay geht über bloße Nachahmung hinaus: Sie stellt einen performativen Akt dar, durch den das Individuum seine Identität an der Schnittstelle zwischen Fiktion und Selbstwahrnehmung aushandelt."
+    },
+    {
+      "_id": "69979e07cf36789b54b5ff27",
+      "phrase": "Der Zweitspracherwerb im Erwachsenenalter konfiguriert die neuronalen Netzwerke der linken Hemisphäre auf eine Weise um, die laut funktionellen Bildgebungsstudien der kindlichen Plastizität ähnlicher ist, als man bis vor Kurzem annahm."
+    },
+    {
+      "_id": "69979e07cf36789b54b5ff2a",
+      "phrase": "Jener Abend, der mit einer protokollarischen Höflichkeit begann und in einer kollektiven Katharsis gipfelte, machte die anthropologische Funktion des Feierns als Mechanismus des sozialen Zusammenhalts deutlich."
+    },
+    {
+      "_id": "69979e07cf36789b54b5ff2d",
+      "phrase": "Die trinitarische Doxologie als liturgischer Ausdruck des Glaubens artikuliert ein Verständnis des Göttlichen, das die ontologischen Kategorien des westlichen philosophischen Denkens transzendiert."
+    },
+    {
+      "_id": "69979e08cf36789b54b5ff30",
+      "phrase": "Die Entwurzelung, die ein transnationaler Umzug mit sich bringt, stellt die emotionale Resilienz des Individuums auf eine Weise auf die Probe, die nur diejenigen wirklich verstehen können, die es selbst erlebt haben."
+    },
+    {
+      "_id": "69979e08cf36789b54b5ff33",
+      "phrase": "Die Arzt-Patient-Beziehung hat einen paradigmatischen Wandel erfahren: Vom hippokratischen Paternalismus des 19. Jahrhunderts sind wir zu einem Modell der gemeinsamen Entscheidungsfindung übergegangen, das paradoxerweise die Angst des Patienten angesichts der Verantwortung des Wählens erhöht."
+    },
+    {
+      "_id": "69979e08cf36789b54b5ff36",
+      "phrase": "Das Burnout unter den Gesundheitsfachkräften, durch die Pandemie verschärft, hat ein solches Ausmaß erreicht, dass es die Nachhaltigkeit des öffentlichen Gesundheitssystems selbst bedroht."
+    },
+    {
+      "_id": "69979e09cf36789b54b5ff39",
+      "phrase": "Wenn ich du wäre, hätte ich mich entschuldigt, bevor es zu spät gewesen wäre."
+    },
+    {
+      "_id": "69979e09cf36789b54b5ff3c",
+      "phrase": "Es hätte mir gefallen, wenn du mich vorher benachrichtigt hättest, denn ich hätte alles rechtzeitig vorbereiten können."
+    },
+    {
+      "_id": "69979e09cf36789b54b5ff3f",
+      "phrase": "Obwohl es besser gewesen wäre, den Zug zu nehmen, entschieden wir uns zu fahren, weil das Auto bereits beladen war."
+    },
+    {
+      "_id": "69979e0acf36789b54b5ff42",
+      "phrase": "Der Patient, der bereits zweimal operiert worden war, sagte, dass er sich keiner weiteren Operation unterziehen würde."
+    },
+    {
+      "_id": "69979e0acf36789b54b5ff45",
+      "phrase": "Hätten wir gewusst, dass der Flug gestrichen worden war, hätten wir rechtzeitig einen anderen gebucht."
+    },
+    {
+      "_id": "69979e0acf36789b54b5ff48",
+      "phrase": "Der Zeuge erklärte, dass er von den Angeklagten bedroht worden sei, weshalb er sich vorher nicht getraut habe zu sprechen."
+    },
+    {
+      "_id": "69979e0bcf36789b54b5ff4b",
+      "phrase": "Sie sagte, sie wäre zur Party gegangen, wenn sie nicht für die Prüfung am nächsten Tag hätte lernen müssen."
+    },
+    {
+      "_id": "69979e0bcf36789b54b5ff4e",
+      "phrase": "Die Predigt des Pastors, die von der gesamten Gemeinde aufmerksam gehört wurde, handelte von der Vergebung, die uns gewährt worden war."
+    },
+    {
+      "_id": "69979e0bcf36789b54b5ff51",
+      "phrase": "Ich hätte dir sagen wollen, was ich empfinde, aber ich befürchtete, dass du nicht verstanden hättest, was du wirklich für mich bedeutest."
+    },
+    {
+      "_id": "69979e0bcf36789b54b5ff54",
+      "phrase": "Wenn wir zu dem Moment zurückkehren könnten, als wir uns kennenlernten, würde ich genau dasselbe tun: dich anschauen und lächeln."
+    },
+    {
+      "_id": "69979e0ccf36789b54b5ff57",
+      "phrase": "Hättest du mir zugehört, als ich es dir sagte, hättest du dich nicht in einer so kompromittierenden Situation wiedergefunden."
+    },
+    {
+      "_id": "69979e0ccf36789b54b5ff5a",
+      "phrase": "Der Vorschlag, der unter normalen Umständen einstimmig angenommen worden wäre, wurde aufgrund eines in letzter Minute entdeckten Formfehlers abgelehnt."
+    },
+    {
+      "_id": "69979e0ccf36789b54b5ff5d",
+      "phrase": "Hätte ich dich an jenem Abend auf der Party nicht gesehen, hätte ich die Gelegenheit verpasst, die faszinierendste Person kennenzulernen, die ich je getroffen habe."
+    },
+    {
+      "_id": "69979e0dcf36789b54b5ff60",
+      "phrase": "Hättest du mir doch die Gelegenheit gegeben, dir zu erklären, warum ich so gehandelt hatte, bevor du mich verurteilt hast."
+    },
+    {
+      "_id": "69979e0dcf36789b54b5ff63",
+      "phrase": "Der Angeklagte, der über acht Stunden ohne Anwalt verhört worden war, hätte jedes Geständnis abgelegt, das man von ihm verlangt hätte."
+    },
+    {
+      "_id": "69979e0dcf36789b54b5ff66",
+      "phrase": "Die Ware, die unter Bedingungen transportiert worden war, die von keinem Inspektor genehmigt worden wären, kam beschädigt im Zielhafen an."
+    },
+    {
+      "_id": "69979e0ecf36789b54b5ff69",
+      "phrase": "Als Kolumbianer hätte ich erwartet, dass die Deutschen kühler wären, aber ich entdeckte, dass sie, sobald das Eis gebrochen worden ist, unglaublich warmherzige Menschen sind."
+    },
+    {
+      "_id": "69979e0ecf36789b54b5ff6c",
+      "phrase": "Kumpel, hätte ich gewusst, dass diese fantastische Stadt existiert, wäre ich viel früher gekommen und hätte nicht so viel Zeit verschwendet."
+    },
+    {
+      "_id": "69979e0ecf36789b54b5ff6f",
+      "phrase": "Hätte dir ein Psychologe vor einem Jahr gesagt, dass du deine Meinung ändern würdest, hättest du wahrscheinlich gelacht, aber schau, wo du jetzt bist."
+    },
+    {
+      "_id": "69979e0fcf36789b54b5ff72",
+      "phrase": "Der Manipulator, der die Unsicherheiten seines Opfers identifiziert hatte, hätte sie als emotionale Hebel benutzt, um zu bekommen, was er wollte."
+    },
+    {
+      "_id": "69979e0fcf36789b54b5ff75",
+      "phrase": "Die Dokumentation, die von drei verschiedenen Instanzen geprüft worden war, wäre ausreichend gewesen, wenn nicht die Unterschrift des Notars gefehlt hätte."
+    },
+    {
+      "_id": "69979e0fcf36789b54b5ff78",
+      "phrase": "Hätten die Adventisten ihre Position bezüglich des Sabbats nicht beibehalten, hätten sie eines der Erkennungsmerkmale verloren, die sie am meisten auszeichnen."
+    },
+    {
+      "_id": "69979e10cf36789b54b5ff7b",
+      "phrase": "Es wäre unmöglich gewesen, dass die Operation erfolgreich verlaufen wäre, wenn das Team nicht mit solcher Präzision koordiniert worden wäre."
+    },
+    {
+      "_id": "69979e10cf36789b54b5ff7e",
+      "phrase": "Wäre mir das Stipendium rechtzeitig gewährt worden, hätte ich das Semester ohne finanzielle Sorgen beginnen können."
+    },
+    {
+      "_id": "69979e10cf36789b54b5ff81",
+      "phrase": "Der Wanderer, erschöpft, nachdem er sieben Stunden durch ein Gelände gelaufen war, das nicht kartografiert worden war, beschloss, am Flussufer zu zelten."
+    },
+    {
+      "_id": "69979e11cf36789b54b5ff84",
+      "phrase": "Es wäre undenkbar gewesen, dass der Chirurg, dem eine so heikle Operation anvertraut worden war, nicht persönlich überprüft hätte, ob alle Instrumente sterilisiert worden waren."
+    },
+    {
+      "_id": "69979e11cf36789b54b5ff87",
+      "phrase": "Hätten die Einwanderer, deren Anträge aus rein bürokratischen Gründen abgelehnt worden waren, Zugang zu Rechtsberatung gehabt, hätten viele von ihnen das Asyl erhalten, das sie verdienten."
+    },
+    {
+      "_id": "69979e11cf36789b54b5ff8a",
+      "phrase": "Die Beweise, die monatelang von Ermittlern gesammelt worden waren, die eigens für diesen Fall ausgewählt worden waren, hätten für ein Urteil ausgereicht, wenn der Richter nicht einen Verfahrensfehler festgestellt hätte."
+    },
+    {
+      "_id": "69979e11cf36789b54b5ff8d",
+      "phrase": "Hätte ich dich in einem anderen Leben kennengelernt, bin ich sicher, dass ich Ozeane überquert hätte, um dich zu finden, denn eine Seele wie deine bleibt nicht unbemerkt."
+    },
+    {
+      "_id": "69979e12cf36789b54b5ff90",
+      "phrase": "Hätten meine Augen, die an die Schatten der Einsamkeit gewöhnt waren, dich in jener Nacht nicht gefunden, hätten sie weitergesucht, ohne zu wissen, wonach sie suchten."
+    },
+    {
+      "_id": "69979e12cf36789b54b5ff93",
+      "phrase": "Kumpel, hätte man mir gesagt, dass ein Kolumbianer einen deutschen Winter überstehen würde, ohne sich zu beschweren, hätte ich gesagt, das sei verlogener als ein Politiker im Wahlkampf."
+    },
+    {
+      "_id": "69979e12cf36789b54b5ff96",
+      "phrase": "Schöne, wäre die Schönheit gerecht verteilt worden, hätte das ganze Universum protestiert, weil dir mehr gegeben wurde, als einer einzigen Person zugestanden hätte."
+    },
+    {
+      "_id": "69979e13cf36789b54b5ff99",
+      "phrase": "Hätte der Überredende verstanden, dass der Widerstand seines Gesprächspartners durch Angst und nicht durch Überzeugung motiviert war, hätte er seine kommunikative Strategie angepasst, bevor er an Glaubwürdigkeit verloren hätte."
+    },
+    {
+      "_id": "69979e13cf36789b54b5ff9c",
+      "phrase": "Die Dissertation, die erfolgreich verteidigt worden wäre, wenn der Doktorand nicht entscheidende Daten ausgelassen hätte, musste unter der Aufsicht eines neuen Betreuers von Grund auf neu geschrieben werden."
+    },
+    {
+      "_id": "69979e13cf36789b54b5ff9f",
+      "phrase": "Die Gelder, die durch Verlosungen eingenommen worden waren, die von engagierten Freiwilligen organisiert worden waren, hätten ausgereicht, um das Projekt zu finanzieren, wenn sie nicht vom Vorstand veruntreut worden wären."
+    },
+    {
+      "_id": "69979e14cf36789b54b5ffa2",
+      "phrase": "Der alte Mann, der von den Sozialdiensten aufgenommen worden wäre, wenn jemand seine Situation gemeldet hätte, überlebte seit Monaten dank der Barmherzigkeit der Passanten."
+    },
+    {
+      "_id": "69979e14cf36789b54b5ffa5",
+      "phrase": "Der Cosplayer, dessen Kostüm auf jeder anderen Convention prämiert worden wäre, wurde disqualifiziert, weil die verwendeten Materialien nicht gemäß der Satzung deklariert worden waren."
+    },
+    {
+      "_id": "69979e14cf36789b54b5ffa8",
+      "phrase": "Der Umzug, der ohne Zwischenfälle verlaufen wäre, wenn das beauftragte Unternehmen die vereinbarten Bedingungen eingehalten hätte, endete als logistisches Desaster epischen Ausmaßes."
+    },
+    {
+      "_id": "69979e15cf36789b54b5ffab",
+      "phrase": "Wären die Gläubigen nicht vom Pastor vor den Gefahren des Materialismus gewarnt worden, wären viele in die Falle des Konsumismus getappt, ohne ihre Werte zu hinterfragen."
+    },
+    {
+      "_id": "69979e15cf36789b54b5ffae",
+      "phrase": "In China, nachdem sie den schnellsten wirtschaftlichen Wandel der Geschichte miterlebt hatten, fragen sich ältere Bürger oft, ob die Moderne auf Kosten der Tradition erreicht worden ist."
+    },
+    {
+      "_id": "69979e15cf36789b54b5ffb1",
+      "phrase": "Wäre der Angeklagte, der in erster Instanz von einem Gericht freigesprochen worden war, das die Sachverständigengutachten nicht hätte ignorieren dürfen, erneut nach den Regeln verurteilt worden, die ein unparteiisches Verfahren bestimmt hätten, wäre das Ergebnis diametral entgegengesetzt gewesen."
+    },
+    {
+      "_id": "69979e16cf36789b54b5ffb4",
+      "phrase": "Es hätte genügt, wenn der Chirurg, dem der komplizierteste Eingriff anvertraut worden war, der je in jener Klinik durchgeführt worden war, die Ergebnisse der Magnetresonanztomographie eingesehen hätte, die bereits vom Radiologie-Team analysiert worden waren."
+    },
+    {
+      "_id": "69979e16cf36789b54b5ffb7",
+      "phrase": "Wäre Überzeugung, verstanden nicht als Manipulation, sondern als die Kunst, das sichtbar zu machen, was der Gesprächspartner bereits akzeptiert hätte, wäre er nicht von seinen eigenen Vorurteilen geblendet worden, in den Schulen gelehrt worden, hätte sich die Qualität der öffentlichen Debatte unermesslich verbessert."
+    },
+    {
+      "_id": "69979e16cf36789b54b5ffba",
+      "phrase": "Würde man mich jemals fragen, welcher Moment meines Lebens derjenige gewesen wäre, den ich um nichts in der Welt getauscht hätte, würde ich ohne Zögern sagen, dass es jener war, in dem ich, nachdem ich dich erst wenige Stunden zuvor kennengelernt hatte, wusste, dass mein Herz dich bereits gewählt hatte."
+    },
+    {
+      "_id": "69979e16cf36789b54b5ffbd",
+      "phrase": "Hätten die Worte, die ich dir an jenem Abend hätte sagen wollen, nicht in meiner Kehle festgesteckt, hättest du gewusst, dass jede Silbe, die ich seitdem ausspreche, eine verdeckte Form gewesen ist, dich zu suchen."
+    },
+    {
+      "_id": "69979e17cf36789b54b5ffc0",
+      "phrase": "Schöne, wäre Schönheit mit den Instrumenten gemessen worden, die die moderne Wissenschaft erfunden hat, hätten die Wissenschaftler eine neue Maßeinheit schaffen müssen, nur um deine zu quantifizieren."
+    },
+    {
+      "_id": "69979e17cf36789b54b5ffc3",
+      "phrase": "Kumpel, wäre Kolumbien jedes Mal ein Peso gewährt worden, wenn ein Kolumbianer im Ausland gesagt hat, dass er den Kaffee von der Ecke vermisst, hätten wir die Auslandsschulden längst beglichen."
+    },
+    {
+      "_id": "69979e17cf36789b54b5ffc6",
+      "phrase": "Das Phänomen der kognitiven Verankerung, das in unzähligen Studien analysiert worden ist, die ohne die mediale Verbreitung unbemerkt geblieben wären, zeigt, dass die zuerst erhaltene Information unwiderruflich den Rahmen formt, innerhalb dessen nachfolgende Entscheidungen getroffen werden."
+    },
+    {
+      "_id": "69979e18cf36789b54b5ffc9",
+      "phrase": "Die Asylpolitiken, die reformiert worden wären, hätten die Gesetzgeber auf die Organisationen gehört, die jahrzehntelang die Folgen der Bürokratie für die Antragsteller dokumentiert hatten, verharren in einem Paradigma, das in jedem wirklich demokratischen System längst aufgegeben worden wäre."
+    },
+    {
+      "_id": "69979e18cf36789b54b5ffcc",
+      "phrase": "Die Seidenstraße, die von Kaufleuten bereist worden war, deren Vermögen ohne die Toleranz der mongolischen Khane undenkbar gewesen wären, stellte einen Präzedenzfall der Globalisierung dar, der sich nicht hätte wiederholen können, wenn die geopolitischen Bedingungen andere gewesen wären."
+    },
+    {
+      "_id": "69979e18cf36789b54b5ffcf",
+      "phrase": "Würde das deutsche Eisenbahnsystem, dessen Pünktlichkeit von jedem Fahrgast als legendär angesehen worden wäre, der die ständigen Verspätungen der Deutschen Bahn nicht am eigenen Leib erfahren hätte, so funktionieren, wie es die Prospekte versprechen, hätten sich die Reisenden nicht gezwungen gesehen, immer absurdere Fehlerspannen einzuplanen."
+    },
+    {
+      "_id": "69979e19cf36789b54b5ffd2",
+      "phrase": "Die adventistische Doxologie, die von Generationen von Gläubigen gesungen worden ist, deren Vorfahren für dieselben Überzeugungen verfolgt worden wären, die nun in unter Opfern erbauten Tempeln gefeiert werden, erklingt mit einer theologischen Tiefe, die nur von jenen verstanden werden kann, die den Sabbat zu einem Akt geistlichen Widerstands gemacht haben."
+    },
+    {
+      "_id": "69979e19cf36789b54b5ffd5",
+      "phrase": "Die Doktorarbeit, die in einer hochrangigen Fachzeitschrift veröffentlicht worden wäre, hätte das Bewertungskomitee nicht die Methodik infrage gestellt, die bereits von zwei externen Gutachtern validiert worden war, musste einer so umfassenden Überarbeitung unterzogen werden, dass sie jeden weniger beharrlichen Forscher entmutigt hätte."
+    },
+    {
+      "_id": "69979e19cf36789b54b5ffd8",
+      "phrase": "Wäre die Lotterie, deren Gewinne in einer idealen Welt gerecht verteilt worden wären, nicht darauf ausgelegt worden, den Optimismus-Bias auszunutzen, der uns daran hindert, Wahrscheinlichkeiten korrekt zu berechnen, wären die Schlangen vor den Verkaufsstellen vor Jahrzehnten verschwunden."
+    },
+    {
+      "_id": "69979e1acf36789b54b5ffdb",
+      "phrase": "Wenn wir schneller gelaufen wären, hätten wir die Hütte erreicht, bevor das Gewitter losgebrochen wäre."
+    },
+    {
+      "_id": "69979e1acf36789b54b5ffde",
+      "phrase": "Man sagte mir, dass die Sprechstunde bereits abgesagt worden war, als ich anrief, um meinen Termin zu bestätigen."
+    },
+    {
+      "_id": "69979e1acf36789b54b5ffe1",
+      "phrase": "Das Paket, das letzte Woche hätte geliefert werden sollen, ist noch nicht an seinem Bestimmungsort angekommen."
+    },
+    {
+      "_id": "69979e1bcf36789b54b5ffe4",
+      "phrase": "Es wäre besser gewesen, wenn du mit mir gesprochen hättest, bevor du diese Entscheidung getroffen hast, ohne mich zu fragen."
+    },
+    {
+      "_id": "69979e1bcf36789b54b5ffe7",
+      "phrase": "Seitdem wir uns auf jener Sprachaustauschparty kennengelernt haben, habe ich nicht aufhören können, an dich zu denken."
+    },
+    {
+      "_id": "69979e1bcf36789b54b5ffea",
+      "phrase": "Kumpel, wenn du wüsstest, wie es sich anfühlt, in Deutschland anzukommen und komisch angeschaut zu werden, weil man zu viel lächelt."
+    },
+    {
+      "_id": "69979e1bcf36789b54b5ffed",
+      "phrase": "Obwohl der Richter ihn gewarnt hatte, dass er das Land nicht verlassen dürfe, wurde der Verdächtige am Flughafen entdeckt."
+    },
+    {
+      "_id": "69979e1ccf36789b54b5fff0",
+      "phrase": "Wenn das Gebet, das wir jeden Sabbat sprechen, mit dem Herzen und nicht nur mit den Ohren gehört würde, würde es unser Leben verwandeln."
+    },
+    {
+      "_id": "69979e1ccf36789b54b5fff3",
+      "phrase": "Wenn uns die Psychologie etwas gelehrt hat, dann dass Menschen emotionale Entscheidungen treffen, die sie danach mit rationalen Argumenten rechtfertigen."
+    },
+    {
+      "_id": "69979e1ccf36789b54b5fff6",
+      "phrase": "Der Mere-Exposure-Effekt, der von Zajonc entdeckt wurde, zeigt, dass wir dazu neigen, das zu bevorzugen, was uns vertraut vorkommt, selbst wenn wir uns nicht bewusst sind, es zuvor gesehen zu haben."
+    },
+    {
+      "_id": "69979e1dcf36789b54b5fff9",
+      "phrase": "Ich hätte alles dafür gegeben, dich in einem Moment meines Lebens kennengelernt zu haben, in dem ich bereit gewesen wäre, dich so zu lieben, wie du es verdienst."
+    },
+    {
+      "_id": "69979e1dcf36789b54b5fffc",
+      "phrase": "Schöne, du bist wie ein Vallenato von Diomedes Díaz: Ich höre dich einmal und kann dich nicht mehr aus dem Kopf bekommen."
+    },
+    {
+      "_id": "69979e1dcf36789b54b5ffff",
+      "phrase": "Kumpel, einen Kolumbianer im Ausland erkennt man daran, dass er der Einzige ist, der beim Betreten des Aufzugs grüßt."
+    },
+    {
+      "_id": "69979e1ecf36789b54b60002",
+      "phrase": "Wären die Gemeindemitglieder im kritischen Denken geschult worden, hätten sie echten Glauben von religiöser Manipulation unterscheiden können."
+    },
+    {
+      "_id": "69979e1ecf36789b54b60005",
+      "phrase": "Das Urteil, das auf Beweise gestützt war, die auf irreguläre Weise erhoben worden waren, wurde vom Berufungsgericht aufgehoben."
+    },
+    {
+      "_id": "69979e1ecf36789b54b60008",
+      "phrase": "Wäre das Schiff nicht mit modernen Navigationssystemen ausgestattet worden, wäre die Überfahrt viel gefährlicher gewesen."
+    },
+    {
+      "_id": "69979e1fcf36789b54b6000b",
+      "phrase": "Es wäre vernünftiger gewesen, zu warten, bis sich der Stau aufgelöst hätte, bevor man versucht hätte, die Autobahn zu nehmen."
+    },
+    {
+      "_id": "69979e1fcf36789b54b6000e",
+      "phrase": "Der Student, dessen Stipendium an die Aufrechterhaltung eines hohen Notendurchschnitts geknüpft worden war, sah sich gezwungen, auf sein Sozialleben zu verzichten."
+    },
+    {
+      "_id": "69979e1fcf36789b54b60011",
+      "phrase": "Wäre die Fuß-in-der-Tür-Technik, bei der zunächst eine kleine Zusage eingeholt wird, um anschließend eine größere zu erbitten, auf ethische Weise angewandt worden, hätte sie ein wertvolles pädagogisches Instrument dargestellt."
+    },
+    {
+      "_id": "69979e20cf36789b54b60014",
+      "phrase": "Der Dunning-Kruger-Effekt, der von denjenigen missinterpretiert worden ist, die ihn zitieren, ohne ihn gelesen zu haben, ist paradoxerweise selbst zu einem Beispiel dessen geworden, was er zu beschreiben versucht."
+    },
+    {
+      "_id": "69979e20cf36789b54b60017",
+      "phrase": "Hätte ich dir an jenem Abend gesagt, was ich empfand, hätten wir vielleicht Monate der Ungewissheit vermieden, in denen wir beide Gleichgültigkeit vortäuschten."
+    },
+    {
+      "_id": "69979e20cf36789b54b6001a",
+      "phrase": "Wunderschöne, hätte dir jemand erklärt, welche Wirkung du hast, wenn du einen Raum betrittst, hättest du verstanden, warum ich den Blick nicht abwenden kann."
+    },
+    {
+      "_id": "69979e21cf36789b54b6001d",
+      "phrase": "Kumpel, ich sagte dem Deutschen, dass in Kolumbien ein Mittagessen ohne Suppe wie ein Auto ohne Benzin ist, und er schaute mich an, als hätte ich Klingonisch gesprochen."
+    },
+    {
+      "_id": "69979e21cf36789b54b60020",
+      "phrase": "Die unbewussten Abwehrmechanismen, die von Anna Freud als Erweiterung des Werkes ihres Vaters theoretisiert worden waren, wären in der akademischen Dunkelheit geblieben, wenn sie nicht durch die moderne Psychotherapie popularisiert worden wären."
+    },
+    {
+      "_id": "69979e21cf36789b54b60023",
+      "phrase": "Hätten die Einwanderungsbehörden die Anträge mit der Sorgfalt bearbeitet, die ihre eigene Verordnung verlangt, wären Hunderte von Familien nicht jahrelang getrennt geblieben."
+    },
+    {
+      "_id": "69979e22cf36789b54b60026",
+      "phrase": "Der Chirurg, der darüber informiert worden war, dass der Patient eine unerwünschte Reaktion auf die Narkose zeigte, die durch die präoperativen Analysen nicht vorhergesehen worden war, musste ein Notfallprotokoll improvisieren."
+    },
+    {
+      "_id": "69979e22cf36789b54b60029",
+      "phrase": "Wäre die Große Mauer, die über mehrere Jahrhunderte von Millionen Zwangsarbeitern gebaut worden war, mit heutiger Technologie dokumentiert worden, hätten wir die Bedingungen ihres Baus besser verstehen können."
+    },
+    {
+      "_id": "69979e22cf36789b54b6002c",
+      "phrase": "Es wäre wünschenswert gewesen, dass die Gemeinde, die Zeugin so vieler doktrinärer Veränderungen gewesen war, eine transparentere Erklärung erhalten hätte, bevor die neuen Richtlinien umgesetzt worden wären."
+    },
+    {
+      "_id": "69979e22cf36789b54b6002f",
+      "phrase": "Wäre die Kunst der Verführung, so wie sie von den Dichtern des Goldenen Zeitalters konzeptualisiert wurde, nicht durch die zeitgenössische Kommerzialisierung der Romantik ihrer lyrischen Dimension beraubt worden, hätten wir eine Form der Werbung bewahrt, in der das Wort als das erlesenste aller Geschenke geschätzt worden wäre."
+    },
+    {
+      "_id": "69979e23cf36789b54b60032",
+      "phrase": "Zauberhafte, könnte ich jeden Blick, den du mir geschenkt hast, einsammeln und in eine Sternenkonstellation verwandeln, hätte ich ein neues Firmament erfunden, das die Astronomen mit keiner ihrer Theorien hätten erklären können."
+    },
+    {
+      "_id": "69979e23cf36789b54b60035",
+      "phrase": "Das Overton-Fenster, das als Modell konzipiert worden war, um zu verstehen, wie marginale Ideen durch strategische Wiederholung schrittweise normalisiert werden, wäre ein harmloses Instrument geblieben, wenn es nicht von Ideologen vereinnahmt worden wäre, deren Ziel es ist, die Grenzen des akzeptablen Diskurses zu verschieben."
+    },
+    {
+      "_id": "69979e23cf36789b54b60038",
+      "phrase": "Wäre der Autoritätsbias, durch den Menschen dazu neigen, Anweisungen von als überlegen wahrgenommenen Persönlichkeiten zu befolgen, ohne deren Legitimität infrage zu stellen, nicht von Milgram in seinem berühmten Experiment dokumentiert worden, hätte der Sozialpsychologie eine ihrer verstörendsten empirischen Grundlagen gefehlt."
+    },
+    {
+      "_id": "69979e24cf36789b54b6003b",
+      "phrase": "Kumpel, an dem Tag, an dem ein Kolumbianer aufhört, 'quiubo' zu sagen, wenn er ans Telefon geht, an dem Tag werden wir wissen, dass die Globalisierung unserer Identität den Kampf gewonnen haben wird und die Arepa durch ein Croissant ersetzt worden sein wird."
+    },
+    {
+      "_id": "69979e24cf36789b54b6003e",
+      "phrase": "Wären die Verhörtechniken, die von mehreren internationalen Organisationen als Folter eingestuft worden waren, nicht unter dem Euphemismus 'erweiterte Verhörtechniken' normalisiert worden, hätte die Öffentlichkeit mit der Empörung reagiert, die die Schwere der Tatsachen erforderte."
+    },
+    {
+      "_id": "69979e24cf36789b54b60041",
+      "phrase": "Die Gentrifizierung der Viertel, in denen traditionell die am stärksten Benachteiligten bettelten, hatte die perverse Folge, die Armut unsichtbar zu machen, indem sie in Randgebiete verdrängt wurde, wo die nachbarschaftliche Solidarität, die ihre Auswirkungen hätte abfedern können, praktisch nicht vorhanden ist."
+    },
+    {
+      "_id": "69979e25cf36789b54b60044",
+      "phrase": "Die Lebertransplantation, die vor kaum einem halben Jahrhundert als Science-Fiction gegolten hätte, ist zu einem Verfahren geworden, dessen Erfolgsrate, die dank der Fortschritte in der Immunsuppression gesteigert worden ist, in spezialisierten Zentren bereits neunzig Prozent übersteigt."
+    },
+    {
+      "_id": "69979e25cf36789b54b60047",
+      "phrase": "Wäre der Konfuzianismus, dessen Lehren vergessen worden wären, hätten nicht Schüler, die die Tragweite des Meisters erkannten, sie zusammengetragen, nicht in jede Schicht der chinesischen Gesellschaft durchgedrungen, hätte die östliche Auffassung von Hierarchie und Kindespietät einen radikal anderen Verlauf genommen."
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { LearningContext } from "../words/words.types.js";
 
 export interface LegacyPhrase {
   _id: ObjectId;
@@ -32,7 +33,7 @@ export interface Phrase {
   words: ObjectId[]; // references to WORDS_[LANGUAGE]
   perWordExplanation?: Record<string, PerWordExplanation>;
   level?: PhraseLevel;
-  context?: string;
+  contexts: LearningContext[];
   createdAt: Date;
   updatedAt?: Date;
 }

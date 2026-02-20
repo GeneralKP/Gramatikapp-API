@@ -1,3 +1,45 @@
+enum LearningContext {
+  travel_car
+  travel_train
+  travel_boat
+  travel_plane
+  travel_walking
+  hospital
+  surgery
+  praxis
+  party
+  lang_party
+  church
+  worship
+  adventist
+  flirting
+  moving
+  robbery
+  colombian
+  colombian_compliments
+  debate
+  university
+  court
+  immigration
+  china
+  begging
+  raffles
+  cartoon_convention
+}
+
+enum GrammaticalCategory {
+  NOUN
+  VERB
+  ADJECTIVE
+  ADVERB
+  PRONOUN
+  PREPOSITION
+  CONJUNCTION
+  INTERJECTION
+  ARTICLE
+  UNKNOWN
+}
+
 type WordForms {
   perfect: String
   past: String
@@ -20,11 +62,11 @@ type RelatedWords {
 type Word {
   id: ID!
   word: String!
-  gramaticalCategory: String!
+  gramaticalCategories: [GrammaticalCategory!]!
   examples: [String!]!
   relatedWords: RelatedWords
   forms: WordForms
-  context: String
+  contexts: [LearningContext!]!
   level: String
   notes: String
   createdAt: String!

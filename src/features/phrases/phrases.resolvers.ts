@@ -133,15 +133,39 @@ export const phrasesResolvers = {
     ) => {
       const db = getDb();
       const relations = await db.relationsPhrasesEsDe
-        .find({})
-        .skip(offset)
-        .limit(limit)
+        .aggregate([
+          { $skip: offset },
+          { $limit: limit },
+          {
+            $lookup: {
+              from: "phrasesES",
+              localField: "main",
+              foreignField: "_id",
+              as: "mainDocs",
+            },
+          },
+          {
+            $lookup: {
+              from: "phrasesDE",
+              localField: "translated",
+              foreignField: "_id",
+              as: "translatedDocs",
+            },
+          },
+        ])
         .toArray();
-      return relations.map((r) => ({
-        ...r,
-        id: r._id.toString(),
-        createdAt: r.createdAt?.toISOString(),
-      }));
+
+      return relations.map((r) => {
+        const doc: any = { ...r };
+        if (r.mainDocs && r.mainDocs.length > 0) doc.mainDoc = r.mainDocs[0];
+        if (r.translatedDocs && r.translatedDocs.length > 0)
+          doc.translatedDoc = r.translatedDocs[0];
+        return {
+          ...doc,
+          id: doc._id.toString(),
+          createdAt: doc.createdAt?.toISOString(),
+        };
+      });
     },
   },
 
@@ -168,10 +192,13 @@ export const phrasesResolvers = {
 
   PhraseRelation: {
     main: async (parent: any) => {
-      const db = getDb();
-      const phrase = await db.phrasesES.findOne({
-        _id: new ObjectId(parent.main),
-      });
+      let phrase = parent.mainDoc;
+      if (!phrase) {
+        const db = getDb();
+        phrase = await db.phrasesES.findOne({
+          _id: new ObjectId(parent.main),
+        });
+      }
       if (!phrase) return null;
 
       const perWordArr: { key: string; value: any }[] = [];
@@ -188,10 +215,13 @@ export const phrasesResolvers = {
       };
     },
     translated: async (parent: any) => {
-      const db = getDb();
-      const phrase = await db.phrasesDE.findOne({
-        _id: new ObjectId(parent.translated),
-      });
+      let phrase = parent.translatedDoc;
+      if (!phrase) {
+        const db = getDb();
+        phrase = await db.phrasesDE.findOne({
+          _id: new ObjectId(parent.translated),
+        });
+      }
       if (!phrase) return null;
 
       const perWordArr: { key: string; value: any }[] = [];

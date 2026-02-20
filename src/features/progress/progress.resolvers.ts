@@ -156,29 +156,29 @@ export const progressResolvers = {
       const wordRelations = await db.relationsWordsEsDe.find({}).toArray();
       const phraseRelations = await db.relationsPhrasesEsDe.find({}).toArray();
 
-      // Build lookup maps: main word/phrase _id → { context, level }
+      // Build lookup maps: main word/phrase _id → { contexts[], level }
       const mainWordIds = wordRelations.map((wr) => wr.main);
       const mainPhraseIds = phraseRelations.map((pr) => pr.main);
 
       const wordsLookup = await db.wordsES
         .find({ _id: { $in: mainWordIds } })
-        .project({ _id: 1, context: 1, level: 1 })
+        .project({ _id: 1, contexts: 1, level: 1 })
         .toArray();
       const phrasesLookup = await db.phrasesES
         .find({ _id: { $in: mainPhraseIds } })
-        .project({ _id: 1, context: 1, level: 1 })
+        .project({ _id: 1, contexts: 1, level: 1 })
         .toArray();
 
       const wordMeta = new Map(
         wordsLookup.map((w) => [
           w._id.toString(),
-          { context: w.context, level: w.level },
+          { contexts: w.contexts || [], level: w.level },
         ]),
       );
       const phraseMeta = new Map(
         phrasesLookup.map((p) => [
           p._id.toString(),
-          { context: p.context, level: p.level },
+          { contexts: p.contexts || [], level: p.level },
         ]),
       );
 
@@ -197,51 +197,54 @@ export const progressResolvers = {
       // ── Populate Word stats using relation IDs ──
       for (const wr of wordRelations) {
         const meta = wordMeta.get(wr.main.toString());
-        if (!meta?.context) continue;
-        const ctxId = meta.context;
-        if (!nodesMap[ctxId]) {
-          nodesMap[ctxId] = {
-            id: ctxId,
-            name: ctxId
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (l: string) => l.toUpperCase()),
-            level: meta.level || "A1",
-            isUnlocked: false,
-            wordsTotal: 0,
-            wordsLearned: 0,
-            phrasesTotal: 0,
-            phrasesLearned: 0,
-          };
-        }
-        nodesMap[ctxId].wordsTotal += 1;
-        // Check the RELATION _id against progress (this is the correct ID)
-        if (learnedSet.has(wr._id.toString())) {
-          nodesMap[ctxId].wordsLearned += 1;
+        if (!meta?.contexts?.length) continue;
+        const isLearned = learnedSet.has(wr._id.toString());
+        for (const ctxId of meta.contexts) {
+          if (!nodesMap[ctxId]) {
+            nodesMap[ctxId] = {
+              id: ctxId,
+              name: ctxId
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (l: string) => l.toUpperCase()),
+              level: meta.level || "A1",
+              isUnlocked: false,
+              wordsTotal: 0,
+              wordsLearned: 0,
+              phrasesTotal: 0,
+              phrasesLearned: 0,
+            };
+          }
+          nodesMap[ctxId].wordsTotal += 1;
+          if (isLearned) {
+            nodesMap[ctxId].wordsLearned += 1;
+          }
         }
       }
 
       // ── Populate Phrase stats using relation IDs ──
       for (const pr of phraseRelations) {
         const meta = phraseMeta.get(pr.main.toString());
-        if (!meta?.context) continue;
-        const ctxId = meta.context;
-        if (!nodesMap[ctxId]) {
-          nodesMap[ctxId] = {
-            id: ctxId,
-            name: ctxId
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (l: string) => l.toUpperCase()),
-            level: meta.level || "A1",
-            isUnlocked: false,
-            wordsTotal: 0,
-            wordsLearned: 0,
-            phrasesTotal: 0,
-            phrasesLearned: 0,
-          };
-        }
-        nodesMap[ctxId].phrasesTotal += 1;
-        if (learnedSet.has(pr._id.toString())) {
-          nodesMap[ctxId].phrasesLearned += 1;
+        if (!meta?.contexts?.length) continue;
+        const isLearned = learnedSet.has(pr._id.toString());
+        for (const ctxId of meta.contexts) {
+          if (!nodesMap[ctxId]) {
+            nodesMap[ctxId] = {
+              id: ctxId,
+              name: ctxId
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (l: string) => l.toUpperCase()),
+              level: meta.level || "A1",
+              isUnlocked: false,
+              wordsTotal: 0,
+              wordsLearned: 0,
+              phrasesTotal: 0,
+              phrasesLearned: 0,
+            };
+          }
+          nodesMap[ctxId].phrasesTotal += 1;
+          if (isLearned) {
+            nodesMap[ctxId].phrasesLearned += 1;
+          }
         }
       }
 
