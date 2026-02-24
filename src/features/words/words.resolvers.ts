@@ -47,7 +47,7 @@ export const wordsResolvers = {
           { $limit: limit },
           {
             $lookup: {
-              from: "wordsES",
+              from: "WORDS_ES",
               localField: "main",
               foreignField: "_id",
               as: "mainDocs",
@@ -55,7 +55,7 @@ export const wordsResolvers = {
           },
           {
             $lookup: {
-              from: "wordsDE",
+              from: "WORDS_DE",
               localField: "translated",
               foreignField: "_id",
               as: "translatedDocs",

@@ -138,7 +138,7 @@ export const phrasesResolvers = {
           { $limit: limit },
           {
             $lookup: {
-              from: "phrasesES",
+              from: "PHRASES_ES",
               localField: "main",
               foreignField: "_id",
               as: "mainDocs",
@@ -146,7 +146,7 @@ export const phrasesResolvers = {
           },
           {
             $lookup: {
-              from: "phrasesDE",
+              from: "PHRASES_DE",
               localField: "translated",
               foreignField: "_id",
               as: "translatedDocs",
