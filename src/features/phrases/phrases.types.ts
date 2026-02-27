@@ -1,16 +1,6 @@
 import { ObjectId } from "mongodb";
 import { LearningContext } from "../words/words.types.js";
 
-export interface LegacyPhrase {
-  _id: ObjectId;
-  german: string;
-  spanish: string;
-  words?: string[];
-  tags: string[];
-  createdAt: Date;
-  updatedAt?: Date;
-}
-
 export enum PhraseLevel {
   A1 = "A1",
   A2 = "A2",

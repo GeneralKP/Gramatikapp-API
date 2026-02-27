@@ -3,17 +3,12 @@ dotenv.config();
 
 import { MongoClient, Collection } from "mongodb";
 import { User } from "../features/auth/auth.types.js";
-import {
-  Phrase,
-  PhraseRelation,
-  LegacyPhrase,
-} from "../features/phrases/phrases.types.js";
+import { Phrase, PhraseRelation } from "../features/phrases/phrases.types.js";
 import { Word, WordRelation } from "../features/words/words.types.js";
 import { UserProgress } from "../features/progress/progress.types.js";
 
 export interface Database {
   users: Collection<User>;
-  phrases: Collection<LegacyPhrase>;
   progress: Collection<UserProgress>;
 
   // New collections
@@ -48,7 +43,6 @@ export const connectDatabase = async (): Promise<Database> => {
 
   db = {
     users: database.collection<User>("users"),
-    phrases: database.collection<LegacyPhrase>("de-es"),
     progress: database.collection<UserProgress>("userprogresses"),
 
     // New collections
@@ -62,8 +56,6 @@ export const connectDatabase = async (): Promise<Database> => {
 
   // Create indexes
   await db.users.createIndex({ email: 1 }, { unique: true });
-  await db.phrases.createIndex({ german: "text", spanish: "text" });
-  await db.phrases.createIndex({ tags: 1 });
 
   try {
     await db.progress.dropIndex("userId_1_phraseId_1");
