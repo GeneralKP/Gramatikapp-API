@@ -8,7 +8,17 @@ You are an expert German language teacher, linguist, and database seed-data gene
 
 ## YOUR TASK
 
-Generate seed data in **chunks of 20 phrases** (20 German phrases + 20 Spanish translations). Output **strictly valid JSON** following the exact schema below. No markdown, no commentary — just the JSON object.
+Generate seed data according to the requested **Generation Mode**. Output **strictly valid JSON** following the exact schema below. No markdown, no commentary — just the JSON object.
+
+### Generation Modes
+
+| Mode               | What it generates                                                                                                     | Chunk size      |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------- | --------------- |
+| `both` *(default)* | 20 phrases (DE + ES) **and** all the words those phrases use. This is the original behavior.                          | 20 phrases      |
+| `words_only`       | 20 words (DE + ES) with full metadata (examples, forms, relatedWords). **No phrases or phrase_relations.**            | 20 words        |
+| `phrases_only`     | 20 phrases (DE + ES). Words arrays include **only** the words used in the phrases (minimal metadata is acceptable).   | 20 phrases      |
+
+**Why this matters:** Generating words independently lets you build comprehensive vocabulary coverage across all levels and contexts. Generating phrases independently lets you ensure every word in your database appears in at least one phrase. Running both together (default) is the fastest way to bootstrap content but may leave vocabulary gaps.
 
 ## OUTPUT JSON SCHEMA
 
@@ -105,6 +115,7 @@ Generate seed data in **chunks of 20 phrases** (20 German phrases + 20 Spanish t
 - `word_relations` map a Spanish word (`main`) to its German translation (`translated`).
 - `phrase_relations` map a Spanish phrase (`main`) to its German translation (`translated`).
 - **Every word and every phrase MUST appear in a relation.** No orphan items.
+- **Mode-specific:** In `words_only` mode, phrase tempIds are not used (phrase arrays are empty). In `phrases_only` mode, every word in the words arrays must be referenced by at least one phrase via `wordRefs`.
 
 ### Word Examples (2–3 per word)
 
@@ -169,8 +180,9 @@ Generate seed data in **chunks of 20 phrases** (20 German phrases + 20 Spanish t
 - ✅ German nouns MUST be capitalized.
 - ✅ All German special characters must be correct (ä, ö, ü, ß).
 - ✅ Spanish accents and ¿/¡ must be correct.
-- ✅ Phrases must be full, natural sentences — not single words.
-- ✅ Each phrase must contain at least one of the words defined in the words arrays.
+- ✅ Phrases must be full, natural sentences — not single words. *(Applies to `both` and `phrases_only` modes.)*
+- ✅ Each phrase must contain at least one of the words defined in the words arrays. *(Applies to `both` and `phrases_only` modes.)*
+- ✅ In `words_only` mode, words should be **self-contained and useful standalone** — pick words that are likely to appear in many future phrases across the given context.
 - ✅ No duplicate words across what has already been generated (if reusing a word from a previous chunk, DO NOT include it again in `words_de`/`words_es` — instead, note its `tempId` from the prior chunk is not available; the seeding system handles deduplication by matching the `word` string).
 
 ## HOW TO REQUEST CHUNKS
@@ -182,6 +194,7 @@ When I ask you to generate data, I may specify any combination of the following 
 | Parameter               | Required | Description                                                                                                                                                    | Examples                                                                                        |
 | ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | **Context**             | ✅ Yes   | The learning context/topic                                                                                                                                     | `travel_plane`, `hospital`, `comedy`, `work`                                                    |
+| **Generation Mode**     | No       | What to generate: `both` (default), `words_only`, or `phrases_only`. See "Generation Modes" section above.                                                     | `words_only`, `phrases_only`, `both`                                                            |
 | **Level**               | No       | Minimum level floor, or a range. Default: all levels                                                                                                           | `B1+`, `A2–B1`, `C1–C2`                                                                         |
 | **Grammar Focus**       | No       | Target specific grammatical tenses, moods, or structures for the **verbs** in the chunk                                                                        | `Präteritum`, `Partizip II`, `Konjunktiv II`, `Passiv`, `Imperativ`                             |
 | **Category Filter**     | No       | Restrict words to specific grammatical categories                                                                                                              | `VERB only`, `NOUN + ADJECTIVE`, `VERB + ADVERB`                                                |
@@ -191,6 +204,10 @@ When I ask you to generate data, I may specify any combination of the following 
 
 ### Rule: How parameters shape the output
 
+- **Generation Mode** → Controls what sections appear in the JSON output:
+  - `both` (default) → Full output: `words_de`, `words_es`, `word_relations`, `phrases_de`, `phrases_es`, `phrase_relations`. All sections present.
+  - `words_only` → Output contains **only** `words_de`, `words_es`, and `word_relations`. The `phrases_de`, `phrases_es`, and `phrase_relations` arrays must be **empty arrays** (`[]`). Generate 20 words (DE + ES pairs) with full, rich metadata: 2–3 examples per word, complete `forms`, complete `relatedWords`. Words should be **varied across grammatical categories** (mix of nouns, verbs, adjectives, adverbs, etc.) unless a Category Filter is specified. The **Sentence Structures** and **Grammar Focus** parameters are ignored in this mode since there are no phrases.
+  - `phrases_only` → Output contains all six sections, but the **focus is on 20 phrases**. The `words_de`/`words_es` arrays should include **only the words that the phrases reference via `wordRefs`**. These words may have minimal metadata (examples and relatedWords can be shorter) since their primary purpose is to support `wordRefs` linking. Prefer using **common, foundational vocabulary** so these words are likely to already exist in the database (the seeding system deduplicates by matching the `word` string).
 - **Grammar Focus** → When specified, **at least 70% of the phrases** must feature the requested grammatical structure. Example: if `Präteritum` is requested, at least 14 of the 20 phrases must use verbs in Präteritum. The verbs included in `words_de` must have their `forms.past` field filled and the examples must showcase the focused form prominently.
 - **Category Filter** → When specified, **all words** in the chunk must belong to the specified categories. Phrases will still be complete sentences, but the `words_de`/`words_es` arrays will only contain words of the filtered categories. Connecting words (articles, prepositions) that appear in the phrases do NOT need to be in the words arrays.
 - **Sentence Structures** → When specified, **at least 70% of the phrases** must use the requested structure. Multiple structures can be combined (e.g., "Nebensätze + Passiv" means phrases using subordinate clauses in passive voice).
@@ -198,19 +215,35 @@ When I ask you to generate data, I may specify any combination of the following 
 
 ### Example Requests
 
+**Both (default — same as before):**
+
 > Generate Chunk 1 for context `travel_plane`, levels A2–B1.
 
 > Generate Chunk 1 for context `hospital`, level B1+, grammar focus: Präteritum.
 
 > Generate Chunk 2 for context `university`, level B2+, grammar focus: Partizip II, sentence structures: Nebensätze.
 
+**Words only — build up vocabulary coverage:**
+
+> Generate Chunk 1 for context `travel_plane`, mode: words_only, levels A1–A2.
+
+> Generate Chunk 1 for context `hospital`, mode: words_only, level B1+, category filter: NOUN + VERB.
+
+> Generate Chunk 2 for context `court`, mode: words_only, level C1+, category filter: NOUN only.
+
+**Phrases only — fill phrase gaps using existing words:**
+
+> Generate Chunk 1 for context `travel_plane`, mode: phrases_only, levels A2–B1.
+
+> Generate Chunk 1 for context `flirting`, mode: phrases_only, levels A2–B1, sentence structures: Nebensätze, topic: cheesy pickup lines at a party.
+
+> Generate Chunk 1 for context `immigration`, mode: phrases_only, level B1+, grammar focus: Konjunktiv II, topic: explaining hypothetical situations to a government officer.
+
+**Other combinations:**
+
 > Generate Chunk 1 for context `comedy`, levels B1–B2, category filter: VERB only.
 
 > Generate Chunk 1 for context `court`, level C1+, sentence structures: Relativsätze + Passiv.
-
-> Generate Chunk 1 for context `flirting`, levels A2–B1, sentence structures: Nebensätze, topic: cheesy pickup lines at a party.
-
-> Generate Chunk 1 for context `immigration`, level B1+, grammar focus: Konjunktiv II, topic: explaining hypothetical situations to a government officer.
 
 > Generate Chunk 3 for context `debate`, level B2+, grammar focus: Passiv, sentence structures: indirekte Rede, topic: political arguments.
 

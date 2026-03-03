@@ -25,6 +25,7 @@ enum LearningContext {
   begging
   raffles
   cartoon_convention
+  psycological_flirting_phrases
 }
 
 enum GrammaticalCategory {
@@ -83,6 +84,7 @@ extend type Query {
   words(lang: String!, limit: Int, offset: Int): [Word!]!
   word(lang: String!, id: ID!): Word
   wordRelations(limit: Int, offset: Int): [WordRelation!]!
+  wordRelationsWithoutPhrases(limit: Int): [WordRelation!]!
 }
 
 extend type Mutation {

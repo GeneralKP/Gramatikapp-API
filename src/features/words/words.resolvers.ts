@@ -72,6 +72,65 @@ export const wordsResolvers = {
         return toGraphQL(doc);
       });
     },
+    wordRelationsWithoutPhrases: async (
+      _: unknown,
+      { limit = 20 }: { limit?: number },
+    ) => {
+      const db = getDb();
+      const relations = await db.relationsWordsEsDe
+        .aggregate([
+          {
+            $lookup: {
+              from: "PHRASES_ES",
+              localField: "main",
+              foreignField: "words",
+              as: "phrasesEs",
+            },
+          },
+          {
+            $lookup: {
+              from: "PHRASES_DE",
+              localField: "translated",
+              foreignField: "words",
+              as: "phrasesDe",
+            },
+          },
+          {
+            $match: {
+              $and: [
+                { "phrasesEs.0": { $exists: false } },
+                { "phrasesDe.0": { $exists: false } },
+              ],
+            },
+          },
+          { $limit: limit },
+          {
+            $lookup: {
+              from: "WORDS_ES",
+              localField: "main",
+              foreignField: "_id",
+              as: "mainDocs",
+            },
+          },
+          {
+            $lookup: {
+              from: "WORDS_DE",
+              localField: "translated",
+              foreignField: "_id",
+              as: "translatedDocs",
+            },
+          },
+        ])
+        .toArray();
+
+      return relations.map((r) => {
+        const doc: any = { ...r };
+        if (r.mainDocs && r.mainDocs.length > 0) doc.mainDoc = r.mainDocs[0];
+        if (r.translatedDocs && r.translatedDocs.length > 0)
+          doc.translatedDoc = r.translatedDocs[0];
+        return toGraphQL(doc);
+      });
+    },
   },
   WordRelation: {
     main: async (parent: any) => {
