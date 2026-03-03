@@ -16,9 +16,119 @@ function toGraphQL(progress: UserProgress | null) {
   };
 }
 
+async function fetchNewItems(
+  db: ReturnType<typeof getDb>,
+  userObjectId: ObjectId,
+  needed: number,
+  itemType?: string,
+): Promise<UserProgress[]> {
+  const reviewedQuery: any = { userId: userObjectId };
+  if (itemType) reviewedQuery.itemType = itemType;
+
+  const reviewedIds = await db.progress
+    .find(reviewedQuery)
+    .project({ itemId: 1 })
+    .toArray();
+  const reviewedSet = new Set(
+    reviewedIds.map((p) => p.itemId.toString()),
+  );
+
+  const excludeFilter = {
+    _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)) },
+  };
+
+  const newProgressDocs: UserProgress[] = [];
+
+  if (!itemType || itemType === "WORD") {
+    const neededWords =
+      itemType === "WORD" ? needed : Math.ceil(needed / 2);
+    const newWords = await db.relationsWordsEsDe
+      .find(excludeFilter)
+      .limit(neededWords)
+      .toArray();
+
+    for (const w of newWords) {
+      newProgressDocs.push({
+        _id: new ObjectId(),
+        userId: userObjectId,
+        itemId: w._id,
+        itemType: "WORD",
+        ease: 2.5,
+        interval: 0,
+        repetitions: 0,
+        nextDueDate: new Date(),
+        lastReviewed: null,
+        createdAt: new Date(),
+      });
+    }
+  }
+
+  if (!itemType || itemType === "PHRASE") {
+    const neededPhrases =
+      itemType === "PHRASE" ? needed : Math.floor(needed / 2);
+    const newPhrases = await db.relationsPhrasesEsDe
+      .find(excludeFilter)
+      .limit(neededPhrases)
+      .toArray();
+
+    for (const p of newPhrases) {
+      newProgressDocs.push({
+        _id: new ObjectId(),
+        userId: userObjectId,
+        itemId: p._id,
+        itemType: "PHRASE",
+        ease: 2.5,
+        interval: 0,
+        repetitions: 0,
+        nextDueDate: new Date(),
+        lastReviewed: null,
+        createdAt: new Date(),
+      });
+    }
+  }
+
+  const docsToAdd = newProgressDocs.slice(0, needed);
+  if (docsToAdd.length > 0) {
+    await db.progress.insertMany(docsToAdd);
+  }
+  return docsToAdd;
+}
+
 export const progressResolvers = {
   Query: {
     dueItems: async (
+      _: unknown,
+      {
+        userId,
+        dueLimit = 50,
+        newLimit = 10,
+        itemType,
+      }: { userId: string; dueLimit?: number; newLimit?: number; itemType?: string },
+    ) => {
+      const db = getDb();
+      const now = new Date();
+      const userObjectId = new ObjectId(userId);
+
+      // 1) Fetch actually-due items
+      const dueQuery: any = { userId: userObjectId, nextDueDate: { $lte: now } };
+      if (itemType) dueQuery.itemType = itemType;
+
+      const dueDocs = await db.progress
+        .find(dueQuery)
+        .sort({ nextDueDate: 1 })
+        .limit(dueLimit)
+        .toArray();
+
+      // 2) Separately fetch new (unseen) items up to newLimit
+      let newDocs: UserProgress[] = [];
+      if (newLimit > 0) {
+        newDocs = await fetchNewItems(db, userObjectId, newLimit, itemType);
+      }
+
+      return [...dueDocs, ...newDocs].map(toGraphQL);
+    },
+
+    studyMoreItems: async (
       _: unknown,
       {
         userId,
@@ -30,86 +140,29 @@ export const progressResolvers = {
       const now = new Date();
       const userObjectId = new ObjectId(userId);
 
-      const query: any = { userId: userObjectId, nextDueDate: { $lte: now } };
-      if (itemType) query.itemType = itemType;
+      // 1) Fetch future-due items (nextDueDate > now), closest first
+      const futureQuery: any = {
+        userId: userObjectId,
+        nextDueDate: { $gt: now },
+      };
+      if (itemType) futureQuery.itemType = itemType;
 
-      let progressDocs = await db.progress.find(query).limit(limit).toArray();
+      const futureDueLimit = Math.ceil(limit * 0.7);
 
-      if (progressDocs.length < limit) {
-        const reviewedQuery: any = { userId: userObjectId };
-        if (itemType) reviewedQuery.itemType = itemType;
+      const futureDocs = await db.progress
+        .find(futureQuery)
+        .sort({ nextDueDate: 1 })
+        .limit(futureDueLimit)
+        .toArray();
 
-        const reviewedIds = await db.progress
-          .find(reviewedQuery)
-          .project({ itemId: 1 })
-          .toArray();
-        const reviewedSet = new Set(
-          reviewedIds.map((p) => p.itemId.toString()),
-        );
-
-        const needed = limit - progressDocs.length;
-        const newProgressDocs: UserProgress[] = [];
-
-        if (!itemType || itemType === "WORD") {
-          const neededWords =
-            itemType === "WORD" ? needed : Math.ceil(needed / 2);
-          const newWords = await db.relationsWordsEsDe
-            .find({
-              _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)) },
-            })
-            .limit(neededWords)
-            .toArray();
-
-          for (const w of newWords) {
-            newProgressDocs.push({
-              _id: new ObjectId(),
-              userId: userObjectId,
-              itemId: w._id,
-              itemType: "WORD",
-              ease: 2.5,
-              interval: 0,
-              repetitions: 0,
-              nextDueDate: new Date(),
-              lastReviewed: null,
-              createdAt: new Date(),
-            });
-          }
-        }
-
-        if (!itemType || itemType === "PHRASE") {
-          const neededPhrases =
-            itemType === "PHRASE" ? needed : Math.floor(needed / 2);
-          const newPhrases = await db.relationsPhrasesEsDe
-            .find({
-              _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)) },
-            })
-            .limit(neededPhrases)
-            .toArray();
-
-          for (const p of newPhrases) {
-            newProgressDocs.push({
-              _id: new ObjectId(),
-              userId: userObjectId,
-              itemId: p._id,
-              itemType: "PHRASE",
-              ease: 2.5,
-              interval: 0,
-              repetitions: 0,
-              nextDueDate: new Date(),
-              lastReviewed: null,
-              createdAt: new Date(),
-            });
-          }
-        }
-
-        if (newProgressDocs.length > 0) {
-          const docsToAdd = newProgressDocs.slice(0, needed);
-          await db.progress.insertMany(docsToAdd);
-          progressDocs = [...progressDocs, ...docsToAdd];
-        }
+      // 2) Fill remaining with new unseen items
+      const remaining = limit - futureDocs.length;
+      let newDocs: UserProgress[] = [];
+      if (remaining > 0) {
+        newDocs = await fetchNewItems(db, userObjectId, remaining, itemType);
       }
 
-      return progressDocs.map(toGraphQL);
+      return [...futureDocs, ...newDocs].map(toGraphQL);
     },
 
     userProgress: async (

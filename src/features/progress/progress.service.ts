@@ -35,8 +35,6 @@ export function calculateNextReview(
     if (repetitions === 0) {
       interval = 1;
     } else if (repetitions === 1) {
-      interval = 3;
-    } else if (repetitions === 2) {
       interval = 6;
     } else {
       // Modify interval with an ease multiplier, capped to avoid runaway intervals
@@ -56,7 +54,7 @@ export function calculateNextReview(
   ease = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
   // Keep ease within bounds
   if (ease < 1.3) ease = 1.3;
-  if (ease > 3.0) ease = 3.0;
+  if (ease > 2.5) ease = 2.5;
 
   const nextDueDate = new Date();
   nextDueDate.setDate(nextDueDate.getDate() + interval);

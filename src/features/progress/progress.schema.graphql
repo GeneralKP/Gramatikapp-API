@@ -29,7 +29,8 @@ type LearningNode {
 }
 
 extend type Query {
-  dueItems(userId: ID!, limit: Int, itemType: String): [UserProgress!]!
+  dueItems(userId: ID!, dueLimit: Int, newLimit: Int, itemType: String): [UserProgress!]!
+  studyMoreItems(userId: ID!, limit: Int, itemType: String): [UserProgress!]!
   userProgress(userId: ID!, itemId: ID!): UserProgress
   allProgress(userId: ID!, itemType: String): [UserProgress!]!
   itemsCount(itemType: String!): Int!

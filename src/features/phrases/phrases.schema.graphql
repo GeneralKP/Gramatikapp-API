@@ -1,17 +1,3 @@
-type Phrase {
-  id: ID!
-  german: String!
-  spanish: String!
-  words: [String!]
-  tags: [String!]!
-  createdAt: String!
-}
-
-input PhraseFilter {
-  tags: [String!]
-  search: String
-}
-
 type TranslationResult {
   text: String!
   detectedSourceLanguage: String
@@ -47,17 +33,20 @@ type PhraseRelation {
 }
 
 extend type Query {
-  phrases(filter: PhraseFilter, limit: Int, offset: Int): [Phrase!]!
-  phrase(id: ID!): Phrase
-  phrasesCount(filter: PhraseFilter): Int!
-
   newPhrases(lang: String!, limit: Int, offset: Int): [NewPhrase!]!
   newPhrase(lang: String!, id: ID!): NewPhrase
   phraseRelations(limit: Int, offset: Int): [PhraseRelation!]!
 }
 
+type ImportResult {
+  wordsCreated: Int!
+  wordsSkipped: Int!
+  phrasesCreated: Int!
+  phrasesSkipped: Int!
+  relationsCreated: Int!
+}
+
 extend type Mutation {
-  addPhrase(german: String!, spanish: String!, tags: [String!]): Phrase!
-  addBulkPhrases(rawText: String!): [Phrase!]!
   translate(text: String!, targetLang: String): TranslationResult!
+  importSeedData(jsonData: String!): ImportResult!
 }
