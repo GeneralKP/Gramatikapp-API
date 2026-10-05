@@ -26,6 +26,9 @@ enum LearningContext {
   raffles
   cartoon_convention
   psycological_flirting_phrases
+  daily_routine
+  work
+  finance
 }
 
 enum GrammaticalCategory {
@@ -61,8 +64,10 @@ type RelatedWords {
 }
 
 type Word {
+  cefrLevel: String
   id: ID!
   word: String!
+  failureIndex: Int!
   gramaticalCategories: [GrammaticalCategory!]!
   examples: [String!]!
   relatedWords: RelatedWords
@@ -83,8 +88,9 @@ type WordRelation {
 extend type Query {
   words(lang: String!, limit: Int, offset: Int): [Word!]!
   word(lang: String!, id: ID!): Word
-  wordRelations(limit: Int, offset: Int): [WordRelation!]!
+  wordRelations(limit: Int, offset: Int, search: String, cefrLevel: String): [WordRelation!]!
   wordRelationsWithoutPhrases(limit: Int): [WordRelation!]!
+  wordsWithoutTranslation(lang: String!, limit: Int): [Word!]!
 }
 
 extend type Mutation {

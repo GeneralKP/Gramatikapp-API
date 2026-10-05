@@ -15,6 +15,7 @@ type PerWordExplanationEntry {
 }
 
 type NewPhrase {
+  cefrLevel: String
   id: ID!
   phrase: String!
   synonyms: [String!]
@@ -35,7 +36,7 @@ type PhraseRelation {
 extend type Query {
   newPhrases(lang: String!, limit: Int, offset: Int): [NewPhrase!]!
   newPhrase(lang: String!, id: ID!): NewPhrase
-  phraseRelations(limit: Int, offset: Int): [PhraseRelation!]!
+  phraseRelations(limit: Int, offset: Int, search: String, cefrLevel: String): [PhraseRelation!]!
 }
 
 type ImportResult {

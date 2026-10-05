@@ -1,3 +1,4 @@
+import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
 import { ObjectId, Filter } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { translate as translateText } from "./phrases.service.js";
@@ -62,32 +63,10 @@ export const phrasesResolvers = {
       };
     },
 
-    phraseRelations: async (
-      _: unknown,
-      { limit = 100, offset = 0 }: { limit?: number; offset?: number },
-    ) => {
+    phraseRelations: async (_: unknown, args: CatalogArgs) => {
       const db = getDb();
       const relations = await db.relationsPhrasesEsDe
-        .aggregate([
-          { $skip: offset },
-          { $limit: limit },
-          {
-            $lookup: {
-              from: "PHRASES_ES",
-              localField: "main",
-              foreignField: "_id",
-              as: "mainDocs",
-            },
-          },
-          {
-            $lookup: {
-              from: "PHRASES_DE",
-              localField: "translated",
-              foreignField: "_id",
-              as: "translatedDocs",
-            },
-          },
-        ])
+        .aggregate(catalogPipeline(args, "PHRASES_ES", "PHRASES_DE", "phrase"))
         .toArray();
 
       return relations.map((r) => {
@@ -178,11 +157,14 @@ export const phrasesResolvers = {
     translate: async (
       _: unknown,
       { text, targetLang = "ES" }: { text: string; targetLang?: string },
+      context: { user: unknown },
     ) => {
+      if (!context.user) throw new Error("Unauthorized");
       return translateText(text, targetLang);
     },
 
-    importSeedData: async (_: unknown, { jsonData }: { jsonData: string }) => {
+    importSeedData: async (_: unknown, { jsonData }: { jsonData: string }, context: { user: unknown }) => {
+      if (!context.user) throw new Error("Unauthorized");
       const db = getDb();
       let data: any;
       try {

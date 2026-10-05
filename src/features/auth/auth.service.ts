@@ -7,6 +7,8 @@ import { User, defaultUserSettings } from "./auth.types.js";
 
 dotenv.config();
 
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) throw new Error("JWT_SECRET is required in production");
+
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
 const SALT_ROUNDS = 10;
 
@@ -112,7 +114,7 @@ export async function loginWithEmail(
 
 export async function getUserFromToken(token: string): Promise<User | null> {
   const payload = verifyToken(token);
-  if (!payload) return null;
+  if (!payload || !ObjectId.isValid(payload.userId)) return null;
 
   const db = getDb();
   return db.users.findOne({ _id: new ObjectId(payload.userId) });

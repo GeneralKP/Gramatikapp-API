@@ -5,15 +5,35 @@
   "main": "dist/index.js",
   "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "npm install && tsc && npm run copy-graphql",
+    "build": "tsc && npm run copy-graphql",
     "copy-graphql": "copyfiles -u 1 \"src/**/*.graphql\" dist",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
-    "seed": "tsx scripts/seedFromJson.ts"
+    "test:contexts": "node scripts/testLearningContexts.mjs",
+    "seed": "tsx scripts/seedFromJson.ts",
+    "test:anki": "tsx scripts/testAnki.ts",
+    "test:failures": "tsx scripts/testFailures.ts",
+    "import:anki": "tsx scripts/importAnki.ts",
+    "test:scheduler": "tsx scripts/testScheduler.ts",
+    "test:reviews": "tsx scripts/testReviews.ts",
+    "test:new-words": "tsx scripts/testNewWords.ts",
+    "test:new-words-browser": "tsx scripts/testNewWordsBrowser.ts",
+    "pair:native-words": "tsx scripts/pairNativeWords.ts",
+    "test:browser-server": "tsx scripts/testBrowserServer.ts",
+    "test:reading": "tsx scripts/testReading.ts",
+    "test:reading-browser": "tsx scripts/testReadingBrowser.ts",
+    "test:reading-live": "tsx scripts/testReadingLive.ts",
+    "test:reading-validation": "tsx scripts/testReadingValidation.ts",
+    "migrate:scheduler": "tsx scripts/migrateAnkiScheduler.ts",
+    "test:writing": "tsx scripts/testWriting.ts",
+    "test:writing-live": "tsx scripts/testWriting.ts --live",
+    "classify:levels": "tsx scripts/classifyLevels.ts",
+    "test:writing-browser": "tsx scripts/testWritingBrowser.ts",
+    "test:levels": "tsx scripts/testLevels.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

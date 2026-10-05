@@ -1,0 +1,1340 @@
+{
+  "words_de": [
+    {
+      "tempId": "word_de_1",
+      "word": "Nachhaltigkeit",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Die Förderung der Nachhaltigkeit erfordert ein radikales Umdenken in der Industrie.",
+        "Ohne soziale Nachhaltigkeit bleibt jeder wirtschaftliche Aufschwung oberflächlich.",
+        "In diesem Bericht wird die ökologische Nachhaltigkeit der neuen Maßnahmen hinterfragt."
+      ],
+      "relatedWords": {
+        "synonyms": ["Beständigkeit", "Zukunftsfähigkeit"],
+        "antonyms": ["Kurzlebigkeit", "Verschwendung"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Nachhaltigkeiten",
+        "gender": "die"
+      },
+      "contexts": ["debate"],
+      "level": "B2",
+      "notes": "Plural is rarely used."
+    },
+    {
+      "tempId": "word_de_2",
+      "word": "gewährleisten",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Der Staat muss die Sicherheit seiner Bürger unter allen Umständen gewährleisten.",
+        "Um die Qualität zu gewährleisten, wurden strenge Kontrollen eingeführt.",
+        "Hätte man früher reagiert, wäre die Stromversorgung gewährleistet gewesen."
+      ],
+      "relatedWords": {
+        "synonyms": ["garantieren", "sicherstellen"],
+        "antonyms": ["gefährden", "unterbinden"],
+        "verbFamilies": ["leisten", "ableisten", "erleisten"]
+      },
+      "forms": {
+        "perfect": "hat gewährleistet",
+        "past": "gewährleistete",
+        "imperativ": "gewährleiste"
+      },
+      "contexts": ["debate", "court"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_3",
+      "word": "Beeinträchtigung",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Lärmbelästigung führt oft zu einer erheblichen Beeinträchtigung der Lebensqualität.",
+        "Trotz seiner körperlichen Beeinträchtigung nahm er am Marathon teil.",
+        "Jegliche Beeinträchtigung des Wettbewerbs muss rechtlich verfolgt werden."
+      ],
+      "relatedWords": {
+        "synonyms": ["Behinderung", "Einschränkung", "Schädigung"],
+        "antonyms": ["Förderung", "Verbesserung"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Beeinträchtigungen",
+        "gender": "die"
+      },
+      "contexts": ["debate", "hospital"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_4",
+      "word": "Voraussetzung",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Gegenseitiges Vertrauen ist die Grundvoraussetzung für eine funktionierende Ehe.",
+        "Unter der Voraussetzung, dass das Wetter hält, findet das Fest im Freien statt.",
+        "Welche formalen Voraussetzungen müssen für das Visum erfüllt sein?"
+      ],
+      "relatedWords": {
+        "synonyms": ["Bedingung", "Erfordernis"],
+        "antonyms": ["Folge", "Konsequenz"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Voraussetzungen",
+        "gender": "die"
+      },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_5",
+      "word": "widerspiegeln",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Die Wahlergebnisse widerspiegeln die tiefe Unzufriedenheit der Bevölkerung.",
+        "In seinen Werken spiegelt sich die Zerrissenheit der modernen Gesellschaft wider.",
+        "Das neue Gesetz sollte die aktuellen moralischen Standards widerspiegeln."
+      ],
+      "relatedWords": {
+        "synonyms": ["reflektieren", "abbilden"],
+        "antonyms": ["verzerren", "verbergen"],
+        "verbFamilies": ["spiegeln", "abspiegeln"]
+      },
+      "forms": {
+        "perfect": "hat widergespiegelt",
+        "past": "spiegelte wider",
+        "imperativ": "spiegle wider"
+      },
+      "contexts": ["debate"],
+      "level": "C1",
+      "notes": "Separable verb."
+    },
+    {
+      "tempId": "word_de_6",
+      "word": "umsetzen",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Theorie ist gut, aber man muss sie auch in die Praxis umsetzen.",
+        "Das Unternehmen hat die neuen EU-Richtlinien bereits vollständig umgesetzt.",
+        "Wenn wir die Pläne nicht sofort umsetzen, verlieren wir den Vorsprung."
+      ],
+      "relatedWords": {
+        "synonyms": ["realisieren", "ausführen", "implementieren"],
+        "antonyms": ["verwerfen", "planen"],
+        "verbFamilies": ["setzen", "absetzen", "besetzen", "ersetzen"]
+      },
+      "forms": {
+        "perfect": "hat umgesetzt",
+        "past": "setzte um",
+        "imperativ": "setz um"
+      },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": "Separable verb."
+    },
+    {
+      "tempId": "word_de_7",
+      "word": "Vielfalt",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Die kulturelle Vielfalt einer Stadt ist oft ihr größter Reichtum.",
+        "Wir müssen die biologische Vielfalt unserer Wälder schützen.",
+        "In der Diskussion kam eine große Vielfalt an Meinungen zum Vorschein."
+      ],
+      "relatedWords": {
+        "synonyms": ["Diversität", "Mannigfaltigkeit"],
+        "antonyms": ["Einfalt", "Eintönigkeit"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "—",
+        "gender": "die"
+      },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": "Usually used in singular."
+    },
+    {
+      "tempId": "word_de_8",
+      "word": "erfordern",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Diese komplexe Situation erfordert sofortiges Handeln seitens der Regierung.",
+        "Der Aufstieg zum Gipfel erfordert ein hohes Maß an Ausdauer.",
+        "Es würde zu viel Zeit erfordern, alle Einzelheiten einzeln zu prüfen."
+      ],
+      "relatedWords": {
+        "synonyms": ["benötigen", "verlangen"],
+        "antonyms": ["erlassen", "verzichtbar sein"],
+        "verbFamilies": ["fordern", "auffordern", "herausfordern"]
+      },
+      "forms": {
+        "perfect": "hat erfordert",
+        "past": "erforderte",
+        "imperativ": "erfordere"
+      },
+      "contexts": ["debate"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_9",
+      "word": "berücksichtigen",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Bei der Planung müssen wir die Interessen aller Beteiligten berücksichtigen.",
+        "Bitte berücksichtigen Sie, dass die Bearbeitung Ihres Antrags einige Zeit dauern kann.",
+        "Hätten sie die Warnungen berücksichtigt, wäre das Unglück vermeidbar gewesen."
+      ],
+      "relatedWords": {
+        "synonyms": ["beachten", "einbeziehen"],
+        "antonyms": ["ignorieren", "vernachlässigen"],
+        "verbFamilies": ["sichtigen", "besichtigen"]
+      },
+      "forms": {
+        "perfect": "hat berücksichtigt",
+        "past": "berücksichtigte",
+        "imperativ": "berücksichtige"
+      },
+      "contexts": ["debate", "court"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_10",
+      "word": "Herausforderung",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Der Klimawandel stellt die größte Herausforderung des 21. Jahrhunderts dar.",
+        "Sie suchte nach einer neuen beruflichen Herausforderung im Ausland.",
+        "Wir müssen uns diesen Herausforderungen gemeinsam stellen."
+      ],
+      "relatedWords": {
+        "synonyms": ["Prüfung", "Aufgabe"],
+        "antonyms": ["Routine", "Erleichterung"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Herausforderungen",
+        "gender": "die"
+      },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_11",
+      "word": "Förderung",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Die staatliche Förderung von Start-ups wurde in diesem Jahr verdoppelt.",
+        "Individuelle Förderung ist ein Kernaspekt moderner Pädagogik.",
+        "Die Förderung von fossilen Brennstoffen muss schrittweise beendet werden."
+      ],
+      "relatedWords": {
+        "synonyms": ["Unterstützung", "Subvention", "Extraktion"],
+        "antonyms": ["Behinderung", "Stopp"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Förderungen",
+        "gender": "die"
+      },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_12",
+      "word": "Zusammenhang",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Es besteht ein direkter Zusammenhang zwischen Bildung und Einkommen.",
+        "Man darf diese Aussage nicht aus dem Zusammenhang reißen.",
+        "In diesem Zusammenhang möchte ich auf ein weiteres Problem hinweisen."
+      ],
+      "relatedWords": {
+        "synonyms": ["Kontext", "Verbindung", "Relation"],
+        "antonyms": ["Isolierung", "Trennung"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Zusammenhänge",
+        "gender": "der"
+      },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_13",
+      "word": "Maßnahme",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Die Regierung hat drastische Maßnahmen zur Eindämmung der Inflation ergriffen.",
+        "Welche vorbeugenden Maßnahmen können wir gegen den Datenverlust treffen?",
+        "Diese Maßnahme war unumgänglich, um den Konkurs abzuwenden."
+      ],
+      "relatedWords": {
+        "synonyms": ["Schritt", "Vorkehrung", "Aktion"],
+        "antonyms": ["Untätigkeit", "Passivität"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Maßnahmen",
+        "gender": "die"
+      },
+      "contexts": ["debate", "hospital"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_14",
+      "word": "Verantwortung",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Jeder Bürger trägt eine Mitverantwortung für das Funktionieren der Demokratie.",
+        "Er lehnt es ab, die Verantwortung für das Scheitern des Projekts zu übernehmen.",
+        "In einer Führungsposition hat man eine hohe soziale Verantwortung."
+      ],
+      "relatedWords": {
+        "synonyms": ["Zuständigkeit", "Pflicht"],
+        "antonyms": ["Verantwortungslosigkeit", "Schuldlosigkeit"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "—",
+        "gender": "die"
+      },
+      "contexts": ["debate", "court"],
+      "level": "B2",
+      "notes": "Rarely used in plural."
+    },
+    {
+      "tempId": "word_de_15",
+      "word": "Entscheidungsträger",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Die wichtigsten Entscheidungsträger der Branche trafen sich in Brüssel.",
+        "Oft haben die Bürger das Gefühl, keinen Zugang zu den Entscheidungsträgern zu haben.",
+        "Ein verantwortungsbewusster Entscheidungsträger muss auch unpopuläre Wege gehen."
+      ],
+      "relatedWords": {
+        "synonyms": ["Verantwortlicher", "Instanz"],
+        "antonyms": ["Ausführender", "Untergebener"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Entscheidungsträger",
+        "gender": "der"
+      },
+      "contexts": ["debate"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_16",
+      "word": "wahrnehmen",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Er konnte eine leichte Veränderung in ihrer Stimme wahrnehmen.",
+        "Wir müssen die Chance wahrnehmen, solange sie sich uns bietet.",
+        "Wie werden diese politischen Reformen von der Öffentlichkeit wahrgenommen?"
+      ],
+      "relatedWords": {
+        "synonyms": ["bemerken", "erkennen", "nutzen"],
+        "antonyms": ["übersehen", "ignorieren"],
+        "verbFamilies": ["nehmen", "abnehmen", "annehmen", "unternehmen"]
+      },
+      "forms": {
+        "perfect": "hat wahrgenommen",
+        "past": "nahm wahr",
+        "imperativ": "nimm wahr"
+      },
+      "contexts": ["debate", "hospital"],
+      "level": "C1",
+      "notes": "Separable verb."
+    },
+    {
+      "tempId": "word_de_17",
+      "word": "Auswirkung",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Die negativen Auswirkungen der Pandemie sind noch immer spürbar.",
+        "Diese Entscheidung wird weitreichende Auswirkungen auf unsere Zukunft haben.",
+        "Wissenschaftler untersuchen die Auswirkungen von Mikroplastik auf die Meere."
+      ],
+      "relatedWords": {
+        "synonyms": ["Folge", "Konsequenz", "Effekt"],
+        "antonyms": ["Ursache", "Grund"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Auswirkungen",
+        "gender": "die"
+      },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_18",
+      "word": "verankern",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Das Recht auf freie Meinungsäußerung ist in der Verfassung fest verankert.",
+        "Wir müssen das Bewusstsein für Umweltschutz in der Gesellschaft verankern.",
+        "Das Schiff wurde sicher im Hafenbecken verankert."
+      ],
+      "relatedWords": {
+        "synonyms": ["festschreiben", "etablieren", "fixieren"],
+        "antonyms": ["lösen", "entfernen"],
+        "verbFamilies": ["ankern"]
+      },
+      "forms": {
+        "perfect": "hat verankert",
+        "past": "verankerte",
+        "imperativ": "verankere"
+      },
+      "contexts": ["debate", "court"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_de_19",
+      "word": "Grundvoraussetzung",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Disziplin ist eine Grundvoraussetzung für sportlichen Erfolg.",
+        "Eine stabile Internetverbindung ist die Grundvoraussetzung für Homeoffice.",
+        "Frieden ist die Grundvoraussetzung für jede wirtschaftliche Entwicklung."
+      ],
+      "relatedWords": {
+        "synonyms": ["Basis", "Fundament", "Conditio sine qua non"],
+        "antonyms": ["Zusatz", "Option"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Grundvoraussetzungen",
+        "gender": "die"
+      },
+      "contexts": ["debate"],
+      "level": "C1",
+      "notes": "Compound of Grund + Voraussetzung."
+    },
+    {
+      "tempId": "word_de_20",
+      "word": "Auseinandersetzung",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Die politische Auseinandersetzung über die Steuerreform dauert an.",
+        "Er suchte die kritische Auseinandersetzung mit der Geschichte seines Landes.",
+        "Es kam zu einer heftigen Auseinandersetzung zwischen den beiden Lagern."
+      ],
+      "relatedWords": {
+        "synonyms": ["Debatte", "Diskussion", "Konflikt"],
+        "antonyms": ["Einigkeit", "Harmonie"],
+        "homophones": [],
+        "homonymous": [],
+        "paronyms": [],
+        "verbFamilies": []
+      },
+      "forms": {
+        "plural": "Auseinandersetzungen",
+        "gender": "die"
+      },
+      "contexts": ["debate", "court"],
+      "level": "C1",
+      "notes": ""
+    }
+  ],
+  "words_es": [
+    {
+      "tempId": "word_es_1",
+      "word": "sostenibilidad",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "El fomento de la sostenibilidad requiere un cambio radical de mentalidad en la industria.",
+        "Sin sostenibilidad social, cualquier auge económico es superficial.",
+        "En este informe se cuestiona la sostenibilidad ecológica de las nuevas medidas."
+      ],
+      "relatedWords": {
+        "synonyms": ["sustentabilidad", "durabilidad"],
+        "antonyms": ["caducidad"]
+      },
+      "forms": { "plural": "sostenibilidades", "gender": "la" },
+      "contexts": ["debate"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_2",
+      "word": "garantizar",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "El Estado debe garantizar la seguridad de sus ciudadanos bajo cualquier circunstancia.",
+        "Se introdujeron controles estrictos para garantizar la calidad.",
+        "Si se hubiera reaccionado antes, el suministro eléctrico habría estado garantizado."
+      ],
+      "relatedWords": {
+        "synonyms": ["asegurar", "avalar"],
+        "antonyms": ["peligrar", "impedir"]
+      },
+      "forms": { "plural": "—", "gender": "—" },
+      "contexts": ["debate", "court"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_3",
+      "word": "afectación",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "La contaminación acústica suele provocar una afectación considerable de la calidad de vida.",
+        "A pesar de su afectación física, participó en el maratón.",
+        "Cualquier afectación a la competencia debe ser perseguida legalmente."
+      ],
+      "relatedWords": {
+        "synonyms": ["perjuicio", "deterioro", "limitación"],
+        "antonyms": ["mejora"]
+      },
+      "forms": { "plural": "afectaciones", "gender": "la" },
+      "contexts": ["debate", "hospital"],
+      "level": "B2",
+      "notes": "In German 'Beeinträchtigung' is very common; in Spanish 'afectación' or 'limitación' depending on context."
+    },
+    {
+      "tempId": "word_es_4",
+      "word": "requisito",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "La confianza mutua es el requisito fundamental para un matrimonio que funcione.",
+        "Bajo el requisito de que el tiempo aguante, la fiesta será al aire libre.",
+        "¿Qué requisitos formales deben cumplirse para la visa?"
+      ],
+      "relatedWords": {
+        "synonyms": ["condición", "exigencia"],
+        "antonyms": ["consecuencia"]
+      },
+      "forms": { "plural": "requisitos", "gender": "el" },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_5",
+      "word": "reflejar",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Los resultados electorales reflejan el profundo descontento de la población.",
+        "En sus obras se refleja la fragmentación de la sociedad moderna.",
+        "La nueva ley debería reflejar los estándares morales actuales."
+      ],
+      "relatedWords": {
+        "synonyms": ["plasmar", "manifestar"],
+        "antonyms": ["ocultar"]
+      },
+      "forms": { "plural": "—", "gender": "—" },
+      "contexts": ["debate"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_6",
+      "word": "implementar",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "La teoría es buena, pero también hay que implementarla en la práctica.",
+        "La empresa ya ha implementado por completo las nuevas directrices de la UE.",
+        "Si no implementamos los planes de inmediato, perderemos la ventaja."
+      ],
+      "relatedWords": {
+        "synonyms": ["ejecutar", "poner en marcha"],
+        "antonyms": ["descartar"]
+      },
+      "forms": { "plural": "—", "gender": "—" },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_7",
+      "word": "diversidad",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "La diversidad cultural de una ciudad suele ser su mayor riqueza.",
+        "Debemos proteger la diversidad biológica de nuestros bosques.",
+        "En la discusión salió a la luz una gran diversidad de opiniones."
+      ],
+      "relatedWords": {
+        "synonyms": ["variedad", "pluralidad"],
+        "antonyms": ["monotonía"]
+      },
+      "forms": { "plural": "diversidades", "gender": "la" },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_8",
+      "word": "requerir",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Esta situación compleja requiere una acción inmediata por parte del gobierno.",
+        "El ascenso a la cima requiere un alto grado de resistencia.",
+        "Requeriría demasiado tiempo revisar todos los detalles individualmente."
+      ],
+      "relatedWords": {
+        "synonyms": ["exigir", "necesitar"],
+        "antonyms": ["prescindir"]
+      },
+      "forms": { "plural": "—", "gender": "—" },
+      "contexts": ["debate"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_9",
+      "word": "tener en cuenta",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "En la planificación debemos tener en cuenta los intereses de todos los implicados.",
+        "Por favor, tenga en cuenta que la tramitación de su solicitud puede tardar un tiempo.",
+        "Si hubieran tenido en cuenta las advertencias, la desgracia habría sido evitable."
+      ],
+      "relatedWords": {
+        "synonyms": ["considerar", "atender"],
+        "antonyms": ["ignorar"]
+      },
+      "forms": { "plural": "—", "gender": "—" },
+      "contexts": ["debate", "court"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_10",
+      "word": "desafío",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "El cambio climático representa el mayor desafío del siglo XXI.",
+        "Buscaba un nuevo desafío profesional en el extranjero.",
+        "Debemos enfrentar estos desafíos juntos."
+      ],
+      "relatedWords": {
+        "synonyms": ["reto", "provocación"],
+        "antonyms": ["facilidad"]
+      },
+      "forms": { "plural": "desafíos", "gender": "el" },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_11",
+      "word": "fomento",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "El fomento estatal de las empresas emergentes se duplicó este año.",
+        "El fomento individual es un aspecto central de la pedagogía moderna.",
+        "El fomento (extracción) de combustibles fósiles debe terminar gradualmente."
+      ],
+      "relatedWords": {
+        "synonyms": ["promoción", "impulso"],
+        "antonyms": ["obstaculización"]
+      },
+      "forms": { "plural": "fomentos", "gender": "el" },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_12",
+      "word": "contexto",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Existe un contexto (relación) directo entre educación e ingresos.",
+        "No se debe sacar esta afirmación de contexto.",
+        "En este contexto, me gustaría señalar otro problema."
+      ],
+      "relatedWords": {
+        "synonyms": ["entorno", "vínculo", "relación"],
+        "antonyms": ["aislamiento"]
+      },
+      "forms": { "plural": "contextos", "gender": "el" },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_13",
+      "word": "medida",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "El gobierno ha tomado medidas drásticas para frenar la inflación.",
+        "¿Qué medidas preventivas podemos tomar contra la pérdida de datos?",
+        "Esta medida era inevitable para evitar la quiebra."
+      ],
+      "relatedWords": {
+        "synonyms": ["disposición", "acción"],
+        "antonyms": ["inacción"]
+      },
+      "forms": { "plural": "medidas", "gender": "la" },
+      "contexts": ["debate", "hospital"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_14",
+      "word": "responsabilidad",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Cada ciudadano tiene una corresponsabilidad en el funcionamiento de la democracia.",
+        "Se niega a asumir la responsabilidad por el fracaso del proyecto.",
+        "En un puesto directivo se tiene una alta responsabilidad social."
+      ],
+      "relatedWords": {
+        "synonyms": ["obligación", "deber"],
+        "antonyms": ["irresponsabilidad"]
+      },
+      "forms": { "plural": "responsabilidades", "gender": "la" },
+      "contexts": ["debate", "court"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_15",
+      "word": "tomador de decisiones",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Los tomadores de decisiones más importantes del sector se reunieron en Bruselas.",
+        "A menudo los ciudadanos sienten que no tienen acceso a los tomadores de decisiones.",
+        "Un tomador de decisiones responsable también debe tomar caminos impopulares."
+      ],
+      "relatedWords": {
+        "synonyms": ["responsable", "líder"],
+        "antonyms": ["subordinado"]
+      },
+      "forms": { "plural": "tomadores de decisiones", "gender": "el" },
+      "contexts": ["debate"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_16",
+      "word": "percibir",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "Pudo percibir un ligero cambio en su voz.",
+        "Debemos percibir (aprovechar) la oportunidad mientras se nos presente.",
+        "¿Cómo percibe el público estas reformas políticas?"
+      ],
+      "relatedWords": {
+        "synonyms": ["notar", "apreciar", "captar"],
+        "antonyms": ["ignorar"]
+      },
+      "forms": { "plural": "—", "gender": "—" },
+      "contexts": ["debate", "hospital"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_17",
+      "word": "repercusión",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "Las repercusiones negativas de la pandemia aún son perceptibles.",
+        "Esta decisión tendrá repercusiones de gran alcance en nuestro futuro.",
+        "Los científicos estudian las repercusiones de los microplásticos en los mares."
+      ],
+      "relatedWords": {
+        "synonyms": ["consecuencia", "efecto", "impacto"],
+        "antonyms": ["causa"]
+      },
+      "forms": { "plural": "repercusiones", "gender": "la" },
+      "contexts": ["debate", "university"],
+      "level": "B2",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_18",
+      "word": "anclar",
+      "gramaticalCategories": ["VERB"],
+      "examples": [
+        "El derecho a la libertad de expresión está firmemente anclado en la Constitución.",
+        "Debemos anclar (arraigar) la conciencia ambiental en la sociedad.",
+        "El barco fue anclado de forma segura en la dársena."
+      ],
+      "relatedWords": {
+        "synonyms": ["establecer", "fijar", "arraigar"],
+        "antonyms": ["soltar"]
+      },
+      "forms": { "plural": "—", "gender": "—" },
+      "contexts": ["debate", "court"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_19",
+      "word": "condición previa",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "La disciplina es una condición previa para el éxito deportivo.",
+        "Una conexión a internet estable es la condición previa para el teletrabajo.",
+        "La paz es la condición previa para cualquier desarrollo económico."
+      ],
+      "relatedWords": {
+        "synonyms": ["base", "fundamento", "requisito indispensable"],
+        "antonyms": ["opción"]
+      },
+      "forms": { "plural": "condiciones previas", "gender": "la" },
+      "contexts": ["debate"],
+      "level": "C1",
+      "notes": ""
+    },
+    {
+      "tempId": "word_es_20",
+      "word": "confrontación",
+      "gramaticalCategories": ["NOUN"],
+      "examples": [
+        "La confrontación política sobre la reforma fiscal continúa.",
+        "Buscaba la confrontación crítica con la historia de su país.",
+        "Se produjo una fuerte confrontación entre ambos bandos."
+      ],
+      "relatedWords": {
+        "synonyms": ["debate", "discusión", "disputa"],
+        "antonyms": ["consenso"]
+      },
+      "forms": { "plural": "confrontaciones", "gender": "la" },
+      "contexts": ["debate", "court"],
+      "level": "C1",
+      "notes": ""
+    }
+  ],
+  "word_relations": [
+    { "main": "word_es_1", "translated": "word_de_1" },
+    { "main": "word_es_2", "translated": "word_de_2" },
+    { "main": "word_es_3", "translated": "word_de_3" },
+    { "main": "word_es_4", "translated": "word_de_4" },
+    { "main": "word_es_5", "translated": "word_de_5" },
+    { "main": "word_es_6", "translated": "word_de_6" },
+    { "main": "word_es_7", "translated": "word_de_7" },
+    { "main": "word_es_8", "translated": "word_de_8" },
+    { "main": "word_es_9", "translated": "word_de_9" },
+    { "main": "word_es_10", "translated": "word_de_10" },
+    { "main": "word_es_11", "translated": "word_de_11" },
+    { "main": "word_es_12", "translated": "word_de_12" },
+    { "main": "word_es_13", "translated": "word_de_13" },
+    { "main": "word_es_14", "translated": "word_de_14" },
+    { "main": "word_es_15", "translated": "word_de_15" },
+    { "main": "word_es_16", "translated": "word_de_16" },
+    { "main": "word_es_17", "translated": "word_de_17" },
+    { "main": "word_es_18", "translated": "word_de_18" },
+    { "main": "word_es_19", "translated": "word_de_19" },
+    { "main": "word_es_20", "translated": "word_de_20" }
+  ],
+  "phrases_de": [
+    {
+      "tempId": "phrase_de_1",
+      "phrase": "Es ist von entscheidender Bedeutung, dass wir die Nachhaltigkeit in unserem Wirtschaftssystem fest verankern.",
+      "synonyms": [
+        "Wir müssen Nachhaltigkeit als festen Bestandteil unserer Wirtschaft etablieren.",
+        "Eine feste Verankerung der Nachhaltigkeit im Wirtschaftssystem ist essenziell."
+      ],
+      "wordRefs": ["word_de_1", "word_de_18"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_2",
+      "phrase": "Der Entscheidungsträger muss die langfristigen Auswirkungen seiner Handlungen berücksichtigen.",
+      "synonyms": [
+        "Verantwortliche müssen bedenken, welche Folgen ihre Taten langfristig haben.",
+        "Langfristige Effekte sollten von den Entscheidungsträgern einbezogen werden."
+      ],
+      "wordRefs": ["word_de_15", "word_de_17", "word_de_9"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_3",
+      "phrase": "Die Gewährleistung der Sicherheit ist die Grundvoraussetzung für eine stabile Gesellschaft.",
+      "synonyms": [
+        "Sicherheit zu garantieren ist die Basis jeder stabilen Gesellschaft.",
+        "Ohne die Sicherheit zu gewährleisten, kann keine Gesellschaft stabil bleiben."
+      ],
+      "wordRefs": ["word_de_2", "word_de_19"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_4",
+      "phrase": "Kulturelle Vielfalt darf nicht als Beeinträchtigung, sondern als Bereicherung wahrgenommen werden.",
+      "synonyms": [
+        "Wir sollten Vielfalt als Gewinn und nicht als Einschränkung sehen.",
+        "Es ist wichtig, Vielfalt positiv zu bewerten statt als Belastung."
+      ],
+      "wordRefs": ["word_de_7", "word_de_3", "word_de_16"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_5",
+      "phrase": "Diese komplexen Herausforderungen erfordern, dass wir neue Maßnahmen sofort umsetzen.",
+      "synonyms": [
+        "Wir brauchen sofortige Maßnahmen, um diesen schwierigen Aufgaben zu begegnen.",
+        "Die Umsetzung neuer Schritte ist angesichts dieser Probleme zwingend erforderlich."
+      ],
+      "wordRefs": ["word_de_10", "word_de_8", "word_de_13", "word_de_6"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_6",
+      "phrase": "In diesem Zusammenhang ist die Förderung von Bildung eine absolute Notwendigkeit.",
+      "synonyms": [
+        "Bildungsförderung ist hierbei unumgänglich.",
+        "Diesbezüglich müssen wir die Unterstützung für Bildung priorisieren."
+      ],
+      "wordRefs": ["word_de_12", "word_de_11"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_7",
+      "phrase": "Jeder Einzelne trägt die Verantwortung, diese Werte in seinem Alltag zu berücksichtigen.",
+      "synonyms": [
+        "Es liegt in der Verantwortung jedes Menschen, diese Werte zu beachten.",
+        "Wir müssen alle diese Grundsätze in unserem täglichen Leben einbeziehen."
+      ],
+      "wordRefs": ["word_de_14", "word_de_9"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_8",
+      "phrase": "Die aktuelle Auseinandersetzung spiegelt die tiefen Gräben in der Bevölkerung wider.",
+      "synonyms": [
+        "Der derzeitige Konflikt zeigt, wie gespalten die Gesellschaft ist.",
+        "In der Debatte zeigt sich die Uneinigkeit der Bürger."
+      ],
+      "wordRefs": ["word_de_20", "word_de_5"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_9",
+      "phrase": "Welche Voraussetzungen müssen erfüllt sein, damit das Projekt erfolgreich umgesetzt werden kann?",
+      "synonyms": [
+        "Was wird benötigt, um den Erfolg des Projekts zu garantieren?",
+        "Unter welchen Bedingungen lässt sich dieses Vorhaben realisieren?"
+      ],
+      "wordRefs": ["word_de_4", "word_de_6"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_10",
+      "phrase": "Die Beeinträchtigung der Pressefreiheit hat negative Auswirkungen auf die gesamte Demokratie.",
+      "synonyms": [
+        "Wenn die Pressefreiheit eingeschränkt wird, leidet die Demokratie darunter.",
+        "Einschränkungen der Medienfreiheit schaden dem demokratischen System."
+      ],
+      "wordRefs": ["word_de_3", "word_de_17"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_11",
+      "phrase": "Wir müssen sicherstellen, dass Entscheidungsträger ihre Verantwortung ernsthaft wahrnehmen.",
+      "synonyms": [
+        "Es gilt zu garantieren, dass Verantwortliche ihre Pflichten erfüllen.",
+        "Die Instanzen müssen dazu gebracht werden, verantwortungsvoll zu handeln."
+      ],
+      "wordRefs": ["word_de_15", "word_de_14", "word_de_16"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_12",
+      "phrase": "Die Förderung von Vielfalt ist eine Grundvoraussetzung für Innovation.",
+      "synonyms": [
+        "Ohne Diversität zu fördern, wird es keine Neuerungen geben.",
+        "Innovation setzt die Unterstützung von Vielfalt voraus."
+      ],
+      "wordRefs": ["word_de_11", "word_de_7", "word_de_19"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_13",
+      "phrase": "Man muss den Zusammenhang zwischen Konsum und Nachhaltigkeit stärker betonen.",
+      "synonyms": [
+        "Die Verbindung von Einkaufsverhalten und Beständigkeit muss klarer werden.",
+        "Es ist nötig, die Relation von Verbrauch und Zukunftsfähigkeit aufzuzeigen."
+      ],
+      "wordRefs": ["word_de_12", "word_de_1"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_14",
+      "phrase": "Die Regierung wird neue Maßnahmen ergreifen, um die soziale Sicherheit zu gewährleisten.",
+      "synonyms": [
+        "Neue Schritte werden eingeleitet, um den Sozialschutz zu garantieren.",
+        "Um soziale Sicherheit sicherzustellen, plant der Staat weitere Aktionen."
+      ],
+      "wordRefs": ["word_de_13", "word_de_2"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_15",
+      "phrase": "Eine offene Auseinandersetzung ist notwendig, um gesellschaftliche Probleme zu lösen.",
+      "synonyms": [
+        "Wir brauchen einen ehrlichen Dialog über die Probleme unserer Gesellschaft.",
+        "Gesellschaftliche Hürden lassen sich nur durch Debatten überwinden."
+      ],
+      "wordRefs": ["word_de_20"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_16",
+      "phrase": "Unter der Voraussetzung, dass wir kooperieren, können wir jede Herausforderung meistern.",
+      "synonyms": [
+        "Solange wir zusammenarbeiten, werden wir mit jeder Aufgabe fertig.",
+        "Kooperation ist die Bedingung, um alle Schwierigkeiten zu bewältigen."
+      ],
+      "wordRefs": ["word_de_4", "word_de_10"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_17",
+      "phrase": "Die Gesetze müssen die Werte widerspiegeln, die in unserer Verfassung verankert sind.",
+      "synonyms": [
+        "Unsere Gesetzgebung sollte die verfassungsmäßigen Grundsätze abbilden.",
+        "In den Gesetzen müssen sich die Werte des Grundgesetzes zeigen."
+      ],
+      "wordRefs": ["word_de_5", "word_de_18"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_18",
+      "phrase": "Um Veränderungen zu bewirken, müssen wir unsere Pläne konsequent umsetzen.",
+      "synonyms": [
+        "Wir müssen unsere Vorhaben strikt realisieren, wenn wir etwas ändern wollen.",
+        "Konsequente Umsetzung ist der Schlüssel zum Wandel."
+      ],
+      "wordRefs": ["word_de_6"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_19",
+      "phrase": "Herausforderungen erfordern oft unkonventionelle Lösungen und viel Mut.",
+      "synonyms": [
+        "Schwierige Aufgaben verlangen nach neuen Wegen und Tapferkeit.",
+        "Man braucht oft außergewöhnliche Ideen, um Probleme zu lösen."
+      ],
+      "wordRefs": ["word_de_10", "word_de_8"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_de_20",
+      "phrase": "Die Auswirkung dieser Reform wird erst in einigen Jahren vollständig wahrnehmbar sein.",
+      "synonyms": [
+        "Man wird die Folgen dieser Änderung erst nach längerer Zeit bemerken.",
+        "Die Resultate der Reform zeigen sich erst in der Zukunft."
+      ],
+      "wordRefs": ["word_de_17", "word_de_16"],
+      "level": "C1",
+      "contexts": ["debate"]
+    }
+  ],
+  "phrases_es": [
+    {
+      "tempId": "phrase_es_1",
+      "phrase": "Es de vital importancia que anclemos firmemente la sostenibilidad en nuestro sistema económico.",
+      "synonyms": [
+        "Debemos establecer la sostenibilidad como parte integrante de nuestra economía.",
+        "Un anclaje sólido de la sostenibilidad en el sistema económico es esencial."
+      ],
+      "wordRefs": ["word_es_1", "word_es_18"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_2",
+      "phrase": "El tomador de decisiones debe tener en cuenta las repercusiones a largo plazo de sus acciones.",
+      "synonyms": [
+        "Los responsables deben considerar qué consecuencias tendrán sus actos a largo plazo.",
+        "Los efectos a largo plazo deberían ser incluidos por quienes toman las decisiones."
+      ],
+      "wordRefs": ["word_es_15", "word_es_17", "word_es_9"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_3",
+      "phrase": "Garantizar la seguridad es la condición previa para una sociedad estable.",
+      "synonyms": [
+        "Asegurar la seguridad es la base de toda sociedad estable.",
+        "Sin garantizar la seguridad, ninguna sociedad puede permanecer estable."
+      ],
+      "wordRefs": ["word_es_2", "word_es_19"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_4",
+      "phrase": "La diversidad cultural no debe percibirse como una afectación, sino como un enriquecimiento.",
+      "synonyms": [
+        "Deberíamos ver la diversidad como una ganancia y no como una limitación.",
+        "Es importante valorar la diversidad positivamente en lugar de como una carga."
+      ],
+      "wordRefs": ["word_es_7", "word_es_3", "word_es_16"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_5",
+      "phrase": "Estos desafíos complejos requieren que implementemos nuevas medidas de inmediato.",
+      "synonyms": [
+        "Necesitamos medidas inmediatas para enfrentar estas tareas difíciles.",
+        "La ejecución de nuevos pasos es imperativa ante estos problemas."
+      ],
+      "wordRefs": ["word_es_10", "word_es_8", "word_es_13", "word_es_6"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_6",
+      "phrase": "En este contexto, el fomento de la educación es una necesidad absoluta.",
+      "synonyms": [
+        "La promoción de la educación es indispensable en este sentido.",
+        "Al respecto, debemos priorizar el apoyo a la educación."
+      ],
+      "wordRefs": ["word_es_12", "word_es_11"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_7",
+      "phrase": "Cada individuo tiene la responsabilidad de tener en cuenta estos valores en su vida diaria.",
+      "synonyms": [
+        "Es responsabilidad de cada persona observar estos valores.",
+        "Todos debemos incluir estos principios en nuestra cotidianeidad."
+      ],
+      "wordRefs": ["word_es_14", "word_es_9"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_8",
+      "phrase": "La confrontación actual refleja las profundas grietas en la población.",
+      "synonyms": [
+        "El conflicto actual muestra cuán dividida está la sociedad.",
+        "En el debate se manifiesta la falta de unidad de los ciudadanos."
+      ],
+      "wordRefs": ["word_es_20", "word_es_5"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_9",
+      "phrase": "¿Qué requisitos deben cumplirse para que el proyecto pueda implementarse con éxito?",
+      "synonyms": [
+        "¿Qué se necesita para garantizar el éxito del proyecto?",
+        "¿Bajo qué condiciones se puede realizar este plan?"
+      ],
+      "wordRefs": ["word_es_4", "word_es_6"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_10",
+      "phrase": "La afectación de la libertad de prensa tiene repercusiones negativas en toda la democracia.",
+      "synonyms": [
+        "Si se limita la libertad de prensa, la democracia se resiente.",
+        "Las restricciones a la libertad de los medios dañan el sistema democrático."
+      ],
+      "wordRefs": ["word_es_3", "word_es_17"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_11",
+      "phrase": "Debemos asegurar que los tomadores de decisiones perciban seriamente su responsabilidad.",
+      "synonyms": [
+        "Hay que garantizar que los responsables cumplan con sus deberes.",
+        "Las instancias deben ser llevadas a actuar con responsabilidad."
+      ],
+      "wordRefs": ["word_es_15", "word_es_14", "word_es_16"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_12",
+      "phrase": "El fomento de la diversidad es una condición previa para la innovación.",
+      "synonyms": [
+        "Sin promover la diversidad, no habrá innovaciones.",
+        "La innovación presupone el apoyo a la diversidad."
+      ],
+      "wordRefs": ["word_es_11", "word_es_7", "word_es_19"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_13",
+      "phrase": "Se debe enfatizar más el contexto entre consumo y sostenibilidad.",
+      "synonyms": [
+        "El vínculo entre comportamiento de compra y durabilidad debe ser más claro.",
+        "Es necesario mostrar la relación entre consumo y viabilidad futura."
+      ],
+      "wordRefs": ["word_es_12", "word_es_1"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_14",
+      "phrase": "El gobierno tomará nuevas medidas para garantizar la seguridad social.",
+      "synonyms": [
+        "Se iniciarán nuevos pasos para avalar la protección social.",
+        "Para asegurar la seguridad social, el Estado planea más acciones."
+      ],
+      "wordRefs": ["word_es_13", "word_es_2"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_15",
+      "phrase": "Una confrontación abierta es necesaria para resolver los problemas sociales.",
+      "synonyms": [
+        "Necesitamos un diálogo honesto sobre los problemas de nuestra sociedad.",
+        "Los obstáculos sociales solo pueden superarse a través de debates."
+      ],
+      "wordRefs": ["word_es_20"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_16",
+      "phrase": "Bajo el requisito de que cooperemos, podemos superar cualquier desafío.",
+      "synonyms": [
+        "Mientras trabajemos juntos, podremos con cualquier tarea.",
+        "La cooperación es la condición para superar todas las dificultades."
+      ],
+      "wordRefs": ["word_es_4", "word_es_10"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_17",
+      "phrase": "Las leyes deben reflejar los valores que están anclados en nuestra Constitución.",
+      "synonyms": [
+        "Nuestra legislación debería plasmar los principios constitucionales.",
+        "En las leyes deben mostrarse los valores de la ley fundamental."
+      ],
+      "wordRefs": ["word_es_5", "word_es_18"],
+      "level": "C1",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_18",
+      "phrase": "Para causar cambios, debemos implementar nuestros planes de forma consecuente.",
+      "synonyms": [
+        "Debemos realizar nuestros proyectos estrictamente si queremos cambiar algo.",
+        "La implementación consecuente es la clave para el cambio."
+      ],
+      "wordRefs": ["word_es_6"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_19",
+      "phrase": "Los desafíos a menudo requieren soluciones poco convencionales y mucho valor.",
+      "synonyms": [
+        "Las tareas difíciles exigen nuevos caminos y valentía.",
+        "A menudo se necesitan ideas extraordinarias para resolver problemas."
+      ],
+      "wordRefs": ["word_es_10", "word_es_8"],
+      "level": "B2",
+      "contexts": ["debate"]
+    },
+    {
+      "tempId": "phrase_es_20",
+      "phrase": "La repercusión de esta reforma solo será plenamente percibible en unos años.",
+      "synonyms": [
+        "Se notarán las consecuencias de este cambio solo después de un tiempo largo.",
+        "Los resultados de la reforma se mostrarán recién en el futuro."
+      ],
+      "wordRefs": ["word_es_17", "word_es_16"],
+      "level": "C1",
+      "contexts": ["debate"]
+    }
+  ],
+  "phrase_relations": [
+    { "main": "phrase_es_1", "translated": "phrase_de_1" },
+    { "main": "phrase_es_2", "translated": "phrase_de_2" },
+    { "main": "phrase_es_3", "translated": "phrase_de_3" },
+    { "main": "phrase_es_4", "translated": "phrase_de_4" },
+    { "main": "phrase_es_5", "translated": "phrase_de_5" },
+    { "main": "phrase_es_6", "translated": "phrase_de_6" },
+    { "main": "phrase_es_7", "translated": "phrase_de_7" },
+    { "main": "phrase_es_8", "translated": "phrase_de_8" },
+    { "main": "phrase_es_9", "translated": "phrase_de_9" },
+    { "main": "phrase_es_10", "translated": "phrase_de_10" },
+    { "main": "phrase_es_11", "translated": "phrase_de_11" },
+    { "main": "phrase_es_12", "translated": "phrase_de_12" },
+    { "main": "phrase_es_13", "translated": "phrase_de_13" },
+    { "main": "phrase_es_14", "translated": "phrase_de_14" },
+    { "main": "phrase_es_15", "translated": "phrase_de_15" },
+    { "main": "phrase_es_16", "translated": "phrase_de_16" },
+    { "main": "phrase_es_17", "translated": "phrase_de_17" },
+    { "main": "phrase_es_18", "translated": "phrase_de_18" },
+    { "main": "phrase_es_19", "translated": "phrase_de_19" },
+    { "main": "phrase_es_20", "translated": "phrase_de_20" }
+  ]
+}

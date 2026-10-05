@@ -17,8 +17,33 @@ Generate seed data according to the requested **Generation Mode**. Output **stri
 | `both` *(default)* | 20 phrases (DE + ES) **and** all the words those phrases use. This is the original behavior.                          | 20 phrases      |
 | `words_only`       | 20 words (DE + ES) with full metadata (examples, forms, relatedWords). **No phrases or phrase_relations.**            | 20 words        |
 | `phrases_only`     | 20 phrases (DE + ES). Words arrays include **only** the words used in the phrases (minimal metadata is acceptable).   | 20 phrases      |
+| `translate_orphans`| Given a list of orphan words (words that exist in one language but lack a translation), generate the missing translation pairs. | Varies         |
 
-**Why this matters:** Generating words independently lets you build comprehensive vocabulary coverage across all levels and contexts. Generating phrases independently lets you ensure every word in your database appears in at least one phrase. Running both together (default) is the fastest way to bootstrap content but may leave vocabulary gaps.
+**Why this matters:** Generating words independently lets you build comprehensive vocabulary coverage across all levels and contexts. Generating phrases independently lets you ensure every word in your database appears in at least one phrase. Running both together (default) is the fastest way to bootstrap content but may leave vocabulary gaps. The `translate_orphans` mode fixes words that were imported without their translation pair.
+
+### translate_orphans Mode
+
+When I provide a list of orphan words (formatted as below), generate the missing translation for each word with full metadata. Output follows the same JSON schema — only include the **new** words you are creating (the translations), plus `word_relations` linking them to the originals.
+
+**Input format I will provide:**
+
+```
+## German words without Spanish translation:
+- Flughafen (NOUN)
+- ankommen (VERB)
+
+## Spanish words without German translation:
+- aeropuerto (NOUN)
+```
+
+**Rules for this mode:**
+- For each German orphan, create a Spanish word entry in `words_es` with full metadata (examples, forms, relatedWords).
+- For each Spanish orphan, create a German word entry in `words_de` with full metadata.
+- Add a `word_relations` entry linking each pair (`main` = ES tempId, `translated` = DE tempId).
+- Use the same `contexts` and `level` as the original word when possible.
+- Follow all the same quality rules (2–3 examples per word, Spanish examples are translations of German ones, etc.).
+- `phrases_de`, `phrases_es`, `phrase_relations` should be **empty arrays**.
+- The tempIds for the **existing** words are NOT included — only the new translations get tempIds. The seeding system matches by word string for deduplication.
 
 ## OUTPUT JSON SCHEMA
 
@@ -30,8 +55,8 @@ Generate seed data according to the requested **Generation Mode**. Output **stri
       "word": "Flughafen",
       "gramaticalCategories": ["NOUN"],
       "examples": [
-        "Am Flughafen herrscht immer ein hektisches Treiben, besonders während der Ferienzeit.",
-        "Wir müssen zum Flughafen fahren, um unsere Gäste abzuholen.",
+        "Die Flughäfen in Deutschland sind für ihre Effizienz bekannt.",
+        "Wir fuhren gestern zum Flughafen, um unsere Gäste abzuholen.",
         "Der neue Flughafen wurde trotz massiver Proteste der Anwohner gebaut."
       ],
       "relatedWords": {
@@ -57,8 +82,8 @@ Generate seed data according to the requested **Generation Mode**. Output **stri
       "word": "aeropuerto",
       "gramaticalCategories": ["NOUN"],
       "examples": [
-        "El aeropuerto estaba lleno de turistas esperando sus vuelos.",
-        "Llegamos al aeropuerto con dos horas de anticipación.",
+        "Los aeropuertos en Alemania son conocidos por su eficiencia.",
+        "Ayer fuimos al aeropuerto a recoger a nuestros invitados.",
         "El nuevo aeropuerto fue inaugurado a pesar de las protestas de los vecinos."
       ],
       "relatedWords": {
@@ -119,12 +144,12 @@ Generate seed data according to the requested **Generation Mode**. Output **stri
 
 ### Word Examples (2–3 per word)
 
-- Use the **most challenging grammatical forms** of the word:
-  - **Nouns:** Use different cases (Dativ, Akkusativ, Genitiv), unusual plurals, compound nouns.
-  - **Verbs:** Show irregular conjugations, Präteritum, Partizip II, Konjunktiv II, separable prefixes in action.
+- Provide **2–3 example sentences per word** that deliberately exercise the hardest grammatical forms:
+  - **Nouns:** **At least one** example MUST use the **plural form** of the noun. Other examples should cover different cases (Dativ, Akkusativ, Genitiv), compound nouns, or unusual declensions.
+  - **Verbs:** Examples MUST show the verb in **Präteritum** (simple past) in one sentence AND **Perfekt** (hat/ist + Partizip II) in another sentence. A third example may show Konjunktiv II, separable prefixes in action, or Imperativ. The goal is to expose the learner to the non-trivial conjugated forms they will encounter in real German.
   - **Adjectives:** Show comparative/superlative forms, strong/weak declension variations.
 - Examples should be **full, natural-sounding sentences** (not textbook-simple). Aim for B1+ complexity in examples even for A2 words.
-- Spanish examples should be equally natural and idiomatic.
+- **Spanish examples must be direct translations** of the corresponding German examples, in the **same order**. Each German example at index N must match the Spanish example at index N. Do NOT write independent Spanish sentences — translate the German ones faithfully and idiomatically.
 
 ### relatedWords (varies by category)
 
@@ -158,18 +183,17 @@ Generate seed data according to the requested **Generation Mode**. Output **stri
 
 ### Context Assignment
 
-- Every item MUST have at least 1 context from this list:
+- Every item MUST have at least 1 context from this **closed** list:
   `travel_car`, `travel_train`, `travel_boat`, `travel_plane`, `travel_walking`, `hospital`, `surgery`, `praxis`, `party`, `lang_party`, `church`, `worship`, `adventist`, `flirting`, `moving`, `robbery`, `colombian`, `colombian_compliments`, `debate`, `university`, `court`, `immigration`, `china`, `begging`, `raffles`, `cartoon_convention`
 - A word/phrase may have multiple contexts if applicable.
 - **All items within a chunk should share the same primary context** (the one you are asked to generate for), but individual words may additionally belong to other contexts.
-- **If I specify a context NOT in this list, use it anyway.** The app supports adding new contexts. Just use the exact string I provide (lowercase, underscores).
+- **NEVER create new contexts.** Only use values from the list above. If a word or phrase doesn't fit any existing context, pick the **closest** one. Do NOT invent new context strings under any circumstances, even if I describe a topic that isn't in the list — map it to the nearest existing context instead.
 
-**CONTEXT NAMING RULES (CRITICAL):**
+**CONTEXT RULES (CRITICAL):**
 
-- A context value must be **at most 2 words**, joined by an underscore. Examples: `flirting`, `comedy`, `job_interview`, `daily_routine`.
-- **NEVER** use long descriptive strings as context values. If I request something like "psychological flirting phrases", the context should be `flirting` (or at most `psychological_flirting`), NOT `psychological_flirting_phrases`.
-- The **Topic / Theme** parameter (see below) is where freeform descriptions go. The `contexts` array is strictly for short, reusable category tags.
-- When in doubt, pick the **closest existing context** from the list above and assign that. Only create a new context if nothing fits.
+- The context list above is **exhaustive and final**. No additions are allowed.
+- If I request a topic like "job interview" or "daily routine", use the closest existing context (e.g., `university`, `moving`) — do NOT create `job_interview` or `daily_routine`.
+- The **Topic / Theme** parameter (see below) is where freeform descriptions go. The `contexts` array is strictly for selecting from the fixed list above.
 
 ### gramaticalCategories
 

@@ -1,3 +1,4 @@
+import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { Word, WordRelation } from "./words.types.js";
@@ -12,6 +13,20 @@ function toGraphQL(doc: any) {
 }
 
 export const wordsResolvers = {
+  Word: {
+    failureIndex: async (parent: any, _: unknown, context: any) => {
+      if (!context.user) return 0;
+      const db = getDb();
+      const wordId = new ObjectId(parent.id || parent._id);
+      const relations = await db.relationsWordsEsDe.find({ $or: [{ main: wordId }, { translated: wordId }] }).project({ _id: 1 }).toArray();
+      const ids = relations.map(r => r._id);
+      const rows = await db.progress.aggregate([
+        { $match: { userId: context.user._id, $or: [{ relationId: { $in: ids } }, { itemId: { $in: ids } }] } },
+        { $group: { _id: null, failureIndex: { $sum: { $ifNull: ["$failureIndex", 0] } } } },
+      ]).toArray();
+      return rows[0]?.failureIndex ?? 0;
+    },
+  },
   Query: {
     words: async (
       _: unknown,
@@ -36,32 +51,10 @@ export const wordsResolvers = {
       const word = await collection.findOne({ _id: new ObjectId(id) });
       return toGraphQL(word);
     },
-    wordRelations: async (
-      _: unknown,
-      { limit = 100, offset = 0 }: { limit?: number; offset?: number },
-    ) => {
+    wordRelations: async (_: unknown, args: CatalogArgs) => {
       const db = getDb();
       const relations = await db.relationsWordsEsDe
-        .aggregate([
-          { $skip: offset },
-          { $limit: limit },
-          {
-            $lookup: {
-              from: "WORDS_ES",
-              localField: "main",
-              foreignField: "_id",
-              as: "mainDocs",
-            },
-          },
-          {
-            $lookup: {
-              from: "WORDS_DE",
-              localField: "translated",
-              foreignField: "_id",
-              as: "translatedDocs",
-            },
-          },
-        ])
+        .aggregate(catalogPipeline(args, "WORDS_ES", "WORDS_DE", "word"))
         .toArray();
 
       return relations.map((r) => {
@@ -71,6 +64,33 @@ export const wordsResolvers = {
           doc.translatedDoc = r.translatedDocs[0];
         return toGraphQL(doc);
       });
+    },
+    wordsWithoutTranslation: async (
+      _: unknown,
+      { lang, limit = 100 }: { lang: string; limit?: number },
+    ) => {
+      const db = getDb();
+      const isDE = lang.toUpperCase() === "DE";
+      const collection = isDE ? db.wordsDE : db.wordsES;
+      const relationField = isDE ? "translated" : "main";
+
+      const orphans = await collection
+        .aggregate([
+          {
+            $lookup: {
+              from: "WORDS_ES_DE",
+              localField: "_id",
+              foreignField: relationField,
+              as: "relations",
+            },
+          },
+          { $match: { "relations.0": { $exists: false } } },
+          { $project: { relations: 0 } },
+          { $limit: limit },
+        ])
+        .toArray();
+
+      return orphans.map(toGraphQL);
     },
     wordRelationsWithoutPhrases: async (
       _: unknown,
@@ -152,7 +172,9 @@ export const wordsResolvers = {
     addWordRelation: async (
       _: unknown,
       { mainId, translatedId }: { mainId: string; translatedId: string },
+      context: { user: unknown },
     ) => {
+      if (!context.user) throw new Error("Unauthorized");
       const db = getDb();
       const newRelation: WordRelation = {
         _id: new ObjectId(),

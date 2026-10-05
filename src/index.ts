@@ -9,6 +9,8 @@ import { typeDefs, resolvers } from "./graphql/schema.js";
 import { getUserFromToken } from "./features/auth/auth.service.js";
 import { User } from "./features/auth/auth.types.js";
 import dotenv from "dotenv";
+import { ObjectId } from "mongodb";
+import { translateWritingWord } from "./features/writing/writing.service.js";
 
 dotenv.config();
 
@@ -36,8 +38,19 @@ async function startServer() {
   await server.start();
 
   // Apply CORS and JSON middleware
-  app.use(cors({ origin: true, credentials: true }));
-  app.use(express.json());
+  const allowedOrigins = process.env.WEB_ORIGINS?.split(",").map(origin => origin.trim()).filter(Boolean);
+  app.use(cors({ origin: allowedOrigins?.length ? allowedOrigins : true }));
+  app.use(express.json({ limit: "2mb" }));
+  app.get("/health", (_req, res) => { res.json({ status: "ok" }); });
+  app.post("/api/translate", async (req, res) => {
+    try {
+      const user = await getUserFromToken((req.headers.authorization || "").replace(/^Bearer /, ""));
+      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+      if (!ObjectId.isValid(req.body?.exerciseId) || typeof req.body?.word !== "string") { res.status(400).json({ error: "Provide an exerciseId and Spanish word." }); return; }
+      res.json(await translateWritingWord(user._id, new ObjectId(req.body.exerciseId), req.body.word));
+    }
+    catch (error) { res.status(400).json({ error: (error as Error).message }); }
+  });
 
   // Apply GraphQL endpoint
   app.use(
@@ -70,4 +83,3 @@ startServer().catch((error) => {
   console.error("Failed to start server:", error);
   process.exit(1);
 });
-// Force reload v2

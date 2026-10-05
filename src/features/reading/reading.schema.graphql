@@ -1,0 +1,80 @@
+type SessionVocabulary {
+  id: ID!
+  german: String!
+  spanish: String!
+  failureIndex: Int!
+}
+type ReadingStudySession {
+  id: ID!
+  startedAt: String!
+  endedAt: String!
+  reviewCount: Int!
+  words: [SessionVocabulary!]!
+}
+type ReadingPractice {
+  configured: Boolean!
+  model: String!
+  session: ReadingStudySession
+  lesson: ReadingLesson
+}
+type ReadingLesson {
+  id: ID!
+  sessionId: ID!
+  sessionStartedAt: String!
+  sessionEndedAt: String!
+  status: String!
+  error: String
+  words: [SessionVocabulary!]!
+  pageCount: Int!
+  pages: [ReadingPage!]!
+  model: String!
+}
+type VocabularyUsage {
+  wordId: ID!
+  surfaceForms: [String!]!
+  example: String!
+}
+type ReadingPage {
+  index: Int!
+  words: [SessionVocabulary!]!
+  title: String!
+  german: String!
+  spanish: String
+  vocabulary: [VocabularyUsage!]!
+  wordCount: Int!
+  lastAttempt: TranslationAttempt
+}
+type TranslationAttempt {
+  id: ID!
+  requestId: String!
+  pageIndex: Int!
+  translation: String!
+  status: String!
+  error: String
+  feedback: TranslationFeedback
+}
+type TranslationFeedback {
+  score: Int!
+  summary: String!
+  correctedSpanish: String!
+  corrections: [TranslationCorrection!]!
+  omissions: [TranslationOmission!]!
+  vocabulary: [VocabularyUnderstanding!]!
+}
+type TranslationCorrection {
+  original: String!
+  corrected: String!
+  explanation: String!
+  category: String!
+}
+type TranslationOmission { german: String! explanation: String! }
+type VocabularyUnderstanding { wordId: ID! understood: Boolean! feedback: String! }
+
+extend type Query {
+  readingPractice: ReadingPractice!
+  readingLesson(id: ID!): ReadingLesson
+}
+extend type Mutation {
+  generateReadingLesson(sessionId: ID!): ReadingLesson!
+  checkReadingTranslation(lessonId: ID!, pageIndex: Int!, translation: String!, requestId: String!): TranslationAttempt!
+}

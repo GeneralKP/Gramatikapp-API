@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import type { CefrClassification, CefrLevel } from "../levels/levels.js";
 
 export enum LearningContext {
   TRAVEL_CAR = "travel_car",
@@ -26,6 +27,10 @@ export enum LearningContext {
   CHINA = "china",
   BEGGING = "begging",
   RAFFLES = "raffles",
+  DAILY_ROUTINE = "daily_routine",
+  WORK = "work",
+  FINANCE = "finance",
+  PSYCOLOGICAL_FLIRTING_PHRASES = "psycological_flirting_phrases",
   CARTOON_CONVENTION = "cartoon_convention",
 }
 
@@ -71,6 +76,8 @@ export enum WordLevel {
 }
 
 export interface Word {
+  cefrLevel?: CefrLevel;
+  cefrClassification?: CefrClassification;
   _id: ObjectId;
   word: string;
   gramaticalCategories: GrammaticalCategory[];

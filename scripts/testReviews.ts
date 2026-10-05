@@ -1,0 +1,106 @@
+import "dotenv/config";
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { ObjectId } from "mongodb";
+import { graphql } from "graphql";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { connectDatabase, closeDatabase } from "../src/lib/database.js";
+import { typeDefs, resolvers } from "../src/graphql/schema.js";
+import { recordFailure } from "../src/features/progress/failures.js";
+import { DEFAULT_OPTIONS, initialScheduler, studyDay } from "../src/features/progress/scheduler.js";
+import { dailyCounts } from "../src/features/progress/reviews.js";
+import { selectStudyQueue } from "../src/features/progress/studyQueue.js";
+import type { UserProgress } from "../src/features/progress/progress.types.js";
+
+const db = await connectDatabase(), userId = new ObjectId();
+const schema = makeExecutableSchema({ typeDefs, resolvers }), context = { user: { _id: userId } };
+const fields = "success error reviewId progress { itemId failureIndex totalReviews lapses interval ease repetitions nextDueDate lastReviewed scheduleVersion schedulerPhase learningQueue reviewOptions { grade delaySeconds } }";
+const call = async (source: string, variables: any, user: any = context.user) => {
+  const result = await graphql({ schema, source, variableValues: { userId: userId.toString(), ...variables }, contextValue: { user } });
+  assert.equal(result.errors, undefined, result.errors?.map(e => e.message).join("; "));
+  return result.data as any;
+};
+const review = async (itemId: ObjectId, grade: string, reviewId: string, expectedVersion: number) => (await call(`mutation($userId: ID!, $itemId: ID!, $grade: ReviewGrade!, $reviewId: String!, $expectedVersion: Int!) { reviewItem(userId: $userId, itemId: $itemId, itemType: "WORD", grade: $grade, reviewId: $reviewId, expectedVersion: $expectedVersion) { ${fields} } }`, { itemId: itemId.toString(), grade, reviewId, expectedVersion })).reviewItem;
+const undo = async (reviewId: string) => (await call(`mutation($userId: ID!, $reviewId: String!) { undoReview(userId: $userId, reviewId: $reviewId) { ${fields} } }`, { reviewId })).undoReview;
+const makeCard = async (overrides: Partial<UserProgress> = {}) => {
+  const p: UserProgress = { _id: new ObjectId(), userId, itemId: new ObjectId(), itemType: "WORD", failureIndex: 7, isNew: true, ease: 2.5, interval: 0, repetitions: 0, nextDueDate: new Date(), lastReviewed: null, createdAt: new Date(), ...overrides };
+  p.scheduler = initialScheduler(p);
+  await db.progress.insertOne(p);
+  return p;
+};
+try {
+  const p = await makeCard(), id = randomUUID();
+  const results = await Promise.all(Array.from({ length: 12 }, () => review(p.itemId, "AGAIN", id, 0)));
+  assert.ok(results.every(r => r.success), JSON.stringify(results));
+  assert.equal(results[0].progress.schedulerPhase, "LEARNING");
+  assert.equal(results[0].progress.learningQueue, "MINUTE");
+  assert.equal(results[0].progress.totalReviews, 1);
+  assert.equal(await db.reviewEvents.countDocuments({ userId }), 1);
+  assert.equal((await review(p.itemId, "EASY", id, 0)).success, false, "retry IDs cannot be reused for another answer");
+  assert.equal((await review(p.itemId, "GOOD", randomUUID(), 0)).success, false, "a stale second tab cannot rate twice");
+  await recordFailure(db.progress, userId, p.itemId, randomUUID());
+  const reversed = await undo(id);
+  assert.equal(reversed.success, true, reversed.error);
+  assert.equal(reversed.progress.schedulerPhase, "NEW");
+  assert.equal(reversed.progress.totalReviews, 0);
+  assert.equal(reversed.progress.failureIndex, 8);
+  assert.equal(reversed.progress.nextDueDate, p.nextDueDate.toISOString());
+  const again = await undo(id);
+  assert.equal(again.progress.scheduleVersion, reversed.progress.scheduleVersion, "Undo retry must not change scheduling twice");
+  assert.equal((await review(p.itemId, "AGAIN", id, 0)).success, false, "an undone command cannot be replayed as a new review");
+  const history = await call(`query($userId: ID!) { reviewHistory(userId: $userId) { grade reversedAt previousDueDate nextDueDate } }`, {});
+  assert.ok(history.reviewHistory[0].reversedAt);
+  const counts = await dailyCounts(userId, studyDay(new Date(), "Europe/Berlin", 4));
+  assert.equal(counts.get("App")?.new ?? 0, 0, "Undo restores the daily budget");
+  console.log("PASS concurrent/lost-response retries, stale sessions, durable history, database Undo and monotonic failures");
+
+  const mature = await makeCard({ isNew: false, interval: 100, repetitions: 8, totalReviews: 20, lapses: 2, lastReviewed: new Date(Date.now() - 100 * 86400000) });
+  const firstId = randomUUID(), secondId = randomUUID();
+  const hard = await review(mature.itemId, "HARD", firstId, 0);
+  assert.equal(hard.success, true, hard.error);
+  assert.ok(hard.progress.interval >= 110 && hard.progress.interval <= 130, "Hard should be about 120 days, not 235");
+  assert.ok(Math.abs(hard.progress.ease - 2.35) < 0.00001);
+  const second = await review(mature.itemId, "GOOD", secondId, 1);
+  assert.equal(second.success, true);
+  assert.equal((await undo(firstId)).success, false, "older scheduling cannot overwrite a newer review");
+  assert.equal((await undo(secondId)).success, true);
+  const original = await undo(firstId);
+  assert.equal(original.progress.interval, 100);
+  assert.equal(original.progress.totalReviews, 20);
+  assert.equal(original.progress.lapses, 2);
+  console.log("PASS mature-card scheduling and consecutive Undo without losing prior state");
+
+  const noteGuid = randomUUID();
+  const study = { source: "ANKI" as const, sourceCardId: "1790000000000", sourceNoteGuid: noteGuid, direction: "ES_DE" as const, prompt: "casa", answer: "Haus", acceptedAnswers: ["Haus"], notes: "", examples: [], deck: "Synthetic", tags: [] };
+  const sibling = await makeCard({ card: { ...study, sourceCardId: "1790000000001", direction: "DE_ES" } });
+  const primary = await makeCard({ card: study, isNew: false, interval: 5, repetitions: 2, lastReviewed: new Date() });
+  primary.scheduler.options.buryNew = true;
+  await db.progress.updateOne({ _id: primary._id }, { $set: { scheduler: primary.scheduler } });
+  const buryId = randomUUID();
+  assert.equal((await review(primary.itemId, "EASY", buryId, 0)).success, true);
+  assert.ok((await db.progress.findOne({ _id: sibling._id })).buriedUntil > new Date());
+  assert.equal((await undo(buryId)).success, true);
+  assert.equal((await db.progress.findOne({ _id: sibling._id })).buriedUntil, null);
+  const unauthorized = await graphql({ schema, source: `mutation($userId: ID!, $reviewId: String!) { undoReview(userId: $userId, reviewId: $reviewId) { success } }`, variableValues: { userId: userId.toString(), reviewId: buryId }, contextValue: { user: { _id: new ObjectId() } } });
+  assert.match(unauthorized.errors[0].message, /Unauthorized/);
+  console.log("PASS sibling bury/restore and ownership protection");
+
+  const now = new Date(), dayCard = await makeCard({ isNew: false, interval: 5, lastReviewed: new Date() });
+  dayCard.scheduler.options = { ...DEFAULT_OPTIONS, newPerDay: 2, reviewsPerDay: 1 };
+  p.scheduler.options = dayCard.scheduler.options;
+  const due = selectStudyQueue([dayCard, p], new Map(), now, 50, 10);
+  assert.deepEqual(due.map(p => p.itemId.toString()), [dayCard.itemId.toString()], "due reviews consume the review limit before new cards");
+  const blocked = selectStudyQueue([dayCard, p], new Map([["App", { new: 2, review: 1 }]]), now, 50, 10);
+  assert.equal(blocked.length, 0);
+  const anotherNew = { ...p, itemId: new ObjectId() };
+  assert.equal(selectStudyQueue([p, anotherNew], new Map(), now, 50, 10).length, 1, "the review allowance also bounds new-card gathering");
+  const learning = { ...p, isNew: false, nextDueDate: new Date(now.getTime() + 60000), scheduler: { ...p.scheduler, phase: "LEARNING" as const, queue: "MINUTE" as const } };
+  assert.equal(selectStudyQueue([learning], new Map([["App", { new: 2, review: 1 }]]), now, 50, 0).length, 1, "learning ahead is available after daily reviews are exhausted");
+  assert.equal(selectStudyQueue([learning, dayCard], new Map(), now, 50, 0)[0].itemId.toString(), dayCard.itemId.toString(), "future learning cannot jump ahead of ready reviews");
+  console.log("PASS daily limits, queue ordering, and learning ahead");
+} finally {
+  await db.reviewEvents.deleteMany({ userId });
+  await db.progress.deleteMany({ userId });
+  await db.schedulerProfiles.deleteOne({ _id: userId });
+  await closeDatabase();
+}

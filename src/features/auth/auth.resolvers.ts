@@ -42,13 +42,15 @@ export const authResolvers = {
       return toGraphQL(context.user);
     },
 
-    user: async (_: unknown, { id }: { id: string }) => {
+    user: async (_: unknown, { id }: { id: string }, context: GraphQLContext) => {
+      if (!context.user || context.user._id.toString() !== id) throw new Error("Unauthorized");
       const db = getDb();
       const user = await db.users.findOne({ _id: new ObjectId(id) });
       return toGraphQL(user);
     },
 
-    userByEmail: async (_: unknown, { email }: { email: string }) => {
+    userByEmail: async (_: unknown, { email }: { email: string }, context: GraphQLContext) => {
+      if (!context.user || context.user.email.toLowerCase() !== email.toLowerCase()) throw new Error("Unauthorized");
       const db = getDb();
       const user = await db.users.findOne({ email: email.toLowerCase() });
       return toGraphQL(user);
@@ -87,7 +89,9 @@ export const authResolvers = {
         userId: string;
         settings: Partial<UserSettings>;
       },
+      context: GraphQLContext,
     ) => {
+      if (!context.user || context.user._id.toString() !== userId) throw new Error("Unauthorized");
       const db = getDb();
 
       const user = await db.users.findOne({ _id: new ObjectId(userId) });

@@ -3,6 +3,12 @@ type UserProgress {
   userId: ID!
   itemId: ID!
   itemType: String!
+  relationId: ID
+  failureIndex: Int!
+  lastFailedAt: String
+  totalReviews: Int!
+  lapses: Int!
+  card: StudyCard
   wordRelation: WordRelation
   phraseRelation: PhraseRelation
   ease: Float!
@@ -10,11 +16,57 @@ type UserProgress {
   repetitions: Int!
   nextDueDate: String!
   lastReviewed: String
+  scheduleVersion: Int!
+  schedulerPhase: String!
+  learningQueue: String!
+  learnAheadSeconds: Int!
+  reviewOptions: [ReviewOption!]!
+}
+
+enum ReviewGrade { AGAIN HARD GOOD EASY }
+type ReviewOption {
+  grade: ReviewGrade!
+  delaySeconds: Float!
+  nextDueDate: String!
+  phase: String!
+}
+
+type StudyCard {
+  source: String!
+  sourceCardId: String!
+  sourceNoteGuid: String!
+  direction: String!
+  prompt: String!
+  answer: String!
+  acceptedAnswers: [String!]!
+  notes: String!
+  examples: [String!]!
+  deck: String!
+  tags: [String!]!
+}
+
+type FailedWord {
+  wordRelation: WordRelation!
+  failureIndex: Int!
+  cards: [UserProgress!]!
 }
 
 type ReviewResult {
   success: Boolean!
   progress: UserProgress
+  reviewId: String
+  error: String
+  errorCode: String
+}
+
+type ReviewEvent {
+  reviewId: String!
+  itemId: ID!
+  grade: ReviewGrade!
+  reviewedAt: String!
+  reversedAt: String
+  previousDueDate: String!
+  nextDueDate: String!
 }
 
 type LearningNode {
@@ -29,19 +81,27 @@ type LearningNode {
 }
 
 extend type Query {
+  mostFailedWords(userId: ID!, limit: Int, minFailures: Int): [FailedWord!]!
   dueItems(userId: ID!, dueLimit: Int, newLimit: Int, itemType: String): [UserProgress!]!
   studyMoreItems(userId: ID!, limit: Int, itemType: String): [UserProgress!]!
   userProgress(userId: ID!, itemId: ID!): UserProgress
   allProgress(userId: ID!, itemType: String): [UserProgress!]!
   itemsCount(itemType: String!): Int!
   learningPath(userId: ID!): [LearningNode!]!
+  reviewHistory(userId: ID!, itemId: ID, limit: Int): [ReviewEvent!]!
 }
 
 extend type Mutation {
+  recordFailure(userId: ID!, itemId: ID!, attemptId: String!): UserProgress!
   reviewItem(
     userId: ID!
     itemId: ID!
     itemType: String!
-    rating: Int!
+    rating: Int
+    grade: ReviewGrade
+    reviewId: String
+    expectedVersion: Int
+    earlyReview: Boolean
   ): ReviewResult!
+  undoReview(userId: ID!, reviewId: String!): ReviewResult!
 }

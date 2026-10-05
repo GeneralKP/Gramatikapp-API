@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import type { CefrClassification, CefrLevel } from "../levels/levels.js";
 import { LearningContext } from "../words/words.types.js";
 
 export enum PhraseLevel {
@@ -17,6 +18,8 @@ export interface PerWordExplanation {
 }
 
 export interface Phrase {
+  cefrLevel?: CefrLevel;
+  cefrClassification?: CefrClassification;
   _id: ObjectId;
   phrase: string;
   synonyms: string[]; // actually other equivalent phrases
