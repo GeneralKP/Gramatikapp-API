@@ -18,4 +18,5 @@ jobs:
       - run: npm run test:scheduler
       - run: npm run test:contexts
       - run: npm run test:reading-validation
+      - run: npm run test:writing-validation
       - run: npx tsx scripts/testLevels.ts --unit

@@ -30,6 +30,7 @@
     "test:reading-validation": "tsx scripts/testReadingValidation.ts",
     "migrate:scheduler": "tsx scripts/migrateAnkiScheduler.ts",
     "test:writing": "tsx scripts/testWriting.ts",
+    "test:writing-validation": "tsx scripts/testWritingValidation.ts",
     "test:writing-live": "tsx scripts/testWriting.ts --live",
     "classify:levels": "tsx scripts/classifyLevels.ts",
     "test:writing-browser": "tsx scripts/testWritingBrowser.ts",

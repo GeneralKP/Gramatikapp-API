@@ -23,7 +23,7 @@ const provider = http.createServer(async (req, res) => {
     checks++; await new Promise(r => setTimeout(r, 2200));
     const correct = input.learnerTranslation === german;
     answer = { correct, score: correct ? 100 : 85, summary: correct ? "La traducción es correcta." : "Revisa la concordancia verbal.", correctedGerman: german,
-      corrections: correct ? [] : [{ original: "übernehmen", corrected: "übernimmt", explanation: "El sujeto singular requiere la tercera persona singular.", category: "VERB_POSITION" }], alternatives: correct ? [german.replace("erfahrene", "routinierte")] : [] };
+      corrections: correct ? [] : [{ original: "übernehmen", corrected: "übernimmt", explanation: "El sujeto singular requiere la tercera persona singular.", category: "VERB_POSITION" }], alternatives: correct ? [{ german: german.replace("erfahrene", "routinierte"), mainClause: mainClause.replace("erfahrene", "routinierte"), subordinateClause, clauseOrder: "MAIN_FIRST", connector: "weil", finiteVerbs: { main: ["übernimmt"], subordinate: ["hat"] } }] : [] };
   } else { hints++; answer = { german: "die Verantwortung", explanation: "La responsabilidad asumida en esta situación." }; }
   res.writeHead(200, { "Content-Type": "application/json" }); res.end(JSON.stringify({ status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify(answer) }] }] }));
 });
@@ -40,7 +40,7 @@ async function rest(body: any, auth = token) { return fetch(`${apiUrl}/api/trans
 try {
   await wait(async () => started); await db.users.insertMany([user, other]);
   await db.writingExercises.insertOne({ _id: exerciseId, userId, requestId: randomUUID(), level: "B2", status: "READY", model: "gpt-6-luna", promptVersion: 1, createdAt: new Date(), updatedAt: new Date(), words: [],
-    sentence: { title: "Una decisión responsable", spanish, german, mainClause, subordinateClause, connector: "weil", clauseOrder: "MAIN_FIRST", grammarExplanation: "El verbo conjugado va al final de la subordinada con weil.", vocabulary: [], spanishWordCount: 45, germanWordCount: 40 } });
+    sentence: { title: "Una decisión responsable", spanish, german, mainClause, subordinateClause, connector: "weil", clauseOrder: "MAIN_FIRST", finiteVerbs: { main: ["übernimmt"], subordinate: ["hat"] }, grammarExplanation: "El verbo conjugado va al final de la subordinada con weil.", vocabulary: [], spanishWordCount: 45, germanWordCount: 40 } });
   assert.equal((await fetch(`${apiUrl}/health`)).status, 200);
   assert.equal((await rest({ exerciseId: exerciseId.toString(), word: "responsabilidad" }, "")).status, 401);
   assert.equal((await rest({ exerciseId: "bad", word: "responsabilidad" })).status, 400);

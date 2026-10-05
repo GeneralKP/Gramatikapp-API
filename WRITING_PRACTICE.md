@@ -1,8 +1,8 @@
 # Writing practice
 
-The workbook at `/writing` creates Spanish-to-German B2/C1 exercises using four entries from recent reviewed vocabulary, with a catalog fallback for a new learner. Each generated Spanish prompt and German reference has 30–50 words and one main clause plus one subordinate clause. The model is `gpt-6-luna` with high reasoning effort and strict structured output.
+The workbook at `/writing` creates Spanish-to-German B2/C1 exercises using four entries from recent reviewed vocabulary, with a catalog fallback for a new learner. Each generated Spanish prompt and German reference has 30–50 words and one main clause plus one subordinate clause. Clause audits list every finite verb, with one conjugated verb form in each clause; auxiliaries with infinitives or participles remain valid. This keeps examples focused on the two-clause construction. See [IDS grammis on finite verb forms](https://grammis.ids-mannheim.de/sgt/2221?termini=both) and [subordinate clauses](https://grammis.ids-mannheim.de/rechtschreibung/6203). The model is `gpt-6-luna` with high reasoning effort and strict structured output.
 
-`generateWritingExercise(level, requestId)` saves the vocabulary snapshot and returns a persistent exercise URL. `checkWritingTranslation(exerciseId, translation, requestId)` saves the learner's exact text, then checks meaning and German grammar. Correct answers receive one or two alternatives. Explanations are in Spanish. The German reference is hidden by the server until an assessment succeeds. These exercises do not change card schedules or failure counts.
+`generateWritingExercise(level, requestId)` saves the vocabulary snapshot and returns a persistent exercise URL. `checkWritingTranslation(exerciseId, translation, requestId)` saves the learner's exact text, then checks meaning and German grammar. Correct answers receive one or two alternatives, each with 30–50 words and one main clause plus one subordinate clause. The provider supplies exact clause fragments for each alternative; validation checks the assembled sentence, rejects nested subordinate conjunctions and returns plain sentence strings to the client. Explanations are in Spanish. The German reference is hidden by the server until an assessment succeeds. These exercises do not change card schedules or failure counts.
 
 The on-screen QWERTZ keyboard is always shown beside the input. Enter submits; Shift+Enter inserts a line. Holding a Spanish word returns a contextual German dictionary hint, including the noun article when appropriate. Keyboard users can focus a word and press Enter.
 
@@ -13,6 +13,7 @@ Every exercise, attempt, and hint belongs to an authenticated account. Unique re
 Checks:
 
 - `npm run test:writing`: real MongoDB/GraphQL with a local provider fixture; no paid API call.
+- `npm run test:writing-validation`: clause/finite-verb audits and regressions for malformed AI alternatives; no database or provider needed.
 - `npm run test:writing-browser`: real browser, API, MongoDB and REST endpoint with a provider fixture.
 - `npm run test:writing-live`: optional paid Luna generation, assessment and contextual hint; temporary test records are cleaned up, with the sample saved outside Git.
 - In the web repository, `npm run test:writing` covers keyboard, persistence, retries, hints and all module layouts at four widths in both themes.

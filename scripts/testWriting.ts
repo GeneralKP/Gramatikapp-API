@@ -22,14 +22,14 @@ const provider = live ? null : http.createServer(async (req, res) => {
   assert.equal(request.model, "gpt-6-luna"); assert.equal(request.reasoning.effort, "high"); assert.equal(request.store, false); assert.equal(request.text.format.strict, true);
   let result: any;
   if (request.text.format.name === "writing_sentence") {
-    result = { title: "Una decisión responsable", spanish, german, mainClause, subordinateClause, clauseOrder: "MAIN_FIRST", connector: "weil", grammarExplanation: "Weil introduce una causa; el verbo conjugado se coloca al final del Nebensatz.",
+    result = { title: "Una decisión responsable", spanish, german, mainClause, subordinateClause, clauseOrder: "MAIN_FIRST", connector: "weil", finiteVerbs: { main: ["übernimmt"], subordinate: ["hat"] }, grammarExplanation: "Weil introduce una causa; el verbo conjugado se coloca al final del Nebensatz.",
       vocabulary: input.vocabulary.map((w: any) => ({ wordId: w.id, surfaceForms: [w.german], example: german })) };
     if (invalidSentence) result.german = "Zu kurz.";
   } else if (request.text.format.name === "writing_feedback") {
     const correct = input.learnerTranslation === input.germanReference;
     result = { correct, score: correct ? 100 : 85, summary: correct ? "La traducción es correcta." : "Revisa la concordancia verbal.", correctedGerman: input.germanReference,
       corrections: correct ? [] : [{ original: invalidFeedback ? "invented words" : "übernehmen", corrected: "übernimmt", explanation: "El sujeto singular requiere la tercera persona singular.", category: "VERB_POSITION" }],
-      alternatives: correct ? [input.germanReference.replace("erfahrene Bürgermeister", "routinierte Bürgermeister")] : [] };
+      alternatives: correct ? [{ german: input.germanReference.replace("erfahrene Bürgermeister", "routinierte Bürgermeister"), mainClause: mainClause.replace("erfahrene Bürgermeister", "routinierte Bürgermeister"), subordinateClause, clauseOrder: "MAIN_FIRST", connector: "weil", finiteVerbs: { main: ["übernimmt"], subordinate: ["hat"] } }] : [] };
   } else result = { german: "die Verantwortung", explanation: "La responsabilidad asumida por el alcalde." };
   await new Promise(r => setTimeout(r, 50));
   res.writeHead(200, { "Content-Type": "application/json" }); res.end(JSON.stringify({ status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify(result) }] }] }));

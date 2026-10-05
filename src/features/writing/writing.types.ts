@@ -3,6 +3,7 @@ import type { JobStatus, SessionVocabulary, VocabularyUsage } from "../reading/r
 export interface WritingSentence {
   title: string; spanish: string; german: string; mainClause: string; subordinateClause: string;
   clauseOrder: "MAIN_FIRST" | "SUBORDINATE_FIRST"; connector: string; grammarExplanation: string;
+  finiteVerbs: { main: string[]; subordinate: string[] };
   spanishWordCount: number; germanWordCount: number; vocabulary: VocabularyUsage[];
 }
 export interface WritingExercise {
