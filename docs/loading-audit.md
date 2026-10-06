@@ -43,11 +43,44 @@ The browser previously waited for `Me` before mounting the dashboard. A saved si
 
 No card prefetch was added. `dueItems` can create new progress and directional pairs, so speculative dashboard requests would introduce write behavior. Bulk loading removes the dominant delay while preserving the full 5,000-card request limit and existing local session behavior. The remaining large response is about 2.3 MB; transfer time on a slow connection still contributes to entry latency.
 
+## Further dashboard and initial phrase entry optimization
+
+The previous phrase audit used `newLimit: 0`, while the browser's initial phrase request uses the account allowance (20 for the audited account). The new read-only audit includes this real entry path and phrase counters. The account had enough pending introductions, so the default-entry audit performed no writes. All write and index-changing methods remain blocked; an account requiring allocation causes the audit to fail instead of saving anything.
+
+Before/after runs were sequential on 6 October 2026, against the same configured database and 4,624-card account. “Before” uses API commit `ffcaf4d36239ae4cc7ceb12786d3d6ef8e94e5b7` in a temporary isolated snapshot with the same timing harness and dependencies. First-request timings include connection-pool expansion after connecting; repeated-request timings use the same process. These are local backend measurements, not production browser timings.
+
+The user reported roughly three seconds on the production Cloudflare site before this round. Public API health confirmed the previous backend commit was live; authenticated public GraphQL timing could not be verified with the local credentials. The table therefore does not claim a measured reduction of that three-second browser experience.
+
+| Operation | Before | After |
+| --- | ---: | ---: |
+| Dashboard, first request | 2,102 ms | 1,676 ms |
+| Dashboard, settled repeated requests | 1,181–1,316 ms | 640–678 ms |
+| Initial phrases, 20-new-card allowance, first request | 1,913 ms | 1,500 ms |
+| Initial phrases, same allowance, repeated requests | 977–1,030 ms | 420–543 ms |
+| Phrase counters, first request | 2,108 ms | 999 ms |
+| Phrase counters, repeated requests | 1,389–1,423 ms | 410–458 ms |
+
+The dashboard response remained 4,780 bytes, phrase entry returned the same 48 cards and 122,074-byte response, and phrase counters remained 81 bytes. The earlier large word/mixed queues retain their complete response contract and 5,000-card limit.
+
+Command-level measurements exposed a hidden cost in the previous “projected” progress snapshot: full embedded scheduler options still made it 5,664,024 bytes of BSON across two batches. Phrase counters fetched that entire account snapshot, even though only 266 phrase progress records existed. Dashboard counters now fetch only due reviews, all new/learning/relearning cards and unscheduled legacy records of the requested type, projecting only counter/selection inputs. Its 973-row word scheduling read was 803,635 bytes, plus 413,577 bytes of compact relation/mastery identities shared with `learningPath`. Phrase counters read 251 relevant scheduling records and 266 catalog-matching identities: 127,311 bytes combined, about 98% less progress transfer. These are uncompressed BSON command-reply sizes, including the small cursor envelopes.
+
+The identity read retains cross-type relation matches and the `itemId` fallback for absent or explicitly null `relationId`. It keeps learned totals for unavailable/future cards. NEW recognition prerequisites remain present when future, buried or suspended. All future minute learning is retained so customized learn-ahead periods still work; temporary due dates retain reviews with a future regular schedule. Per-card review ceilings, mixing settings, new-card construction steps and legacy Anki initialization inputs remain available. Counter-only scheduler projections are never serialized as study state or saved.
+
+Daily allowance reads start while snapshots load. Due selection starts while scheduler metadata and daily counts load. Phrase allocation reuses the due query's complete pending set, including future new phrases; `newCardGroups` keeps the same ordering and quotas. Creation still uses the existing idempotent batch and native words keep their transaction path.
+
+Summary/catalog reads use batches of 5,000 documents; rich queue/content reads use 1,000. These change only cursor transfer, with no result limit or `singleBatch` truncation. Dashboard database commands fell from 12 (five `getMore`) to eight (no `getMore`); phrase entry fell from eight to six; phrase counters fell from six to five. MongoDB explains the [default 101-document initial batch and extra-round-trip tradeoff](https://www.mongodb.com/docs/manual/reference/method/cursor.batchsize/). A batch-size-only experiment removed round trips but left most dashboard latency intact; narrowing transferred scheduling data was also necessary. An audit-only zlib experiment showed no useful timing gain, so no production compression setting was added.
+
+Selection plans remain fast. Phrase scheduling uses the existing owner/type index, examines 266 documents and takes 2 ms; the catalog-matching identity query examines the owner's 4,624 documents and takes 16 ms using an existing owner-prefixed index. Its small projected result, rather than faster scanning, removes the measured cost. Adding more indexes would not address the dominant transfer/round-trip cost. No database schema, collection or index changed. First requests still incur connection-pool startup and network latency; the improvement is stronger on subsequent requests. Actual deployed browser timings remain unverified.
+
+Repeat an operation with `AUDIT_FILTER=phrases-entry AUDIT_REPEAT=3 AUDIT_DETAILS=1 npm run audit:loading` (or `dashboard` / `phrases-counts`). The harness prints only aggregate sizes, command names, row counts, elapsed/CPU time and query-plan statistics; it never prints account identifiers or card contents.
+
 ## Regression coverage
 
 `npm run test:loading` in the API runs the real GraphQL schema and resolvers against mocked MongoDB responses, without any database connection. Complete JSON response fixtures were captured from API commit `fb32c3ed2488feca5e15aaf2fcb6bf6f047cf443` before the optimization. The tests compare nested catalog fields, card directions, serialized scheduler state, review choices, counts, category selection, extra practice, null relations and GraphQL error shape. They also cover a single-place native allowance, buried recognition prerequisites, legacy scheduling, unavailable cards, absent profiles, account isolation and bounded bulk-query counts. Versioned client operations keep the suite independent of a neighboring frontend checkout. Fixture changes require an intentional contract review. API CI runs loading and authentication regressions before publishing a backend release.
 
 Additional complete phrase/mixed response fixtures were captured immediately before the second round. Allocation tests assert exact new-phrase fields/content/dates, one batched write, idempotent repeats, category reuse, the pending-queue shortcut and propagation of non-duplicate/acknowledgement failures. Mixed hydration also covers overlapping word/phrase relation IDs, and zero-limit requests keep their original early-return behavior. `npm run test:auth` runs actual JWT/bcrypt and GraphQL resolvers against mocked users/profile responses. It checks rejected tokens before database access, deleted accounts, normalized email login, wrong credentials, seven-day tokens, complete auth response fields, explicit zero/default allowances, bounded reads and cross-account query rejection.
+
+This round first reproduced the unrelated-word snapshot in a failing mocked phrase-counter assertion, then added scoped/projection checks. Additional real-schema cases cover future NEW recognition, future REVIEW recognition before new production, buried/suspended recognition prerequisites, custom per-card review ceilings, the authoritative account new-card allowance, custom minute learn-ahead at and one millisecond beyond its boundary, temporary reviews with future regular dates, legacy future introductions and cross-type identities with present/null/missing `relationId`. Held snapshot/profile reads prove allowance/selection work overlaps without timing thresholds or live connections. Existing complete response fixtures were not changed.
 
 `npm run test:loading` in the web repository uses mocked GraphQL responses with an intentionally held authentication response. It verifies that dashboard data begins during validation, Words/Phrases/Mixed open with the same card shapes and full queue limit, requests keep their card-type scope, and these paths do not request Reading metadata. `npm run test:auth` covers the browser authentication scenarios above.
 

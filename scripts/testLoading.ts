@@ -36,7 +36,9 @@ const fixture:any={
  userprogresses:[progress(1,'WORD',20,{card:{source:'ANKI',sourceCardId:'1',sourceNoteGuid:'house',direction:'ES_DE',prompt:'casa',answer:'das Haus',acceptedAnswers:['das Haus'],notes:'note',examples:['Das Haus ist groß.'],deck:'App',tags:['NOUN']}}),progress(2,'WORD',20,{card:{source:'ANKI',sourceCardId:'2',sourceNoteGuid:'house',direction:'DE_ES',prompt:'das Haus',answer:'casa',acceptedAnswers:['casa'],notes:'note',examples:['Das Haus ist groß.'],deck:'App',tags:['NOUN']}}),progress(3,'WORD',90),progress(4,'WORD',21),progress(5,'PHRASE',40),progress(6,'WORD',20,{nextDueDate:new Date('2026-10-09T10:00:00Z')}),progress(7,'WORD',20,{userId:otherOwner})],
 };
 let reads:Record<string,number>={};
+let progressQueries: { query: any; projection?: any; batchSize?: number }[] = [];
 let batches:any[]=[];
+let holdRead: ((name: string, method: string, query: any) => Promise<void>) | undefined;
 const valueAt=(doc:any,key:string)=>key.split('.').reduce((value,part)=>value?.[part],doc);
 const equal=(a:any,b:any)=>a instanceof ObjectId||b instanceof ObjectId?String(a)===String(b):a instanceof RealDate||b instanceof RealDate?Number(a)===Number(b):a===b;
 function matches(doc:any,query:any):boolean {
@@ -72,13 +74,14 @@ function collection(name:string):any {
  const count=(method:string)=>{reads[`${name}.${method}`]=(reads[`${name}.${method}`]??0)+1;};
  const result={
   async createIndex(){},async dropIndex(){},
-  find(query:any={}){count('find');let rows=(fixture[name]??[]).filter((doc:any)=>matches(doc,query));return {
-   project(fields:any){rows=rows.map((row:any)=>project(row,fields));return this;},
+  find(query:any={}){count('find');const traced={query,projection:undefined as any,batchSize:undefined as number|undefined};if(name==='userprogresses')progressQueries.push(traced);let rows=(fixture[name]??[]).filter((doc:any)=>matches(doc,query));return {
+   project(fields:any){traced.projection=fields;rows=rows.map((row:any)=>project(row,fields));return this;},
+   batchSize(size:number){traced.batchSize=size;return this;},
    sort(fields:any){const [key,direction]=Object.entries(fields)[0] as [string,number];rows.sort((a:any,b:any)=>(valueAt(a,key)>valueAt(b,key)?1:valueAt(a,key)<valueAt(b,key)?-1:0)*direction);return this;},
    limit(size:number){if(size)rows=rows.slice(0,size);return this;},
-   async toArray(){return rows;},
+   async toArray(){await holdRead?.(name,'find',query);return rows;},
   };},
-  async findOne(query:any,options:any={}){count('findOne');const row=(fixture[name]??[]).find((doc:any)=>matches(doc,query));return row ? options.projection ? project(row,options.projection):row : null;},
+  async findOne(query:any,options:any={}){count('findOne');await holdRead?.(name,'findOne',query);const row=(fixture[name]??[]).find((doc:any)=>matches(doc,query));return row ? options.projection ? project(row,options.projection):row : null;},
   async bulkWrite(operations:any[],options:any){
    assert.equal(name,'userprogresses');assert.deepEqual(options,{ordered:false});batches.push(operations);
    for(const {updateOne} of operations){
@@ -112,7 +115,7 @@ try {
    assert.equal(reads['WORDS_ES_DE.findOne']??0,0,'no per-card relation lookup');
    assert.equal(reads['WORDS_ES.findOne']??0,0,'no per-card word lookup, including missing endpoints');
   }
-  if(name==='dashboard')assert.equal(reads['userprogresses.find'],1,'counts and learning path share one progress snapshot');
+  if(name==='dashboard')assert.equal(reads['userprogresses.find'],2,'counts and learning path share compact identities plus one scoped counter snapshot');
   if(name==='phrases-counts'){
    assert.equal(reads['PHRASES_ES_DE.find'],1);
    for(const key of ['WORDS_ES_DE.find','WORDS_ES.find','PHRASES_ES.find'])assert.equal(reads[key]??0,0,'counts load only the selected relations and no unused catalog metadata');
@@ -138,11 +141,19 @@ try {
  const practiceFixture=new URL('./fixtures/practice-responses.json',import.meta.url);
  assert.deepEqual(practiceResponses,JSON.parse(readFileSync(practiceFixture,'utf8')),'Phrase/mixed response contracts must remain unchanged');
  reads={};
+ progressQueries=[];
+ const scopedCounts=await graphql({schema,source:'query($userId:ID!){studyQueueCounts(userId:$userId,itemType:"PHRASE"){new learning review total learned}}',variableValues:{userId:String(owner)},contextValue:{user}});
+ assert.equal(scopedCounts.errors,undefined);
+ assert.deepEqual(JSON.parse(JSON.stringify(scopedCounts.data)),practiceResponses['phrases-counts'].data);
+ assert.ok(progressQueries.some(read=>read.query.itemType==='PHRASE'),'phrase counter scheduling reads must exclude unrelated word cards');
+ assert.ok(progressQueries.some(read=>!read.query.itemType && !read.projection?.scheduler && !read.projection?.anki),'cross-type seen/mastery inputs use only compact identities');
+ reads={};
  const aliases=await graphql({schema,source:'query($userId:ID!){first:studyQueueCounts(userId:$userId,itemType:"PHRASE",context:"University"){new learning review total learned} second:studyQueueCounts(userId:$userId,itemType:"PHRASE",context:"university"){new learning review total learned}}',variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(aliases.errors,undefined);
  const phraseCounts=practiceResponses['phrases-counts'].data.studyQueueCounts;
  assert.deepEqual(JSON.parse(JSON.stringify(aliases.data)),{first:phraseCounts,second:phraseCounts});
- assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['userprogresses.find'],1);
+ assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['userprogresses.find'],2);
+ assert.equal(reads['reviewevents.aggregate'],1,'counter aliases share daily allowances within the request');
  assert.equal(reads['PHRASES_ES_DE.find'],2,'one category lookup and one catalog read shared by both aliases');
  assert.equal(reads['PHRASES_ES.find'],1);assert.equal(reads['PHRASES_DE.find'],1);
  assert.equal(reads['WORDS_ES_DE.find']??0,0,'phrase category counts do not fetch words');
@@ -178,6 +189,67 @@ try {
   await withScheduler(unscheduled,null);assert.equal(reads['schedulerprofiles.findOne']??0,0);
   console.log('PASS complete dashboard/due/more/category response shapes, missing relations/endpoints, native allowance, buried siblings, bulk reads and absent profiles');
  }
+ // Counter projections must retain per-card limits and every prerequisite,
+ // including cards whose ordinary review date is in the future.
+ fixture.schedulerprofiles=[profile];user.settings.dailyNewCards=20;
+ const counter=async(itemType='WORD')=>{
+  const result=await graphql({schema,source:'query($userId:ID!,$itemType:String){studyQueueCounts(userId:$userId,itemType:$itemType){new learning review}}',variableValues:{userId:String(owner),itemType},contextValue:{user}});
+  assert.equal(result.errors,undefined);
+  return JSON.parse(JSON.stringify(result.data)).studyQueueCounts;
+ };
+ const futureRecognition={...recognition,buriedUntil:null,nextDueDate:new Date('2026-10-09T10:00:00Z')};
+ fixture.userprogresses=[futureRecognition,production];
+ assert.deepEqual(await counter(),{new:2,learning:0,review:0},'future NEW recognition must remain before production');
+ fixture.userprogresses=[{...futureRecognition,suspended:true},production];
+ assert.deepEqual(await counter(),{new:0,learning:0,review:0},'suspended recognition must still block its production sibling');
+ fixture.userprogresses=[{...futureRecognition,buriedUntil:new Date('2026-10-07T10:00:00Z')},production];
+ assert.deepEqual(await counter(),{new:0,learning:0,review:0},'buried future recognition remains a prerequisite');
+ fixture.userprogresses=[{...futureRecognition,isNew:false,scheduler:{...futureRecognition.scheduler,phase:'REVIEW',queue:'DAY'}},production];
+ assert.deepEqual(await counter(),{new:1,learning:0,review:0},'already learned future recognition permits new production');
+ fixture.userprogresses=[futureRecognition,production].map(p=>({...p,scheduler:{...p.scheduler,options:{...p.scheduler.options,reviewsPerDay:0}}}));
+ assert.deepEqual(await counter(),{new:0,learning:0,review:0},'per-card review ceilings must not fall back to the profile');
+ const pendingPhrase=progress(70,'PHRASE',40,{isNew:true,interval:0,repetitions:0,lastReviewed:null,nextDueDate:new Date('2026-10-09T10:00:00Z')});
+ pendingPhrase.scheduler.options={...pendingPhrase.scheduler.options,newPerDay:0};
+ fixture.userprogresses=[pendingPhrase];
+ assert.deepEqual(await counter('PHRASE'),{new:1,learning:0,review:0},'account daily allowance remains authoritative over embedded newPerDay');
+ const aheadPhrase=progress(71,'PHRASE',40,{nextDueDate:new Date(now.getTime()+7200_000)});
+ aheadPhrase.scheduler={...aheadPhrase.scheduler,phase:'LEARNING',queue:'MINUTE',options:{...aheadPhrase.scheduler.options,learnAheadSeconds:7200}};
+ fixture.userprogresses=[aheadPhrase];
+ assert.deepEqual(await counter('PHRASE'),{new:0,learning:1,review:0},'future minute learning retains customized learn-ahead boundary');
+ fixture.userprogresses=[{...aheadPhrase,nextDueDate:new Date(now.getTime()+7200_001)}];
+ assert.deepEqual(await counter('PHRASE'),{new:0,learning:0,review:0},'one millisecond beyond learn-ahead stays unavailable');
+ fixture.userprogresses=[progress(72,'PHRASE',40,{nextDueDate:new Date('2026-10-09T10:00:00Z'),temporaryDueDate:new Date(now.getTime()-1000)})];
+ assert.deepEqual(await counter('PHRASE'),{new:0,learning:0,review:1},'temporary due date keeps a future regular review visible');
+ const legacyFuture={...pendingPhrase,anki:{type:0,queue:0,left:0,reps:0,due:1},isNew:false,totalReviews:0};delete legacyFuture.scheduler;
+ fixture.userprogresses=[legacyFuture];
+ assert.deepEqual(await counter('PHRASE'),{new:1,learning:0,review:0},'legacy future introductions still initialize their Anki scheduler');
+ for(const relationId of [id(40),null,undefined]){
+  fixture.userprogresses=[progress(73,'WORD',40,{itemId:id(40),relationId})];
+  assert.deepEqual(await counter('PHRASE'),{new:0,learning:0,review:0},'catalog-scoped identities preserve cross-type IDs and null/missing fallbacks');
+ }
+ console.log('PASS future NEW prerequisites, buried/suspended siblings, customized review ceilings/learn-ahead, temporary reviews and cross-type legacy identities');
+ // Real resolver ordering under held MongoDB reads proves independent work
+ // overlaps; no elapsed-time threshold or live connection is needed.
+ fixture.userprogresses=[progress(74,'PHRASE',40)];reads={};
+ let releaseSnapshot!:()=>void, snapshotStarted!:()=>void;
+ const snapshotGate=new Promise<void>(resolve=>{releaseSnapshot=resolve});
+ const snapshotStart=new Promise<void>(resolve=>{snapshotStarted=resolve});
+ holdRead=async(name,method,query)=>{if(name==='userprogresses' && method==='find' && query.itemType==='PHRASE'){snapshotStarted();await snapshotGate;}};
+ const overlappingCounts=counter('PHRASE');
+ await snapshotStart;await new Promise(resolve=>setImmediate(resolve));
+ try {assert.equal(reads['reviewevents.aggregate'],1,'daily allowances start before the counter snapshot finishes');}
+ finally {releaseSnapshot();holdRead=undefined;}
+ await overlappingCounts;
+ reads={};let releaseProfile!:()=>void, profileStarted!:()=>void;
+ const profileGate=new Promise<void>(resolve=>{releaseProfile=resolve});
+ const profileStart=new Promise<void>(resolve=>{profileStarted=resolve});
+ holdRead=async(name,method)=>{if(name==='schedulerprofiles' && method==='findOne'){profileStarted();await profileGate;}};
+ const overlappingDue=graphql({schema,source:query('DUE_ITEMS_QUERY'),variableValues:{userId:String(owner),itemType:'PHRASE',dueLimit:5000,newLimit:0},contextValue:{user}});
+ await profileStart;await new Promise(resolve=>setImmediate(resolve));
+ try {assert.equal(reads['userprogresses.find'],1,'due selection starts before scheduler-profile lookup finishes');}
+ finally {releaseProfile();holdRead=undefined;}
+ assert.equal((await overlappingDue).errors,undefined);
+ console.log('PASS counters overlap daily allowance reads and initial queues overlap scheduler metadata');
  // Collection-local identifiers can overlap; relation type still controls which
  // GraphQL field is populated, even when both collections use the same ObjectId.
  fixture.userprogresses=[progress(21,'WORD',20),progress(22,'PHRASE',20)];
@@ -204,7 +276,7 @@ try {
  reads={};const repeated=await graphql({schema,source:freshQuery,variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(repeated.errors,undefined);assert.deepEqual(JSON.parse(JSON.stringify(repeated.data)),{dueItems:expected});
  assert.equal(batches.length,1,'existing new cards never get inserted or reset again');
- assert.equal(reads['userprogresses.find'],2,'a full pending queue avoids the all-reviewed exclusion query');
+ assert.equal(reads['userprogresses.find'],1,'phrase entry reuses its full pending queue and avoids both pending and all-reviewed rereads');
  const originalDates=fixture.userprogresses.map((p:any)=>p.nextDueDate);
  await insertNewProgress(fixture.userprogresses.map((p:any)=>({...p,nextDueDate:new Date('2030-01-01')})),getDb());
  assert.deepEqual(fixture.userprogresses.map((p:any)=>p.nextDueDate),originalDates,'upserts do not overwrite schedules');

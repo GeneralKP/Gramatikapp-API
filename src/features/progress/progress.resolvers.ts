@@ -1,4 +1,4 @@
-import { loadStudyRelations, studySnapshot, studyCatalog, studyMetadata, insertNewProgress } from "./studyLoading.js";
+import { loadStudyRelations, studyCountSnapshot, studyIdentities, studyDailyCounts, studyCatalog, studyMetadata, insertNewProgress, STUDY_CONTENT_BATCH_SIZE } from "./studyLoading.js";
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { UserProgress } from "./progress.types.js";
@@ -64,11 +64,16 @@ async function fetchNewItems(
   category?: string,
   allowPartialIntroduction = false,
   selectedCategoryIds?: ObjectId[] | null,
+  phraseProgress?: UserProgress[],
 ): Promise<UserProgress[]> {
   const categoryIds = selectedCategoryIds === undefined ? await categoryRelations(category, itemType) : selectedCategoryIds;
   const pendingQuery: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, isNew: true, suspended: { $ne: true }, supersededByAnki: { $ne: true }, $or: [{ buriedUntil: null }, { buriedUntil: { $lte: new Date() } }] };
   if (itemType) pendingQuery.itemType = itemType;
-  const candidates = await ensureNativeWordPairs(await db.progress.find(pendingQuery).sort({ "anki.due": 1 }).toArray());
+  // The phrase due query already includes every pending phrase, including future
+  // ones. Reuse it without allocating, dropping or reordering any new-card group.
+  const candidates = itemType === "PHRASE" && phraseProgress
+    ? phraseProgress.filter(p => p.isNew === true && !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= new Date()))
+    : await ensureNativeWordPairs(await db.progress.find(pendingQuery).sort({ "anki.due": 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray());
   const complete = await withNewWordSiblings(db, userObjectId, candidates);
   const pending: UserProgress[] = [];
   for (const original of newCardGroups(complete, candidates)) {
@@ -185,19 +190,20 @@ export const progressResolvers = {
       requireOwner(context, userId);
       if (itemType && !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid card type");
       const db = getDb(), id = new ObjectId(userId), now = new Date();
-      const [{profile, progress: allSeen, limit}, catalog, categoryIds] = await Promise.all([
-        studySnapshot(context,id), studyCatalog(context,itemType,false), categoryRelations(category,itemType,context),
+      const catalogRequest = studyCatalog(context,itemType,false);
+      const identityRequest = itemType === "PHRASE"
+        ? catalogRequest.then(catalog => studyIdentities(context,id,catalog.phrases.map(relation=>relation._id)))
+        : studyIdentities(context,id);
+      const [{profile, progress: scoped, limit}, allSeen, catalog, categoryIds, counts] = await Promise.all([
+        studyCountSnapshot(context,id,now,itemType as UserProgress["itemType"] | undefined), identityRequest, catalogRequest, categoryRelations(category,itemType,context), studyDailyCounts(context,id,now),
       ]);
       const categorySet = categoryIds === null ? null : new Set(categoryIds.map(String));
-      const docs = allSeen.filter(p => !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil<=now)
+      const docs = scoped.filter(p => !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil<=now)
         && (!itemType || p.itemType===itemType) && (!categorySet || categorySet.has(String(p.relationId)) || p.relationId === undefined && categorySet.has(String(p.itemId))));
       const guids = new Set(docs.filter(p=>p.itemType==="WORD" && p.card && isNewCard(p)).map(p=>p.card!.sourceNoteGuid));
       const present = new Set(docs.map(p=>String(p.itemId)));
-      const siblings = allSeen.filter(p=>p.itemType==="WORD" && !p.supersededByAnki && guids.has(p.card?.sourceNoteGuid) && !present.has(String(p.itemId)));
-      const [progress, counts] = await Promise.all([
-        Promise.all([...docs,...siblings].map(p=>withScheduler(p,profile))),
-        dailyCounts(id, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile),
-      ]);
+      const siblings = scoped.filter(p=>p.itemType==="WORD" && !p.supersededByAnki && guids.has(p.card?.sourceNoteGuid) && !present.has(String(p.itemId)));
+      const progress = await Promise.all([...docs,...siblings].map(p=>withScheduler(p,profile)));
       // Count unseen catalogue cards without creating progress merely by opening
       // the dashboard. Native words count both recognition and production.
       const seen = new Set(allSeen.map(p=>String(p.relationId ?? p.itemId)));
@@ -248,20 +254,23 @@ export const progressResolvers = {
 
       if (itemType && !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid card type");
       dueLimit = Math.max(0, Math.min(5000, dueLimit));
-      const {limit, profile} = await studyMetadata(context,userObjectId);
-      const [counts, selectedCategoryIds] = await Promise.all([
-        dailyCounts(userObjectId, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile),
-        dueLimit ? categoryRelations(category, itemType, context) : null,
+      const categoryRequest = dueLimit ? categoryRelations(category, itemType, context) : Promise.resolve(null);
+      const readDue = (categoryIds: ObjectId[] | null) => {
+        const query: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, suspended: { $ne: true }, supersededByAnki: { $ne: true },
+          $or: [{ temporaryDueDate: { $lte: now } }, { temporaryDueDate: null, nextDueDate: { $lte: new Date(now.getTime() + 1200000) } }, { isNew: true }] };
+        if (itemType) query.itemType = itemType;
+        return db.progress.find(query).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+      };
+      const [{limit, profile}, counts, selectedCategoryIds, existing] = await Promise.all([
+        studyMetadata(context,userObjectId), studyDailyCounts(context,userObjectId,now), categoryRequest,
+        dueLimit ? categoryRequest.then(readDue) : null,
       ]);
       newLimit = Math.max(0, Math.min(1000, newLimit, limit - introducedToday(counts)));
       if (!dueLimit && !newLimit) return [];
       const categoryIds = dueLimit ? selectedCategoryIds : await categoryRelations(category, itemType, context);
-      const query: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, suspended: { $ne: true }, supersededByAnki: { $ne: true },
-         $or: [{ temporaryDueDate: { $lte: now } }, { temporaryDueDate: null, nextDueDate: { $lte: new Date(now.getTime() + 1200000) } }, { isNew: true }] };
-      if (itemType) query.itemType = itemType;
-      let docs = await db.progress.find(query).toArray();
+      let docs = existing ?? await readDue(categoryIds);
       if (newLimit > 0) {
-        const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType, category, newLimit >= limit - introducedToday(counts), categoryIds);
+        const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType, category, newLimit >= limit - introducedToday(counts), categoryIds, itemType === "PHRASE" ? docs : undefined);
         const seen = new Set(docs.map(p => p.itemId.toString()));
         docs.push(...fresh.filter(p => !seen.has(p.itemId.toString())));
       }
@@ -361,8 +370,8 @@ export const progressResolvers = {
       requireOwner(context, userId);
       const userObjectId = new ObjectId(userId);
 
-      const [{ progress: progresses }, catalog] = await Promise.all([
-        studySnapshot(context,userObjectId), studyCatalog(context),
+      const [progresses, catalog] = await Promise.all([
+        studyIdentities(context,userObjectId), studyCatalog(context),
       ]);
       const wordRelations = catalog.words, phraseRelations = catalog.phrases;
       const wordsLookup = catalog.wordMeta, phrasesLookup = catalog.phraseMeta;
