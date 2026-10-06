@@ -1,0 +1,6 @@
+interface:
+  display_name: "German Database Model"
+  short_description: "Keep the saved database diagram aligned with code"
+  default_prompt: "Use $german-database-model to update the saved diagram for this model or data-flow change."
+policy:
+  allow_implicit_invocation: true

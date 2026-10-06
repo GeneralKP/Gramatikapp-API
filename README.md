@@ -2,6 +2,12 @@
 
 GraphQL backend for the German Gramatic language learning application.
 
+## Database model and data flow
+
+The canonical [database diagram](docs/database-model/index.html) is saved in Git as a standalone HTML/CSS page. Open the file directly or serve `docs/database-model` locally. It describes the live catalog, study progress, Reading/Writing flows and archived Anki collections; record counts are an explicitly dated inventory snapshot.
+
+Every model or data-flow edit must update the diagram in the same task before completion or pushing. Apply the [german-database-model skill](.agents/skills/german-database-model/SKILL.md); [AGENTS.md](AGENTS.md) records the project requirement, including companion frontend changes.
+
 ## Prerequisites
 
 - Node.js 18+

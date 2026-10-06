@@ -2,6 +2,8 @@
 
 German vocabulary and translation practice for a Spanish-speaking learner.
 
+The saved database and data-flow diagram is [docs/database-model/index.html](docs/database-model/index.html). Every model or data-flow edit must update it using the [german-database-model skill](.agents/skills/german-database-model/SKILL.md), as required by [AGENTS.md](AGENTS.md).
+
 ## Language
 
 **Vocabulary entry**:
