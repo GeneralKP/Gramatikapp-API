@@ -84,7 +84,7 @@ export interface Word {
   examples: string[];
   relatedWords?: RelatedWords;
   forms?: WordForms;
-  contexts: LearningContext[];
+  contexts: string[];
   level?: WordLevel;
   notes?: string;
   createdAt: Date;

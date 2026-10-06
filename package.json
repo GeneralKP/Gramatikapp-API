@@ -34,7 +34,10 @@
     "test:writing-live": "tsx scripts/testWriting.ts --live",
     "classify:levels": "tsx scripts/classifyLevels.ts",
     "test:writing-browser": "tsx scripts/testWritingBrowser.ts",
-    "test:levels": "tsx scripts/testLevels.ts"
+    "test:levels": "tsx scripts/testLevels.ts",
+    "test:study-controls": "tsx scripts/testStudyControls.ts",
+    "audit:categories": "tsx scripts/auditStudyCategories.ts",
+    "test:study-scheduling": "tsx scripts/testStudyScheduling.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

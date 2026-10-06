@@ -27,6 +27,7 @@ export interface UserProgress {
   interval: number;
   repetitions: number;
   nextDueDate: Date;
+  temporaryDueDate?: Date;
   lastReviewed: Date | null;
   createdAt: Date;
   updatedAt?: Date;

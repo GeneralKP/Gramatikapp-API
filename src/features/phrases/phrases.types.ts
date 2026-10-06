@@ -26,7 +26,7 @@ export interface Phrase {
   words: ObjectId[]; // references to WORDS_[LANGUAGE]
   perWordExplanation?: Record<string, PerWordExplanation>;
   level?: PhraseLevel;
-  contexts: LearningContext[];
+  contexts: string[];
   createdAt: Date;
   updatedAt?: Date;
 }

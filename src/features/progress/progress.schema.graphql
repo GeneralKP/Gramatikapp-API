@@ -1,3 +1,5 @@
+type StudyQueueCounts { new: Int! learning: Int! review: Int! total: Int! learned: Int! }
+
 type UserProgress {
   id: ID!
   userId: ID!
@@ -15,6 +17,8 @@ type UserProgress {
   interval: Int!
   repetitions: Int!
   nextDueDate: String!
+  regularDueDate: String!
+  temporaryDueDate: String
   lastReviewed: String
   scheduleVersion: Int!
   schedulerPhase: String!
@@ -23,7 +27,7 @@ type UserProgress {
   reviewOptions: [ReviewOption!]!
 }
 
-enum ReviewGrade { AGAIN HARD GOOD EASY }
+enum ReviewGrade { AGAIN HARD GOOD EASY REVISIT }
 type ReviewOption {
   grade: ReviewGrade!
   delaySeconds: Float!
@@ -81,9 +85,10 @@ type LearningNode {
 }
 
 extend type Query {
+  studyQueueCounts(userId: ID!, itemType: String, context: String): StudyQueueCounts!
   mostFailedWords(userId: ID!, limit: Int, minFailures: Int): [FailedWord!]!
-  dueItems(userId: ID!, dueLimit: Int, newLimit: Int, itemType: String): [UserProgress!]!
-  studyMoreItems(userId: ID!, limit: Int, itemType: String): [UserProgress!]!
+  dueItems(userId: ID!, dueLimit: Int, newLimit: Int, itemType: String, context: String): [UserProgress!]!
+  studyMoreItems(userId: ID!, limit: Int, itemType: String, context: String): [UserProgress!]!
   userProgress(userId: ID!, itemId: ID!): UserProgress
   allProgress(userId: ID!, itemType: String): [UserProgress!]!
   itemsCount(itemType: String!): Int!
@@ -101,6 +106,7 @@ extend type Mutation {
     grade: ReviewGrade
     reviewId: String
     expectedVersion: Int
+    failureAttemptId: String
     earlyReview: Boolean
   ): ReviewResult!
   undoReview(userId: ID!, reviewId: String!): ReviewResult!

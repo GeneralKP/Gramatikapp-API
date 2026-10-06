@@ -88,6 +88,7 @@ export const connectDatabase = async (): Promise<Database> => {
     { unique: true },
   );
   await db.progress.createIndex({ userId: 1, nextDueDate: 1 });
+  await db.progress.createIndex({ userId: 1, temporaryDueDate: 1 });
   await db.progress.createIndex({ userId: 1, itemType: 1, failureIndex: -1 });
   await db.progress.createIndex({ userId: 1, relationId: 1 });
   await db.reviewEvents.createIndex({ userId: 1, reviewId: 1 }, { unique: true });

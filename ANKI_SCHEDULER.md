@@ -155,3 +155,11 @@ this migration. The raw source is retained for future compatibility work.
 References: [Anki deck options](https://docs.ankiweb.net/deck-options.html),
 [Anki 26.09.3 scheduler](https://github.com/ankitects/anki/tree/26.09.3/rslib/src/scheduler),
 [official headless package](https://pypi.org/project/anki/26.9.3/).
+
+## Extra word reviews and phrase ratings
+
+Established word cards offer Revisit: a one-off review in 24 hours, with a durable failure increment deduplicated against the current typed attempt. A due word first receives its normal Good schedule; a future word retains its current schedule. Completing the extra review clears `temporaryDueDate` and keeps the regular interval/ease/date. If the regular date has already passed, ordinary scheduling resumes. This extra review cannot delay an earlier normal review. Undo restores the pending date but never reduces failures. Retry IDs remain transactional.
+
+Phrase ratings deliberately use a separate policy: Again: 7 days, Hard: 30 days, Good: 180 days, Easy: 365 days. Imported word scheduling still uses the original Anki transition/fuzz rules.
+
+The dashboard counts new cards within the remaining daily allowance, learning/relearning cards due (including the configured minute learn-ahead window), and all review cards due without session-batch or review-limit truncation. Counts use the account's rollover/time zone. Category arguments filter relations before new-card gathering, queue selection and Study More limits. `audit:categories -- --apply` backs up original documents privately, reconciles paired category metadata and Anki topic tags, and labels uncategorized entries General vocabulary.

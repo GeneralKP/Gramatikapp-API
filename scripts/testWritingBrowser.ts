@@ -63,7 +63,7 @@ try {
     } catch { if (!closing) errors.push("Test API proxy failed"); }
   });
   await page.goto(`${process.env.TEST_APP_URL || "http://127.0.0.1:5173"}/writing/${exerciseId}`);
-  const input = page.getByLabel("Your German translation"); await input.waitFor(); await page.getByTestId("german-keyboard").waitFor();
+  const input = page.getByLabel("Your German translation"); await input.waitFor(); assert.equal(await page.getByTestId("german-keyboard").count(),0); assert.equal(await input.getAttribute("lang"),"de-DE");
   const wrong = german.replace("übernimmt", "übernehmen"); await input.fill(wrong); await page.reload(); await input.waitFor(); assert.equal(await input.inputValue(), wrong);
   await input.press("Enter"); await page.getByRole("alert").waitFor(); await page.reload();
   await page.getByRole("heading", { name: "A few things to revisit" }).waitFor({ timeout: 60000 }); assert.equal(checks, 1); assert.equal(await input.inputValue(), wrong);

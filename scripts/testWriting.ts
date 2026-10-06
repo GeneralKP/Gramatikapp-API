@@ -12,10 +12,10 @@ import { validateSentence, validateWritingFeedback, sentenceWordCount } from "..
 
 const live = process.argv.includes("--live"), requests: any[] = [];
 let invalidSentence = false, invalidFeedback = false;
-const mainClause = "Der erfahrene Bürgermeister übernimmt trotz erheblicher Zweifel an der gemeinsamen Entscheidung persönlich die Verantwortung für eine gerechtere Zukunft unserer Stadt";
-const subordinateClause = "weil das Vertrauen der Bürger in seine ehrlichen Versprechen nach den vergangenen schwierigen Monaten besonders stark gelitten hat";
+const mainClause = "Der erfahrene Bürgermeister übernimmt die Verantwortung für die gemeinsame Entscheidung über die Zukunft unserer Stadt";
+const subordinateClause = "weil das Vertrauen der Bürger in seine ehrlichen Versprechen gelitten hat";
 const german = `${mainClause}, ${subordinateClause}.`;
-const spanish = "El alcalde experimentado asume personalmente la responsabilidad de un futuro más justo para nuestra ciudad pese a sus considerables dudas sobre la decisión conjunta, porque la confianza de los ciudadanos en sus promesas sinceras ha sufrido especialmente tras los difíciles meses pasados.";
+const spanish = "El alcalde experimentado asume la responsabilidad de la decisión conjunta sobre el futuro de nuestra ciudad, porque la confianza de los ciudadanos en sus promesas sinceras ha sufrido.";
 const provider = live ? null : http.createServer(async (req, res) => {
   let body = ""; for await (const chunk of req) body += chunk;
   const request = JSON.parse(body), input = JSON.parse(request.input); requests.push(request);
@@ -73,8 +73,8 @@ try {
   const requestId = randomUUID(), starts = await Promise.all(Array.from({ length: 4 }, () => generate(requestId)));
   assert.equal(new Set(starts.map(s => s.id)).size, 1);
   const ready = await waitFor(() => get(starts[0].id)), id = ready.id;
-  assert.ok(ready.sentence.spanishWordCount >= 30 && ready.sentence.spanishWordCount <= 50);
-  assert.ok(ready.sentence.germanWordCount >= 30 && ready.sentence.germanWordCount <= 50);
+  assert.ok(ready.sentence.spanishWordCount >= 15 && ready.sentence.spanishWordCount <= 30);
+  assert.ok(ready.sentence.germanWordCount >= 15 && ready.sentence.germanWordCount <= 30);
   assert.equal(ready.sentence.german, null); assert.equal(ready.sentence.grammarExplanation, null);
   const stored = await db.writingExercises.findOne({ _id: new ObjectId(id) });
   validateSentence(stored!.sentence, stored!.words); assert.equal(stored!.words.length, 4);
@@ -82,7 +82,7 @@ try {
   assert.equal(await get(id, { _id: otherId }), null); await assert.rejects(() => get(id, null), /Unauthorized/);
   await assert.rejects(() => generate(requestId, "B2"), /different difficulty/);
   await assert.rejects(() => generate(randomUUID(), "A1"), /B2 or C1/);
-  console.log(`PASS ${live ? "live Luna 6/high" : "fixture"} sentence: both languages 30–50 words, complete vocabulary, persisted/idempotent generation, hidden solution, account protection`);
+  console.log(`PASS ${live ? "live Luna 6/high" : "fixture"} sentence: both languages 15–30 words, complete vocabulary, persisted/idempotent generation, hidden solution, account protection`);
   const answer = stored!.sentence!.german, attemptId = randomUUID();
   const submissions = await Promise.all(Array.from({ length: 4 }, () => check(id, answer, attemptId)));
   assert.equal(new Set(submissions.map(s => s.id)).size, 1);

@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { getDb, getDatabaseClient } from "../../lib/database.js";
 import type { UserProgress } from "./progress.types.js";
 import { DEFAULT_OPTIONS, DeckOptions, Grade, GRADES, initialScheduler, scheduleReview, studyDay, dateForStudyDay } from "./scheduler.js";
+import { scheduleStudyReview, type StudyGrade } from "./studyScheduling.js";
 import { isIntroductionFollowup, isNewCard } from "./newWordOrder.js";
 
 export interface SchedulerProfile {
@@ -9,11 +10,11 @@ export interface SchedulerProfile {
   baselines?: { day: number; deck: string; new: number; review: number }[];
   createdAt: Date;
 }
-const schedulingFields = ["scheduler", "ease", "interval", "repetitions", "nextDueDate", "lastReviewed", "totalReviews", "lapses", "isNew", "lastReviewId", "suspended", "leech"] as const;
+const schedulingFields = ["scheduler", "ease", "interval", "repetitions", "nextDueDate", "lastReviewed", "totalReviews", "lapses", "isNew", "lastReviewId", "suspended", "leech", "temporaryDueDate"] as const;
 type Snapshot = Partial<Pick<UserProgress, typeof schedulingFields[number]>>;
 export interface ReviewEvent {
   _id: ObjectId; userId: ObjectId; itemId: ObjectId; itemType: string; reviewId: string;
-  grade: Grade; reviewedAt: Date; reversedAt: Date | null;
+  grade: StudyGrade; reviewedAt: Date; reversedAt: Date | null;
   earlyReview: boolean;
   before: Snapshot; after: Snapshot; version: number;
   deck: string; day: number; newCount: number; reviewCount: number;
@@ -34,9 +35,9 @@ const commandId = (value: string) => {
 export const deckName = (progress: UserProgress) => progress.card?.deck || "App";
 export const deckAncestors = (deck: string) => deck.split("::").map((_, i, parts) => parts.slice(0, i + 1).join("::"));
 
-export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: string, grade: Grade, reviewId: string, expectedVersion?: number, earlyReview = false) {
+export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: string, grade: StudyGrade, reviewId: string, expectedVersion?: number, earlyReview = false, failureAttemptId?: string) {
   commandId(reviewId);
-  if (!GRADES.includes(grade) || !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid review");
+  if (!([...GRADES, "REVISIT"] as string[]).includes(grade) || !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid review");
   const db = getDb(), session = getDatabaseClient().startSession();
   try {
     return await session.withTransaction(async () => {
@@ -58,14 +59,21 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
           throw new ReviewConflict("Read the German → Spanish card before typing this new word.", stored, "INTRODUCTION_REQUIRED");
         }
       }
-      const now = new Date(), next = scheduleReview(current, grade, now, earlyReview);
+      const now = new Date();
+      let next: ReturnType<typeof scheduleStudyReview>;
+      try { next = scheduleStudyReview(current, grade, now, earlyReview); }
+      catch (error) {
+        if (grade === "REVISIT") throw new ReviewConflict(error instanceof Error ? error.message : "Revisit is no longer available.", stored, "REVISIT_UNAVAILABLE");
+        throw error;
+      }
       const { delaySeconds, ...update } = next;
       const threshold = current.scheduler.options.leechThreshold;
       const becameLeech = next.lapses > (stored.lapses ?? 0) && threshold > 0 && next.lapses >= threshold && (next.lapses - threshold) % Math.max(1, Math.ceil(threshold / 2)) === 0;
       const after: UserProgress = { ...current, ...update, lastReviewId: reviewId, scheduleVersion: (stored.scheduleVersion ?? 0) + 1,
         ...(becameLeech ? { leech: true, ...(current.scheduler.options.leechSuspend ? { suspended: true } : {}) } : {}) };
+      const isExtraReview = !!current.temporaryDueDate && current.nextDueDate > now || grade === "REVISIT" && current.nextDueDate > now;
       const siblings: ReviewEvent["siblings"] = [];
-      if (current.card?.sourceNoteGuid && (current.scheduler.options.buryNew || current.scheduler.options.buryReviews || current.scheduler.options.buryInterday)) {
+      if (!isExtraReview && grade !== "REVISIT" && current.card?.sourceNoteGuid && (current.scheduler.options.buryNew || current.scheduler.options.buryReviews || current.scheduler.options.buryInterday)) {
         const candidates = await db.progress.find({ userId, "card.sourceNoteGuid": current.card.sourceNoteGuid, itemId: { $ne: itemId }, suspended: { $ne: true } }, { session }).toArray();
         const until = dateForStudyDay(studyDay(now, current.scheduler.timeZone, current.scheduler.rollover) + 1, current.scheduler.timeZone, current.scheduler.rollover);
         for (const sibling of candidates) {
@@ -82,10 +90,16 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
       const event: ReviewEvent = { _id: new ObjectId(), userId, itemId, itemType, reviewId, grade, earlyReview, reviewedAt: now, reversedAt: null,
         before: snapshot(current), after: snapshot(after), version: after.scheduleVersion,
         deck: deckName(current), day: studyDay(now, current.scheduler.timeZone, current.scheduler.rollover),
-        newCount: current.scheduler.phase === "NEW" ? 1 : 0,
-        reviewCount: current.scheduler.phase === "REVIEW" || current.scheduler.queue === "DAY" && current.scheduler.phase !== "NEW" ? 1 : 0, siblings };
+        newCount: !isExtraReview && current.scheduler.phase === "NEW" ? 1 : 0,
+        reviewCount: !isExtraReview && (current.scheduler.phase === "REVIEW" || current.scheduler.queue === "DAY" && current.scheduler.phase !== "NEW") ? 1 : 0, siblings };
       await db.reviewEvents.insertOne(event, { session });
-      await db.progress.updateOne({ _id: stored._id }, { $set: { ...snapshot(after), scheduleVersion: after.scheduleVersion, updatedAt: now } }, { session });
+      const unset = Object.fromEntries(schedulingFields.filter(key => after[key] === undefined).map(key => [key, "" as const]));
+      await db.progress.updateOne({ _id: stored._id }, { $set: { ...snapshot(after), scheduleVersion: after.scheduleVersion, updatedAt: now }, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session });
+      if (grade === "REVISIT") {
+        const attemptId = failureAttemptId || reviewId;
+        commandId(attemptId);
+        await db.progress.updateOne({ _id: stored._id, failureAttemptIds: { $ne: attemptId } }, { $inc: { failureIndex: 1 }, $addToSet: { failureAttemptIds: attemptId }, $set: { lastFailedAt: now } }, { session });
+      }
       return { reviewId, progress: { ...await db.progress.findOne({ _id: stored._id }, { session }), extraPractice: earlyReview } };
     });
   } finally { await session.endSession(); }

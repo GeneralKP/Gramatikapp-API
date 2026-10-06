@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { validateClauseSentence, validateWritingFeedback } from "../src/features/writing/validation.js";
-const subordinateClause = "Obwohl die Geschäftsführerin nach monatelangen Gesprächen mit den Beschäftigten die Verantwortung für eine schwierige Entscheidung über die Zukunft des Unternehmens übernommen hatte";
-const mainClause = "gewann sie das Vertrauen der Belegschaft nicht sofort, sondern erst durch regelmäßige, offene Gespräche über die geplanten Veränderungen";
+const subordinateClause = "Obwohl die Geschäftsführerin die Verantwortung für eine schwierige Entscheidung übernommen hatte";
+const mainClause = "gewann sie das Vertrauen der Belegschaft nicht sofort durch regelmäßige, offene Gespräche";
+const legacy = { german: "Obwohl die Geschäftsführerin nach monatelangen Gesprächen mit den Beschäftigten die Verantwortung für eine schwierige Entscheidung über die Zukunft des Unternehmens übernommen hatte, gewann sie das Vertrauen der Belegschaft nicht sofort, sondern erst durch regelmäßige, offene Gespräche über die geplanten Veränderungen.", mainClause: "gewann sie das Vertrauen der Belegschaft nicht sofort, sondern erst durch regelmäßige, offene Gespräche über die geplanten Veränderungen", subordinateClause: "Obwohl die Geschäftsführerin nach monatelangen Gesprächen mit den Beschäftigten die Verantwortung für eine schwierige Entscheidung über die Zukunft des Unternehmens übernommen hatte", clauseOrder:"SUBORDINATE_FIRST",connector:"obwohl",finiteVerbs:{main:["gewann"],subordinate:["hatte"]} };
+assert.throws(()=>validateClauseSentence(legacy),/15–30/);
+assert.equal(validateClauseSentence(legacy,[30,50]).german,legacy.german);
 const reference = `${subordinateClause}, ${mainClause}.`;
 const main = mainClause.replace("nicht sofort", "nicht unmittelbar");
 const valid = { german: `${subordinateClause}, ${main}.`, mainClause: main, subordinateClause, clauseOrder: "SUBORDINATE_FIRST", connector: "obwohl", finiteVerbs: { main: ["gewann"], subordinate: ["hatte"] } };
@@ -13,7 +16,7 @@ assert.deepEqual(validateWritingFeedback(feedback, reference).alternatives, [val
 const nestedMain = "gewann sie das Vertrauen der Belegschaft nicht unmittelbar, sondern erst, nachdem sie regelmäßig und offen über die geplanten Veränderungen gesprochen hatte";
 const invalid = { ...valid, mainClause: nestedMain, german: `${subordinateClause}, ${nestedMain}.` };
 assert.throws(() => validateWritingFeedback({ ...feedback, alternatives: [invalid] }, reference), /one main clause and one subordinate clause/);
-assert.throws(() => validateClauseSentence({ ...valid, german: "Zu kurz." }), /30–50/);
+assert.throws(() => validateClauseSentence({ ...valid, german: "Zu kurz." }), /15–30/);
 assert.throws(() => validateClauseSentence({ ...valid, german: reference }), /one main clause/);
 assert.throws(() => validateWritingFeedback({ ...feedback, alternatives: [valid, valid] }, reference), /invalid/);
 assert.throws(() => validateWritingFeedback({ ...feedback, alternatives: [valid.german] }, reference), /one main clause/);

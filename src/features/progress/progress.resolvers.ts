@@ -5,10 +5,12 @@ import { recordFailure } from "./failures.js";
 import { User } from "../auth/auth.types.js";
 import { randomUUID } from "node:crypto";
 import { saveReview, undoReview, withScheduler, dailyCounts, ReviewConflict } from "./reviews.js";
-import { initialScheduler, reviewOptions, studyDay, Grade } from "./scheduler.js";
+import { effectiveDueDate, studyReviewOptions, type StudyGrade } from "./studyScheduling.js";
+import { categoryRelations, categoryProgressFilter } from "./categories.js";
+import { DEFAULT_OPTIONS, initialScheduler, studyDay, Grade } from "./scheduler.js";
 import { selectStudyQueue } from "./studyQueue.js";
 import { isNewCard, newCardGroups } from "./newWordOrder.js";
-import { ensureNativeWordPairs } from "./nativeWordPairs.js";
+import { nativeWordPair, ensureNativeWordPairs } from "./nativeWordPairs.js";
 
 function requireOwner(context: { user: User | null }, userId: string) {
   if (!context?.user || context.user._id.toString() !== userId) throw new Error("Unauthorized");
@@ -31,7 +33,9 @@ function toGraphQL(progress: UserProgress | null) {
     learnAheadSeconds: (progress.scheduler ?? initialScheduler(progress)).options.learnAheadSeconds,
     lapses: progress.lapses ?? 0,
     lastFailedAt: progress.lastFailedAt?.toISOString() ?? null,
-    nextDueDate: progress.nextDueDate.toISOString(),
+    nextDueDate: effectiveDueDate(progress).toISOString(),
+    regularDueDate: progress.nextDueDate.toISOString(),
+    temporaryDueDate: progress.temporaryDueDate?.toISOString() ?? null,
     lastReviewed: progress.lastReviewed?.toISOString() || null,
   };
 }
@@ -51,7 +55,9 @@ async function fetchNewItems(
   userObjectId: ObjectId,
   needed: number,
   itemType?: string,
+  category?: string,
 ): Promise<UserProgress[]> {
+  const categoryIds = await categoryRelations(category, itemType);
   const reviewedQuery: any = { userId: userObjectId };
   if (itemType) reviewedQuery.itemType = itemType;
 
@@ -64,10 +70,10 @@ async function fetchNewItems(
   );
 
   const excludeFilter = {
-    _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)) },
+    _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)), ...(categoryIds !== null ? { $in: categoryIds } : {}) },
   };
 
-  const pendingQuery: any = { userId: userObjectId, isNew: true, suspended: { $ne: true }, supersededByAnki: { $ne: true }, $or: [{ buriedUntil: null }, { buriedUntil: { $lte: new Date() } }] };
+  const pendingQuery: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, isNew: true, suspended: { $ne: true }, supersededByAnki: { $ne: true }, $or: [{ buriedUntil: null }, { buriedUntil: { $lte: new Date() } }] };
   if (itemType) pendingQuery.itemType = itemType;
   const candidates = await ensureNativeWordPairs(await db.progress.find(pendingQuery).sort({ "anki.due": 1 }).toArray());
   const complete = await withNewWordSiblings(db, userObjectId, candidates);
@@ -167,14 +173,56 @@ export const progressResolvers = {
       }));
       return results.filter(Boolean);
     },
+    studyQueueCounts: async (_: unknown, {userId, itemType, context: category}: {userId: string; itemType?: string; context?: string}, context: {user: User | null}) => {
+      requireOwner(context, userId);
+      if (itemType && !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid card type");
+      const db = getDb(), id = new ObjectId(userId), now = new Date();
+      const profile = await db.schedulerProfiles.findOne({_id:id});
+      const docs = await db.progress.find({userId:id, suspended:{$ne:true}, supersededByAnki:{$ne:true}, ...categoryProgressFilter(await categoryRelations(category,itemType)), ...(itemType ? {itemType: itemType as "WORD" | "PHRASE"} : {}), $or:[{buriedUntil:null},{buriedUntil:{$lte:now}}]}).toArray();
+      const progress = await Promise.all((await withNewWordSiblings(db,id,docs)).map(p=>withScheduler(p,profile)));
+      const counts = await dailyCounts(id, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile);
+      // Count unseen catalogue cards without creating progress merely by opening
+      // the dashboard. Native words count both recognition and production.
+      const categoryIds = await categoryRelations(category, itemType);
+      const allSeen = await db.progress.find({userId:id}).project({relationId:1,itemId:1,repetitions:1,itemType:1}).toArray();
+      const seen = new Set(allSeen.map(p=>String(p.relationId ?? p.itemId)));
+      const hasPendingNew = docs.some(isNewCard);
+      const candidates = [...progress];
+      const makeNew = (relationId: ObjectId, type: "WORD" | "PHRASE"): UserProgress => {
+        const p: UserProgress = {_id:relationId,userId:id,itemId:relationId,itemType:type,isNew:true,ease:2.5,interval:0,repetitions:0,nextDueDate:now,lastReviewed:null,createdAt:now};
+        p.scheduler=initialScheduler(p,profile?.defaultOptions ?? DEFAULT_OPTIONS,profile?.timeZone ?? "Europe/Berlin",profile?.rollover ?? 4);return p;
+      };
+      if (!itemType || itemType === "WORD") {
+        const relations=await db.relationsWordsEsDe.find(categoryIds===null?{}:{_id:{$in:categoryIds}}).toArray();
+        const pending=progress.filter(p=>p.itemType==="WORD" && !p.card && isNewCard(p));
+        const needed=relations.filter(r=>!hasPendingNew && !seen.has(String(r._id)) || pending.some(p=>String(p.relationId??p.itemId)===String(r._id)));
+        const [es,de]=await Promise.all([db.wordsES.find({_id:{$in:needed.map(r=>r.main)}}).toArray(),db.wordsDE.find({_id:{$in:needed.map(r=>r.translated)}}).toArray()]);
+        const esMap=new Map(es.map(w=>[String(w._id),w])),deMap=new Map(de.map(w=>[String(w._id),w]));
+        for(const r of needed){const a=esMap.get(String(r.main)),b=deMap.get(String(r.translated));if(!a||!b)continue;const existing=pending.find(p=>String(p.relationId??p.itemId)===String(r._id));if(existing)candidates.splice(candidates.indexOf(existing),1);candidates.push(...nativeWordPair(existing??makeNew(r._id,"WORD"),a,b));}
+      }
+      if ((!itemType || itemType === "PHRASE") && !hasPendingNew) {
+        const relations=await db.relationsPhrasesEsDe.find(categoryIds===null?{}:{_id:{$in:categoryIds}}).project({_id:1}).toArray();
+        candidates.push(...relations.filter(r=>!seen.has(String(r._id))).map(r=>makeNew(r._id,"PHRASE")));
+      }
+      const newCards = selectStudyQueue(candidates, counts, now, 0, 10000).filter(p=>p.scheduler.phase === "NEW").length;
+      const catalogIds: ObjectId[] = [];
+      for (const type of ["WORD","PHRASE"]) if (!itemType || itemType === type) {
+        const collection=type === "WORD" ? db.relationsWordsEsDe : db.relationsPhrasesEsDe;
+        catalogIds.push(...(await collection.find(categoryIds===null?{}:{_id:{$in:categoryIds}}).project({_id:1}).toArray()).map(row=>row._id));
+      }
+      const learnedIds=new Set(allSeen.filter(p=>p.repetitions>0 && (!itemType || p.itemType===itemType)).map(p=>String(p.relationId ?? p.itemId)));
+      return { total: catalogIds.length, learned: catalogIds.filter(id=>learnedIds.has(String(id))).length, new: newCards,
+        learning: progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>["LEARNING","RELEARNING"].includes(p.scheduler.phase) && p.nextDueDate.getTime() <= now.getTime() + (p.scheduler.queue === "MINUTE" ? p.scheduler.options.learnAheadSeconds * 1000 : 0)).length,
+        review: progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>p.scheduler.phase === "REVIEW" && effectiveDueDate(p) <= now).length };
+    },
     dueItems: async (
       _: unknown,
       {
         userId,
         dueLimit = 50,
         newLimit = 10,
-        itemType,
-      }: { userId: string; dueLimit?: number; newLimit?: number; itemType?: string },
+        itemType, context: category,
+      }: { userId: string; dueLimit?: number; newLimit?: number; itemType?: string; context?: string },
       context: { user: User | null },
     ) => {
       requireOwner(context, userId);
@@ -187,12 +235,12 @@ export const progressResolvers = {
       newLimit = Math.max(0, Math.min(100, newLimit));
       if (!dueLimit && !newLimit) return [];
       const profile = await db.schedulerProfiles.findOne({ _id: userObjectId });
-      const query: any = { userId: userObjectId, suspended: { $ne: true }, supersededByAnki: { $ne: true },
-        $or: [{ nextDueDate: { $lte: new Date(now.getTime() + 1200000) } }, { isNew: true }] };
+      const query: any = { ...categoryProgressFilter(await categoryRelations(category, itemType)), userId: userObjectId, suspended: { $ne: true }, supersededByAnki: { $ne: true },
+         $or: [{ temporaryDueDate: { $lte: now } }, { temporaryDueDate: null, nextDueDate: { $lte: new Date(now.getTime() + 1200000) } }, { isNew: true }] };
       if (itemType) query.itemType = itemType;
       let docs = await db.progress.find(query).toArray();
       if (newLimit > 0) {
-        const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType);
+        const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType, category);
         const seen = new Set(docs.map(p => p.itemId.toString()));
         docs.push(...fresh.filter(p => !seen.has(p.itemId.toString())));
       }
@@ -206,8 +254,8 @@ export const progressResolvers = {
       {
         userId,
         limit = 20,
-        itemType,
-      }: { userId: string; limit?: number; itemType?: string },
+        itemType, context: category,
+      }: { userId: string; limit?: number; itemType?: string; context?: string },
       context: { user: User | null },
     ) => {
       requireOwner(context, userId);
@@ -220,8 +268,9 @@ export const progressResolvers = {
 
       // 1) Fetch future-due items (nextDueDate > now), closest first
       const futureQuery: any = {
+        ...categoryProgressFilter(await categoryRelations(category, itemType)),
         userId: userObjectId,
-        nextDueDate: { $gt: now },
+        nextDueDate: { $gt: now }, temporaryDueDate: null,
         isNew: { $ne: true }, suspended: { $ne: true }, supersededByAnki: { $ne: true },
         $or: [{ buriedUntil: null }, { buriedUntil: { $lte: now } }],
       };
@@ -239,7 +288,7 @@ export const progressResolvers = {
       const remaining = limit - futureDocs.length;
       let newDocs: UserProgress[] = [];
       if (remaining > 0) {
-        newDocs = await fetchNewItems(db, userObjectId, remaining, itemType);
+        newDocs = await fetchNewItems(db, userObjectId, remaining, itemType, category);
       }
 
       const profile = await db.schedulerProfiles.findOne({ _id: userObjectId });
@@ -441,14 +490,14 @@ export const progressResolvers = {
       requireOwner(context, userId);
       return toGraphQL(await recordFailure(getDb().progress, new ObjectId(userId), new ObjectId(itemId), attemptId));
     },
-    reviewItem: async (_: unknown, args: { userId: string; itemId: string; itemType: string; rating?: number; grade?: Grade; reviewId?: string; expectedVersion?: number; earlyReview?: boolean }, context: { user: User | null }) => {
+    reviewItem: async (_: unknown, args: { userId: string; itemId: string; itemType: string; rating?: number; grade?: StudyGrade; failureAttemptId?: string; reviewId?: string; expectedVersion?: number; earlyReview?: boolean }, context: { user: User | null }) => {
       requireOwner(context, args.userId);
       try {
         // Old clients retain their 2..5 scale during rollout; new clients use
         // named grades and a persistent retry ID so the scales cannot mix.
         if (args.grade && (args.rating !== undefined && args.rating !== null || !args.reviewId || args.expectedVersion === undefined)) throw new Error("Named grades require a review ID and schedule version");
         const grade = args.grade ?? ({ 2: "AGAIN", 3: "HARD", 4: "GOOD", 5: "EASY" } as Record<number, Grade>)[args.rating];
-        const result = await saveReview(new ObjectId(args.userId), new ObjectId(args.itemId), args.itemType, grade, args.reviewId ?? randomUUID(), args.expectedVersion, args.earlyReview ?? false);
+        const result = await saveReview(new ObjectId(args.userId), new ObjectId(args.itemId), args.itemType, grade, args.reviewId ?? randomUUID(), args.expectedVersion, args.earlyReview ?? false, args.failureAttemptId);
         return { success: true, reviewId: result.reviewId, progress: toGraphQL(result.progress) };
       } catch (error) { return { success: false, progress: error instanceof ReviewConflict ? toGraphQL(error.progress) : null, errorCode: error instanceof ReviewConflict ? error.code : null, error: error instanceof Error ? error.message : "Review save failed" }; }
     },
@@ -463,8 +512,8 @@ export const progressResolvers = {
 
   UserProgress: {
     reviewOptions: async (parent: any) => {
-      const progress = await withScheduler({ ...parent, userId: new ObjectId(parent.userId), itemId: new ObjectId(parent.itemId), nextDueDate: new Date(parent.nextDueDate), lastReviewed: parent.lastReviewed ? new Date(parent.lastReviewed) : null });
-      return reviewOptions(progress, new Date(), !!parent.extraPractice);
+      const progress = await withScheduler({ ...parent, userId: new ObjectId(parent.userId), itemId: new ObjectId(parent.itemId), nextDueDate: new Date(parent.regularDueDate || parent.nextDueDate), temporaryDueDate: parent.temporaryDueDate ? new Date(parent.temporaryDueDate) : undefined, lastReviewed: parent.lastReviewed ? new Date(parent.lastReviewed) : null });
+      return studyReviewOptions(progress, new Date(), !!parent.extraPractice);
     },
     wordRelation: async (parent: { itemId: string; relationId?: string; itemType: string }) => {
       if (parent.itemType !== "WORD") return null;

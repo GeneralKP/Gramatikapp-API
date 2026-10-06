@@ -121,8 +121,8 @@ export async function checkWritingTranslation(userId: ObjectId, exerciseId: Obje
 async function checkTranslation(attempt: WritingAttempt, exercise: WritingExercise, token: string) {
   const db = getDb(), filter = { _id: attempt._id, generationToken: token, status: "CHECKING" as const };
   try {
-    const value = await requestStructured(WRITING_FEEDBACK_INSTRUCTIONS, JSON.stringify({ level: exercise.level, spanishOriginal: exercise.sentence!.spanish, germanReference: exercise.sentence!.german, learnerTranslation: attempt.translation }), "writing_feedback", WRITING_FEEDBACK_SCHEMA);
-    const feedback = validateWritingFeedback(value, attempt.translation);
+    const value = await requestStructured(exercise.promptVersion < 3 ? WRITING_FEEDBACK_INSTRUCTIONS.replaceAll("15–30", "30–50") : WRITING_FEEDBACK_INSTRUCTIONS, JSON.stringify({ level: exercise.level, spanishOriginal: exercise.sentence!.spanish, germanReference: exercise.sentence!.german, learnerTranslation: attempt.translation }), "writing_feedback", WRITING_FEEDBACK_SCHEMA);
+    const feedback = validateWritingFeedback(value, attempt.translation, exercise.promptVersion < 3 ? [30,50] : [15,30]);
     await db.writingAttempts.updateOne(filter, { $set: { status: "READY", feedback, updatedAt: new Date() }, $unset: { generationToken: "", lockedUntil: "" } });
   } catch (error) { await db.writingAttempts.updateOne(filter, { $set: { status: "FAILED", error: message(error), updatedAt: new Date() }, $unset: { generationToken: "", lockedUntil: "" } }); }
 }
