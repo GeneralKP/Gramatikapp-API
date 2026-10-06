@@ -14,6 +14,7 @@ import { invalidateStudyCatalog } from '../src/features/progress/catalogSummaryC
 import { loadCompactStudyQueue, loadCompactStudyCards, loadCompactStudyMore } from '../src/features/progress/studyTransport.js';
 import { studyTransportRouter } from '../src/features/progress/studyTransport.http.js';
 import { scheduleStudyReview } from '../src/features/progress/studyScheduling.js';
+import { nativeWordPair } from '../src/features/progress/nativeWordPairs.js';
 
 // This suite never opens a network connection. It runs the real GraphQL schema,
 // queue selection and nested resolvers against deterministic MongoDB responses.
@@ -68,10 +69,16 @@ function matches(doc:any,query:any):boolean {
 }
 function project(doc:any,fields:any) {
  const result:any={};
- for(const [key,include] of Object.entries(fields))if(include && valueAt(doc,key)!==undefined){
-  const parts=key.split('.');let target=result;
-  for(const part of parts.slice(0,-1))target=target[part]??={};
-  target[parts.at(-1)!]=valueAt(doc,key);
+ for(const [key,include] of Object.entries(fields))if(include){
+  const parts=key.split('.');let target=result,source=doc;
+  // Mongo retains present empty object parents under dotted projections, but
+  // drops missing/null parents. Synthetic Mongo8.0 probes verify these shapes.
+  for(const part of parts.slice(0,-1)){
+   if(!source?.[part] || typeof source[part]!=='object'){source=undefined;break;}
+   target=target[part]??={};source=source[part];
+  }
+  const leaf=parts.at(-1)!;
+  if(source?.[leaf]!==undefined)target[leaf]=source[leaf];
  }
  return result;
 }
@@ -398,6 +405,8 @@ try {
   const pendingReads=progressQueries.filter(read=>read.query.isNew===true);
   assert.equal(pendingReads.length,2,'unknown pending IDs require the full fresh fallback');
   assert.equal(pendingReads[1].projection.scheduler,1,'fallback restores every selection and scheduling input');
+  assert.equal(pendingReads[1].projection['card.notes'],1,'late pending cards carry complete captured content');
+  for(const row of packet.items){assert.equal(row.card?.notes,'note');assert.deepEqual(row.card?.examples,['example']);}
  }finally{holdRead=undefined;}
  fixture.userprogresses=[pendingPair[1]];progressQueries=[];let recognitionInserted=false;
  holdRead=async(name,method,query)=>{
@@ -435,6 +444,7 @@ try {
  const aheadOriginal=await resolvers.Query.dueItems(null,{userId:String(owner),...pendingArgs,includeLearningAhead:true},{user} as any);
  const aheadCompact=await loadCompactStudyQueue(user as any,pendingArgs);
  assert.deepEqual(aheadCompact.items.map(row=>row.id),aheadOriginal.map((row:any)=>row.itemId),'multiple missing learning-ahead siblings retain original order and completeness');
+ assert.ok(aheadCompact.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='example'),'late sibling content is complete after either prerequisite path');
  for(const changedCard of [{...pendingPair[0].card,sourceCardId:'changed'}, {...pendingPair[0].card,sourceNoteGuid:'changed'}, {...pendingPair[0].card,direction:'ES_DE'},undefined]){
   fixture.userprogresses=[...pendingPair];progressQueries=[];let metadataChanged=false;
   holdRead=async(name,method,query)=>{
@@ -469,7 +479,12 @@ try {
   assert.equal(unionReads.length,args.context?0:1,`${label}: unscoped entry shares candidates; categorized entry retains its original query order`);
   if(unionReads.length){assert.equal(unionReads[0].batchSize,5000);assert.ok(unionReads[0].projection.scheduler,'the shared snapshot retains complete local scheduling state');}
   assert.equal(progressQueries.filter(read=>read.query.$or?.some((clause:any)=>clause['scheduler.phase'])).length,args.context?1:0,'categorized counts retain their original scoped projection while unscoped entry avoids a duplicate snapshot');
-  if(args.context)assert.ok(progressQueries.some(read=>read.query.$and && read.query.$or?.some((clause:any)=>clause.temporaryDueDate)),'categorized queues retain the original Mongo category filter');
+  if(args.context){
+   const dueRead=progressQueries.find(read=>read.query.$and && read.query.$or?.some((clause:any)=>clause.temporaryDueDate));
+   assert.ok(dueRead,'categorized queues retain the original Mongo category filter');
+   assert.equal(dueRead.projection['card.notes'],undefined,'categories retain the original mini projection and its cursor order');
+   assert.equal(progressQueries.filter(read=>read.projection?.['card.prompt'] && !read.projection.scheduler).length,combined.items.length?1:0,'categories retain their original later card content read');
+  }
   return combined;
  };
  fixture.schedulerprofiles=[profile];user.settings.dailyNewCards=20;
@@ -487,6 +502,9 @@ try {
  for(const itemType of ['WORD','PHRASE',undefined]){
   await combinedCase(`full ${itemType??'mixed'}`,unionCases,{itemType});
   await combinedCase(`category ${itemType??'mixed'}`,unionCases,{itemType,context:'University',cardLimit:1});
+  const categoryFull=await combinedCase(`full category ${itemType??'mixed'}`,unionCases,{itemType,context:'University'});
+  const categoryLate=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:0,itemType,context:'University',cardLimit:5000,includeCounts:true})));
+  assert.deepEqual(categoryFull,categoryLate,'full categorized transport preserves its original selection/content/counters');
  }
  const onlyAhead=await combinedCase('future count-only learning',[longAhead],{itemType:'PHRASE'});
  assert.deepEqual(onlyAhead.items,[],'a two-hour counter candidate never leaks into the fixed twenty-minute due snapshot');
@@ -580,11 +598,43 @@ try {
  assert.ok(progressQueries.some(read=>read.projection?.scheduler && read.projection?.['card.direction'] && !read.projection.card && !read.projection.failureAttemptIds),'selection excludes rich cards and history');
  const remainder=JSON.parse(JSON.stringify(await loadCompactStudyCards(user as any,{itemIds:compact.manifest.slice(2).map((row:any)=>row.id)})));
  const expanded=(row:any,profiles:any[])=>({itemId:row.id,itemType:row.type,...row.schedule.state,scheduler:{...row.schedule.state.scheduler,options:profiles[row.schedule.profile]}});
+ progressQueries=[];
  const fullCompact=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,compactArgs)));
+ const contentReads=()=>progressQueries.filter(read=>read.projection?.['card.prompt'] && !read.projection.scheduler);
+ assert.equal(contentReads().length,0,'complete queues carry card content in the selected progress snapshot without another progress query');
+ assert.ok(progressQueries.some(read=>read.projection?.scheduler && read.projection?.['card.notes']),'full selection includes the complete displayed card fields');
  assert.deepEqual(fullCompact.manifest,[],'a complete response does not send duplicate manifest state/content');
  assert.deepEqual(fullCompact.items.map((row:any)=>row.id),compact.manifest.map((row:any)=>row.id));
  assert.equal(fullCompact.complete,true);assert.equal(fullCompact.remaining,0);
  for(const row of fullCompact.items){assert.equal(row.schedule.state.itemId,undefined);assert.equal(row.schedule.state.itemType,undefined);}
+ const displayKeys=['sourceNoteGuid','direction','prompt','answer','acceptedAnswers','notes','examples'] as const;
+ const displayCard=(card:any)=>card ? JSON.parse(JSON.stringify(Object.fromEntries(displayKeys.map(key=>[key,card[key]])))) : null;
+ for(const row of fullCompact.items)assert.deepEqual(row.card,displayCard(oldRaw.find((p:any)=>p.itemId===row.id).card),'full displayed card content matches the original GraphQL snapshot by item ID');
+ for(const card of [undefined,null,{}, {sourceCardId:'992',deck:'App'}, {sourceCardId:'992',notes:'only note'}]){
+  fixture.userprogresses=[progress(92,'WORD',20,{card})];progressQueries=[];
+  const full=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...compactArgs,itemType:'WORD'})));
+  const partial=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...compactArgs,itemType:'WORD',cardLimit:1})));
+  assert.deepEqual(full,partial,'missing/null/metadata-only and partially populated cards preserve transport shape');
+  if(card?.notes)assert.deepEqual(full.items[0].card,{notes:'only note'});
+  else if(card)assert.deepEqual(full.items[0].card,{});
+  else assert.equal(full.items[0].card,null);
+ }
+ fixture.userprogresses=[...compactCases,progress(90,'WORD',20,{userId:otherOwner})];
+ // The original GraphQL queue captures card content with its progress read.
+ // Full transport does the same; optional starters retain late hydration.
+ const changedDuringPending=async(cardLimit?:number,originalGraphQL=false)=>{
+  fixture.userprogresses=[...pendingPair];progressQueries=[];let changed=false;
+  holdRead=async(name,method,query)=>{if(!changed && name==='userprogresses' && method==='find' && query.isNew===true){changed=true;fixture.userprogresses=fixture.userprogresses.map((p:any)=>({...p,card:{...p.card,prompt:'edited prompt',answer:'edited answer',acceptedAnswers:['edited answer'],notes:'edited note',examples:['edited example']}}));}};
+  try{return originalGraphQL ? await resolvers.Query.dueItems(null,{userId:String(owner),...pendingArgs,includeLearningAhead:true},{user} as any) : await loadCompactStudyQueue(user as any,{...pendingArgs,includeCounts:true,...(cardLimit===undefined?{}:{cardLimit})});}
+  finally{holdRead=undefined;}
+ };
+ const originalCaptured=await changedDuringPending(undefined,true),fullCaptured=await changedDuringPending();
+ assert.deepEqual(fullCaptured.items.map((row:any)=>row.card),originalCaptured.map((p:any)=>displayCard(p.card)),'full queues keep the selected snapshot coherent when content changes during pending checks');
+ assert.ok(fullCaptured.items.every((row:any)=>row.card.notes==='note' && row.card.prompt==='prompt' && row.card.examples[0]==='example'));
+ const lateHydrated=await changedDuringPending(1);
+ assert.ok(lateHydrated.items.every((row:any)=>row.card.notes==='edited note' && row.card.prompt==='edited prompt' && row.card.examples[0]==='edited example'),'optional partial starters retain their existing later content read');
+ assert.equal(contentReads().length,1,'partial responses still hydrate card content once');
+ fixture.userprogresses=[...compactCases,progress(90,'WORD',20,{userId:otherOwner})];
  const emptyCompact=await loadCompactStudyQueue(user as any,{dueLimit:0,newLimit:0});
  assert.deepEqual(emptyCompact.items,[]);assert.deepEqual(emptyCompact.manifest,[]);assert.equal(emptyCompact.complete,true);
  const hydrated=[...compact.items.map((row:any)=>({row,profiles:compact.profiles})),...remainder.items.map((row:any)=>({row,profiles:remainder.profiles}))];
@@ -624,6 +674,22 @@ try {
  assert.deepEqual(compactNative.items.map(row=>row.card?.direction),['DE_ES','ES_DE']);
  assert.ok(compactNative.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='Haus example (casa example)'));
  assert.equal(fixture.userprogresses.length,2,'one native pair is allocated');
+ fixture.userprogresses=[freshNative()];progressQueries=[];
+ const fullNative=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',includeCounts:true});
+ assert.deepEqual(fullNative.items.map(row=>row.card?.direction),['DE_ES','ES_DE']);
+ assert.ok(fullNative.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='Haus example (casa example)'));
+ assert.deepEqual(fullNative.counts,{new:2,learning:0,review:0});assert.equal(contentReads().length,0,'native transaction results already include all playable content');
+ // Another device can convert the same legacy word before our transaction.
+ // Its newly stored pair supplies complete content through the existing read.
+ fixture.userprogresses=[freshNative()];let converted=false;
+ const convertedPair=nativeWordPair(fixture.userprogresses[0],fixture.WORDS_ES[0],fixture.WORDS_DE[0]);
+ holdRead=async(name,method,query)=>{if(!converted && name==='userprogresses' && method==='findOne' && query._id){converted=true;fixture.userprogresses=[...convertedPair];}};
+ try{
+  const concurrentNative=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',includeCounts:true});
+  assert.ok(converted);assert.equal(fixture.userprogresses.length,2);
+  assert.deepEqual(concurrentNative.items.map(row=>row.card?.direction),['DE_ES','ES_DE']);
+  assert.ok(concurrentNative.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='Haus example (casa example)'),'concurrent native conversion retains complete captured content');
+ }finally{holdRead=undefined;}
  await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1});
  assert.equal(fixture.userprogresses.length,2,'repeat startup is idempotent');
  await assert.rejects(loadCompactStudyQueue(user as any,{cardLimit:-1}),/cardLimit/);

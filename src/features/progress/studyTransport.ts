@@ -24,6 +24,20 @@ export const COMPACT_STUDY_SELECTION = {
   "card.sourceCardId": 1, "card.sourceNoteGuid": 1, "card.direction": 1, "card.deck": 1,
 };
 
+const CARD_CONTENT_KEYS = ["sourceNoteGuid", "direction", "prompt", "answer", "acceptedAnswers", "notes", "examples"] as const;
+const CARD_CONTENT_PROJECTION = Object.fromEntries(CARD_CONTENT_KEYS.map(key => [`card.${key}`, 1]));
+// Unscoped full queues capture playable content in each fresh progress read,
+// just as GraphQL does. Starters and categories retain their original reads.
+export const COMPLETE_STUDY_SELECTION = { ...COMPACT_STUDY_SELECTION, ...CARD_CONTENT_PROJECTION };
+
+function capturedCard(card: StudyCard | undefined): StudyCard | undefined {
+  // Dotted Mongo projections retain {} for present empty/metadata-only card
+  // objects and omit missing/null parents. Preserve that distinction exactly.
+  if (!card) return undefined;
+  const entries = CARD_CONTENT_KEYS.filter(key => card[key] !== undefined).map(key => [key, card[key]]);
+  return Object.fromEntries(entries) as StudyCard;
+}
+
 type State = Omit<UserProgress, "scheduler" | "card"> & { scheduler: Omit<NonNullable<UserProgress["scheduler"]>, "options">; fuzzSeed: string };
 export interface CompactStudyShell {
   id: string;
@@ -92,13 +106,11 @@ async function languagePairs(progress: UserProgress[], db: Database): Promise<Ma
   return result;
 }
 
-async function playableItems(progress: UserProgress[], pairs: Map<string, LanguagePair>, db: Database) {
+async function playableItems(progress: UserProgress[], pairs: Map<string, LanguagePair>, db: Database, capturedContent = false) {
   const ids = progress.map(p => p.itemId);
-  const cardsRequest = ids.length ? db.progress.find({ userId: progress[0].userId, itemId: { $in: ids } })
-    .project<{ itemId: ObjectId; card?: StudyCard }>({ _id: 0, itemId: 1,
-      "card.sourceNoteGuid": 1, "card.direction": 1, "card.prompt": 1, "card.answer": 1,
-      "card.acceptedAnswers": 1, "card.notes": 1, "card.examples": 1,
-    }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : Promise.resolve([]);
+  const cardsRequest = !capturedContent && ids.length ? db.progress.find({ userId: progress[0].userId, itemId: { $in: ids } })
+      .project<{ itemId: ObjectId; card?: StudyCard }>({ _id: 0, itemId: 1, ...CARD_CONTENT_PROJECTION })
+      .batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : Promise.resolve([]);
   const words = progress.filter(p => p.itemType === "WORD").map(p => ({ p, pair: pairs.get(`WORD:${p.relationId || p.itemId}`) })).filter(row => row.pair);
   const phrases = progress.filter(p => p.itemType === "PHRASE").map(p => pairs.get(`PHRASE:${p.relationId || p.itemId}`)).filter(Boolean);
   const germanIds = [...new Map(words.map(({ pair }) => [String(pair.translated._id), pair.translated._id])).values()];
@@ -115,7 +127,7 @@ async function playableItems(progress: UserProgress[], pairs: Map<string, Langua
     phraseMeta: new Map(phraseMeta.map(row => [String(row._id), row] as const)) };
 }
 
-async function envelope(progress: UserProgress[], cardLimit = progress.length, includeManifest = true): Promise<CompactStudyEnvelope> {
+async function envelope(progress: UserProgress[], cardLimit = progress.length, includeManifest = true, capturedContent = false): Promise<CompactStudyEnvelope> {
   const db = getDb(), profiles: DeckOptions[] = [], profileIndexes = new Map<string, number>();
   // End the starter after a whole NEW directional pair, rather than hiding its
   // immediately following production card behind the background request.
@@ -125,7 +137,7 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
   }
   const selected = progress.slice(0, cardLimit);
   const pairs = await languagePairs(progress, db);
-  const playable = await playableItems(selected, pairs, db);
+  const playable = await playableItems(selected, pairs, db, capturedContent);
   const manifest: CompactStudyShell[] = progress.map(p => {
     const { options, ...scheduler } = p.scheduler;
     const key = JSON.stringify(Object.keys(options).sort().map(key => [key, options[key]]));
@@ -146,7 +158,7 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
     };
   });
   const items: CompactStudyItem[] = manifest.slice(0, selected.length).map((shell, index) => {
-    const p = selected[index], card = playable.cards.get(shell.id), pair = pairs.get(`${p.itemType}:${p.relationId || p.itemId}`);
+    const p = selected[index], card = capturedContent ? capturedCard(p.card) : playable.cards.get(shell.id), pair = pairs.get(`${p.itemType}:${p.relationId || p.itemId}`);
     const grammar = pair && playable.grammar.get(String(pair.translated._id));
     return { ...shell, card: card ? { sourceNoteGuid: card.sourceNoteGuid, direction: card.direction, prompt: card.prompt, answer: card.answer, acceptedAnswers: card.acceptedAnswers, notes: card.notes, examples: card.examples } : null,
       ...(grammar ? { gramaticalCategories: grammar.gramaticalCategories ?? [], forms: grammar.forms ? { article: grammar.forms.gender, past: grammar.forms.past, perfect: grammar.forms.perfect, imperativ: grammar.forms.imperativ } : undefined } : {}),
@@ -163,6 +175,10 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
 export async function loadCompactStudyQueue(user: User, input: any = {}): Promise<CompactStudyEnvelope> {
   const scope = requestScope(user, input);
   const cardLimit = bounded(input.cardLimit, Number.MAX_SAFE_INTEGER, 5000, "cardLimit");
+  // Changing a category query's projection can change its unsorted cursor
+  // order. Preserve its original selection and later content hydration.
+  const capturedContent = input.cardLimit === undefined && !scope.context;
+  const projection = capturedContent ? COMPLETE_STUDY_SELECTION : COMPACT_STUDY_SELECTION;
   if (input.includeCounts !== undefined && typeof input.includeCounts !== "boolean") throw new Error("Invalid includeCounts");
   const args = { ...scope, dueLimit: bounded(input.dueLimit, 5000, 5000, "dueLimit"), newLimit: bounded(input.newLimit, 20, 1000, "newLimit"), includeLearningAhead: true };
   const context = { user };
@@ -171,17 +187,17 @@ export async function loadCompactStudyQueue(user: User, input: any = {}): Promis
     // Category-specific queries can use a different index and cursor order.
     // Keep their original due/counter reads while sharing this request's account
     // and allowance data. The unscoped route can share one candidate superset.
-    const candidates = scope.context ? undefined : combinedStudyCandidates(user._id, scope.itemType, now, COMPACT_STUDY_SELECTION);
+    const candidates = scope.context ? undefined : combinedStudyCandidates(user._id, scope.itemType, now, projection);
     const countProgress = candidates
       ? candidates.then(rows => rows.filter(p => isCountStudyCandidate(p, now)))
       : studyCountSnapshot(context, user._id, now, scope.itemType).then(snapshot => snapshot.progress);
     const counts = loadStudyQueueCounts(scope, context, { now, progress: countProgress, countersOnly: true });
-    const packet = loadDueStudyProgress(args, context, COMPACT_STUDY_SELECTION, { now, candidates, beforeNewItems: counts }).then(progress => envelope(progress, cardLimit));
+    const packet = loadDueStudyProgress(args, context, projection, { now, candidates, beforeNewItems: counts }).then(progress => envelope(progress, cardLimit, true, capturedContent));
     const [result, counters] = await Promise.all([packet, counts]);
     return { ...result, counts: { new: counters.new, learning: counters.learning, review: counters.review } };
   }
-  const progress = await loadDueStudyProgress(args, context, COMPACT_STUDY_SELECTION);
-  return envelope(progress, cardLimit);
+  const progress = await loadDueStudyProgress(args, context, projection);
+  return envelope(progress, cardLimit, true, capturedContent);
 }
 export async function loadCompactStudyMore(user: User, input: any = {}): Promise<CompactStudyEnvelope> {
   const scope = requestScope(user, input);
