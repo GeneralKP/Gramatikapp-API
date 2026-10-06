@@ -2,7 +2,7 @@ import { Collection, ObjectId } from "mongodb";
 import { UserProgress } from "./progress.types.js";
 
 // The counter and retry key change in a single atomic document update.
-// Ratings and undo never write these fields.
+// Ordinary ratings and undo never write these fields; Revisit records its own failure.
 export async function recordFailure(
   progress: Collection<UserProgress>, userId: ObjectId, itemId: ObjectId, attemptId: string,
 ): Promise<UserProgress> {

@@ -96,7 +96,9 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
       const unset = Object.fromEntries(schedulingFields.filter(key => after[key] === undefined).map(key => [key, "" as const]));
       await db.progress.updateOne({ _id: stored._id }, { $set: { ...snapshot(after), scheduleVersion: after.scheduleVersion, updatedAt: now }, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session });
       if (grade === "REVISIT") {
-        const attemptId = failureAttemptId || reviewId;
+        // Revisit is a separate mistake from Check. The review command itself
+        // deduplicates retries, including responses lost after the commit.
+        const attemptId = reviewId;
         commandId(attemptId);
         await db.progress.updateOne({ _id: stored._id, failureAttemptIds: { $ne: attemptId } }, { $inc: { failureIndex: 1 }, $addToSet: { failureAttemptIds: attemptId }, $set: { lastFailedAt: now } }, { session });
       }

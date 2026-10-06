@@ -158,7 +158,7 @@ References: [Anki deck options](https://docs.ankiweb.net/deck-options.html),
 
 ## Extra word reviews and phrase ratings
 
-Established word cards offer Revisit: a one-off review in 24 hours, with a durable failure increment deduplicated against the current typed attempt. A due word first receives its normal Good schedule; a future word retains its current schedule. Completing the extra review clears `temporaryDueDate` and keeps the regular interval/ease/date. If the regular date has already passed, ordinary scheduling resumes. This extra review cannot delay an earlier normal review. Undo restores the pending date but never reduces failures. Retry IDs remain transactional.
+Established word cards offer Revisit: a one-off review in 24 hours, with its own durable failure increment, even if Check already recorded a mistake. The review command ID deduplicates retries. A due word first receives its normal Good schedule; a future word retains its current schedule. Completing the extra review clears `temporaryDueDate` and keeps the regular interval/ease/date. If the regular date has already passed, ordinary scheduling resumes. This extra review cannot delay an earlier normal review. Undo restores the pending date but never reduces failures. Retry IDs remain transactional.
 
 Phrase ratings deliberately use a separate policy: Again: 7 days, Hard: 30 days, Good: 180 days, Easy: 365 days. Imported word scheduling still uses the original Anki transition/fuzz rules.
 
