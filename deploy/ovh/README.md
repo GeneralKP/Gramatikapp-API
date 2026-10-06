@@ -99,7 +99,7 @@ Dependency installation ignores lifecycle scripts and has its own time/resource
 limits. A shared lock prevents manual/automatic deployments racing. Only
 gramatik-api is restarted. Its uncached /health response includes the validated
 RELEASE commit marker; the helper checks that exact commit locally, and GitHub
-checks it over public HTTPS before declaring deployment successful. Local
+checks it over public HTTPS before declaring deployment successful. If the runner’s native Node probe fails, a bounded IPv4 curl probe verifies the same hostname, TLS certificate and exact commit; failures are logged without relaxing certificate validation. Local
 readiness failure restores the preceding Gramatik release. A failed candidate
 is held rather than restarted every minute; push a corrected commit or explicitly
 clear /var/lib/gramatik-deploy/failed-commit to retry. Existing completed releases

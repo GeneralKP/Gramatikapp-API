@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 
 const repository = "GeneralKP/Gramatikapp-API";
@@ -47,19 +48,38 @@ else {
 }
 console.log(`Published tested release ${sha}; waiting for OVH readiness.`);
 const deadline = Date.now() + 360000;
+let reportedNativeProbeFailure = false;
+let reportedProbeFailure = false;
 while (Date.now() < deadline) {
   if (await latest() !== sha) {
     console.log("Superseded by a newer main commit; it will receive its own deployment.");
     process.exit(0);
   }
   try {
-    const response = await fetch("https://vps-0f140ad8.vps.ovh.net:8443/health", { headers: { "Cache-Control": "no-cache" }, signal: AbortSignal.timeout(10000) });
-    const health = await response.json();
-    if (response.ok && health.status === "ok" && health.release === sha) {
+    let health;
+    try {
+      const response = await fetch("https://vps-0f140ad8.vps.ovh.net:8443/health", { headers: { "Cache-Control": "no-cache" }, signal: AbortSignal.timeout(10000) });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      health = await response.json();
+    } catch (error) {
+      if (!reportedNativeProbeFailure) {
+        console.warn(`Native public health probe failed: ${error.message} (${error.cause?.code || error.name}); trying certificate-verified IPv4 HTTPS.`);
+        reportedNativeProbeFailure = true;
+      }
+      // The VPS has an IPv4 production listener. Use the runner's system TLS
+      // client if Node's DNS/network/TLS stack cannot reach that listener.
+      health = JSON.parse(execFileSync("curl", ["--ipv4", "--fail", "--silent", "--show-error", "--connect-timeout", "3", "--max-time", "5", "--header", "Cache-Control: no-cache", "https://vps-0f140ad8.vps.ovh.net:8443/health"], { encoding: "utf8", timeout: 7000, stdio: ["ignore", "pipe", "pipe"] }));
+    }
+    if (health.status === "ok" && health.release === sha) {
       console.log(`OVH is healthy and running ${sha}.`);
       process.exit(0);
     }
-  } catch { /* A restart or transient network failure must not be a false success. */ }
+  } catch (error) {
+    if (!reportedProbeFailure) {
+      console.warn(`Public readiness is not confirmed yet: ${error.message}`);
+      reportedProbeFailure = true;
+    }
+  }
   await new Promise(resolve => setTimeout(resolve, 10000));
 }
 throw new Error("OVH did not serve the expected healthy commit within six minutes; inspect gramatik-deploy on the VPS");
