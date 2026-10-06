@@ -1,0 +1,11 @@
+[
+  {
+    "language": "de",
+    "phraseId": "69979df0cf36789b54b5fe4f",
+    "phrase": "Ich musste viele Unterlagen einreichen, um meine Aufenthaltserlaubnis zu beantragen.",
+    "missingWordId": "69979ddfcf36789b54b5fdaa",
+    "replacementWord": "Aufenthaltserlaubnis",
+    "category": "NOUN",
+    "reason": "The original words array aligned token by token, but its eighth reference had no WORDS_DE document. Replace only that dangling reference with the reviewed, paired singular dictionary noun."
+  }
+]

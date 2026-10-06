@@ -9,6 +9,7 @@ import { UserProgress } from "../features/progress/progress.types.js";
 import { ReviewEvent, SchedulerProfile } from "../features/progress/reviews.js";
 import type { ReadingLesson, TranslationAttempt } from "../features/reading/reading.types.js";
 import type { WritingAttempt, WritingExercise, WritingHint } from "../features/writing/writing.types.js";
+import type { WordTranslation } from "../features/translations/translations.types.js";
 
 export interface Database {
   users: Collection<User>;
@@ -20,6 +21,7 @@ export interface Database {
   writingExercises: Collection<WritingExercise>;
   writingAttempts: Collection<WritingAttempt>;
   writingHints: Collection<WritingHint>;
+  translationsEsDe: Collection<WordTranslation>;
 
   // New collections
   wordsES: Collection<Word>;
@@ -64,6 +66,7 @@ export const connectDatabase = async (): Promise<Database> => {
     writingExercises: database.collection<WritingExercise>("writingexercises"),
     writingAttempts: database.collection<WritingAttempt>("writingattempts"),
     writingHints: database.collection<WritingHint>("writinghints"),
+    translationsEsDe: database.collection<WordTranslation>("TRANSLATIONS_ES_DE"),
 
     // New collections
     wordsES: database.collection<Word>("WORDS_ES"),
@@ -103,6 +106,8 @@ export const connectDatabase = async (): Promise<Database> => {
   await db.writingAttempts.createIndex({ userId: 1, requestId: 1 }, { unique: true });
   await db.writingAttempts.createIndex({ userId: 1, exerciseId: 1, createdAt: -1 });
   await db.writingHints.createIndex({ userId: 1, exerciseId: 1, word: 1 }, { unique: true });
+  await db.translationsEsDe.createIndex({ sourceLanguage: 1, targetLanguage: 1, key: 1 }, { unique: true });
+  await db.translationsEsDe.createIndex({ "phraseRefs.phraseId": 1 });
 
   console.log("✅ MongoDB connected (native driver)");
   return db;

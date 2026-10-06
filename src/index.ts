@@ -12,6 +12,7 @@ import dotenv from "dotenv";
 import { ObjectId } from "mongodb";
 import { translateWritingWord } from "./features/writing/writing.service.js";
 import { syncStudy } from "./features/progress/studySync.js";
+import { wordTranslationRouter } from "./features/translations/translations.http.js";
 
 dotenv.config();
 
@@ -59,6 +60,7 @@ async function startServer() {
     }
     catch (error) { res.status(400).json({ error: (error as Error).message }); }
   });
+  app.use(wordTranslationRouter());
 
   // Apply GraphQL endpoint
   app.use(

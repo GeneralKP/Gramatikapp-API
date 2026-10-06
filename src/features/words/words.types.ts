@@ -30,6 +30,9 @@ export enum LearningContext {
   DAILY_ROUTINE = "daily_routine",
   WORK = "work",
   FINANCE = "finance",
+  GENERAL_VOCABULARY = "general_vocabulary",
+  IDIOMS = "idioms",
+  PREPOSITIONS = "prepositions",
   PSYCOLOGICAL_FLIRTING_PHRASES = "psycological_flirting_phrases",
   CARTOON_CONVENTION = "cartoon_convention",
 }

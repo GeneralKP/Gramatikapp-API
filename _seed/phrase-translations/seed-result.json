@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-06T15:15:59.863Z",
+  "manualEntries": 3627,
+  "pendingEntries": 4,
+  "lexemes": 1,
+  "surfaces": 3,
+  "providersUsed": 0,
+  "completedAt": "2026-10-06T15:16:04.510Z",
+  "completedEntries": 4,
+  "lemmaReferencesRefreshed": 0,
+  "coverage": {
+    "de": {
+      "phrases": 276,
+      "uniqueWords": 1982,
+      "words": 882,
+      "translations": 1100,
+      "missing": 0
+    },
+    "es": {
+      "phrases": 276,
+      "uniqueWords": 2020,
+      "words": 897,
+      "translations": 1123,
+      "missing": 0
+    }
+  }
+}

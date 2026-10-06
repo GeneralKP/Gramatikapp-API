@@ -1,0 +1,1926 @@
+# index|German gloss|tag|lemma if surface|CEFR (default B1.1 for blank)
+0|hallo|i||A1.1
+1|bist|vp2|estar|A1.1
+2|mich; mir|obj|yo|A1.1
+3|heiße|vp1|llamarse|A1.1
+4|Juan|name|Juan|A1.1
+5|wo|d||A1.1
+6|ist|vp3|estar|A1.1
+7|die|tf|el|A1.1
+8|Station|nf:estaciones:die:Stationen||A1.2
+9|möchte|vp1|querer|A1.1
+10|ein|t||A1.1
+11|Kaffee|nm:cafés:der:Kaffees||A1.1
+12|für; wegen; durch|r||A1.1
+13|Gefallen|nm:favores:der:Gefallen||A1.2
+14|das|pneut|ese|A1.1
+15|kostet|vp3|costar|A1.1
+16|zehn|num|diez|A1.1
+17|Euro|np|euro|A1.1
+18|gestern|d||A1.1
+19|ging|vt1|ir|A1.2
+20|zum; an den|ct|a + el|A1.1
+21|Arzt|nm:médicos:der:Ärzte||A1.1
+22|weil|c||A1.1
+23|tat weh|vi3|doler|A2.1
+24|Kopf|nf:cabezas:der:Köpfe||A1.1
+25|mein|p||A1.1
+26|Bruder|nm:hermanos:der:Brüder||A1.1
+27|arbeitet|vp3|trabajar|A1.1
+28|in; an|r||A1.1
+29|Krankenhaus|nm:hospitales:das:Krankenhäuser||A1.2
+30|der|t||A1.1
+31|Zug|nm:trenes:der:Züge||A1.1
+32|kommt an; reicht|vp3|llegar|A1.1
+33|zu; nach; an|r||A1.1
+34|die|tp|el|A1.1
+35|drei|num|tres|A1.1
+36|von; aus|r||A1.1
+37|gefällt|vp3|gustar|A1.1
+38|viel; sehr|d||A1.1
+39|diese|pf|este|A1.1
+40|Feier|nf:fiestas:die:Feiern||A1.1
+41|brauche|vp1|necesitar|A1.1
+42|Fahrkarte|nm:billetes:die:Fahrkarten||A1.2
+43|GPS|abbr|GPS|A2.1
+44|zeigte an|vi3|indicar|B1.1
+45|andere|pf|otro|A1.1
+46|Route|nf:rutas:die:Routen||A2.1
+47|entschieden|vt1p|decidir|A2.1
+48|nehmen|v||A1.2
+49|hatte; war; es gab|vi3|haber|A2.1
+50|weniger|d||A1.2
+51|Verkehr|nm:tráficos:der:Verkehre||A1.2
+52|Lokführer|nc:maquinistas:der:Lokführer||B1.1
+53|kündigte an|vt3|anunciar|B1.1
+54|dass; der; die; das|c||A1.1
+55|würde machen|vc3|hacer|B1.1
+56|eine|tf|un|A1.1
+57|Halt|nf:paradas:der:Halte||A2.1
+58|nicht; nein|d||A1.1
+59|geplant|ppf|programar|B1.1
+60|aufgrund; geschuldet|pp|deber|B1.1
+61|Bauarbeiten; Werke|np|obra|A2.1
+62|Gleis|nf:vías:das:Gleise||A2.1
+63|hätten; wären|vsi1p|haber|B2.1
+64|angekommen|pp|llegar|A2.1
+65|fünf|num|cinco|A1.1
+66|Minuten|np|minuto|A1.1
+67|vorher|d||A1.1
+68|hätten; wären|vc1p|haber|B1.2
+69|erreicht|pp|alcanzar|A2.2
+70|Fähre|nm:ferris:die:Fähren||A2.1
+71|ihnen|ppro|le|A1.2
+72|baten|vt1p|pedir|A2.1
+73|die|tp|el|A1.1
+74|Fahrgäste|np|pasajero|A2.1
+75|anschnallen sollten|vsi3p|abrochar|B1.2
+76|seine; ihre|ppro|su|A1.1
+77|Gurte|np|cinturón|A2.1
+78|waren|vi1p|estar|A2.1
+79|durchquerend|ger|atravesar|B1.1
+80|Zone|nf:zonas:die:Zonen||A2.1
+81|Turbulenzen|np|turbulencia|B1.1
+82|danach|d||A1.1
+83|gehen|v||A1.1
+84|während|r||A1.2
+85|vier|num|cuatro|A1.1
+86|Stunden|np|hora|A1.1
+87|fanden|vt1p|encontrar|A2.1
+88|Schutzhütte|nm:refugios:die:Schutzhütten||B1.1
+89|wo|d||A1.1
+90|konnten|vt1p|poder|A2.1
+91|erklärte|vt3|explicar|A2.1
+92|musste; sollte|vi3|deber|A2.1
+93|Medikament|nm:medicamentos:das:Medikamente||A2.1
+94|Male|np|vez|A1.1
+95|Tag|nm:días:der:Tage||A1.1
+96|Mahlzeiten|np|comida|A1.1
+97|Großmutter|nf:abuelas:die:Großmütter||A1.1
+98|war; wurde; ging|vt3|ser / ir|A2.1
+99|eingeliefert|ppf|ingresar|B1.1
+100|sich|refl|se|A1.1
+101|wurde ohnmächtig|vt3|desmayarse|B1.1
+102|Straße|nf:calles:die:Straßen||A1.1
+103|so viel|pf|tanto|A1.2
+104|Leute|nf:gentes:die:Leute||A1.1
+105|konnten|vi1p|poder|A2.1
+106|uns bewegen|cl|moverse|A2.1
+107|Chor|nm:coros:der:Chöre||A2.2
+108|sang|vt3|cantar|A2.1
+109|so|d||A1.1
+110|wunderschön|d||B1.1
+111|viele|ppro|mucho|A1.1
+112|Anwesende; Geschenke|amb|presente|B1.1
+113|wurden gerührt|vt3p|conmoverse|B1.2
+114|Tränen|np|lágrima|A2.1
+115|wenn; als|c||A1.1
+116|sah|vt1|ver|A2.1
+117|erste|af|primero|A1.1
+118|Mal|nf:veces:das:Male||A1.1
+119|wusste|vt1|saber|A2.1
+120|wollte|vi1|querer|A2.1
+121|sie kennenlernen|cl|conocer|A1.2
+122|besser|comp|bueno|A1.2
+123|konnte|vt1|poder|A2.1
+124|lassen|v||A1.2
+125|dich ansehen|cl|mirar|A1.2
+126|seit; von|r||A1.1
+127|tratest ein|vt2|entrar|A2.1
+128|Tür|nf:puertas:die:Türen||A1.1
+129|Kumpel|nc:parces:der:Kumpel||B1.2
+130|jene; diese|pf|ese|A1.1
+131|Party|nf:rumbas:die:Partys||B1.1
+132|war|vt3|estar|A2.1
+133|cool; toll|af|bacano|B1.1
+134|wollten|vi1p|querer|A2.1
+135|weggehen|cl|irse|A2.1
+136|hör mal|imp|oír|A1.2
+137|du|p||A1.1
+138|gehst|vp2|caminar|A1.1
+139|stolzierst; läufst wie auf dem Laufsteg|vp2|desfilar|B1.1
+140|merkt; Note|amb|notar / nota|A2.1
+141|wurdest geboren|vt2|nacer|A2.1
+142|für; um zu|r||A1.1
+143|geben würdest|vsi2|dar|B1.2
+144|Gelegenheit|nf:oportunidades:die:Gelegenheiten||A2.2
+145|dir erklären|cl|explicar|A2.1
+146|Punkt|nm:puntos:der:Punkte||A1.2
+147|Sicht|nf:vistas:die:Sichten||A2.1
+148|bin|vp1|estar|A1.1
+149|sicher|j||A1.2
+150|würdest ändern|vc2|cambiar|B1.1
+151|glaube|vp1|creer|A1.2
+152|solltest|vc2|deber|B1.1
+153|darüber nachdenken|cl|pensar|A2.1
+154|Entscheidung|nf:decisiones:die:Entscheidungen||A2.2
+155|wichtig|j||A1.1
+156|Diebe|np|ladrón|A2.1
+157|traten ein|vt3p|entrar|A2.1
+158|Fenster|nf:ventanas:das:Fenster||A1.1
+159|hintere|af|trasero|A2.1
+160|während|c||A2.1
+161|Besitzer|np|dueño|A2.1
+162|schliefen|vi3p|dormir|A2.1
+163|beendeten|vt1p|terminar|A2.1
+164|uns|obj|nosotros|A1.1
+165|gaben|vt1p|dar|A2.1
+166|Bewusstsein; Berücksichtigung; Rechnung|idiom|cuenta|A1.2
+167|hatten; waren|vi1p|haber|A2.1
+168|vergessen|pp|olvidar|A2.1
+169|Kisten|np|caja|A1.2
+170|mehr|d||A1.1
+171|wichtige|ap|importante|A1.1
+172|Lehrer|nm:profesores:der:Lehrer||A1.1
+173|sagte|vt3|decir|A2.1
+174|Prüfung|nm:exámenes:die:Prüfungen||A1.2
+175|abschließend; letzte|j||A2.1
+176|würde zählen|vc3|contar|B1.1
+177|sechzig|num|sesenta|A1.1
+178|hundert|num|ciento|A1.1
+179|Treffen|nf:reuniones:das:Treffen||A2.1
+180|Sprachen|np|idioma|A1.1
+181|lernte kennen|vt1|conocer|A2.1
+182|Personen|np|persona|A1.1
+183|Länder|np|país|A1.1
+184|verschiedene|ap|diferente|A1.2
+185|hatte; musste|vt1|tener|A2.1
+186|Dokumente|np|documento|A1.2
+187|beantragen|v||A2.2
+188|Erlaubnis|nm:permisos:die:Erlaubnisse||A2.1
+189|Aufenthalt|nf:residencias:der:Aufenthalte||A2.1
+190|Greis|nm:ancianos:der:Greise||B1.1
+191|bettelte|vi3|mendigar|B1.1
+192|Ecke|nf:esquinas:die:Ecken||A1.2
+193|erzählte|vt3|contar|A2.1
+194|verloren|pp|perder|A2.1
+195|sein; ihr|p||A1.1
+196|Haus|nf:casas:das:Häuser||A1.1
+197|Brand|nm:incendios:der:Brände||A2.2
+198|dachte|vt1|pensar|A2.1
+199|würde gewinnen|vc1|ganar|B1.1
+200|aber|c||A1.1
+201|Glück|nf:suertes:das:—||A1.1
+202|lächelte|vt3|sonreír|A2.1
+203|jener; dieser|p||A1.1
+204|Fans|np|fan|A1.2
+205|verkleideten sich|vt3p|disfrazarse|B1.1
+206|Figuren|np|personaje|A2.1
+207|liebste; Lieblings-|ap|favorito|A1.2
+208|und|c||A1.1
+209|zogen vorbei|vt3p|desfilar|B1.1
+210|alles; ganz|p||A1.1
+211|Gelände|nm:recintos:das:Gelände||B1.2
+212|Verteidiger|nm:defensores:der:Verteidiger||B2.1
+213|bat|vt3|pedir|A2.1
+214|Richter|nm:jueces:der:Richter||B1.1
+215|berücksichtigen möge|vsi3|considerar|B1.2
+216|Umstände|np|circunstancia|B1.2
+217|mildernde|ap|atenuante|C1.1
+218|hätten; wären|vsi3p|haber|B2.1
+219|mit einer Geldstrafe belegt|pp|multar|B1.1
+220|Übermaß|nm:excesos:das:Übermaße||B1.2
+221|Geschwindigkeit|nf:velocidades:die:Geschwindigkeiten||A2.1
+222|hätte; wäre|vc3|haber|B1.2
+223|gewesen; worden|pp|ser|A2.1
+224|vorzugswürdig|j||B1.2
+225|reservieren|v||A1.2
+226|Klasse|nf:clases:die:Klassen||A1.1
+227|angesichts; da|pp|poner|B1.1
+228|Reise|nm:viajes:die:Reisen||A1.1
+229|dauerte|vi3|durar|A2.1
+230|des; vom|ct|de + el|A1.1
+231|Schiff|nm:barcos:das:Schiffe||A1.2
+232|warnte|vt3|advertir|B1.1
+233|Bedingungen|np|condición|B1.1
+234|klimatische|afp|climático|B1.2
+235|würden sich verschlechtern|vc3p|empeorar|B1.2
+236|erheblich|d||B2.1
+237|Nacht|nf:noches:die:Nächte||A1.1
+238|erscheint; erweist sich|vp3|resultar|B1.1
+239|unverständlich|j||B2.1
+240|Fluggesellschaften|np|aerolínea|A2.2
+241|weitermachen|vsp3p|seguir|B1.2
+242|berechnend|ger|cobrar|B1.1
+243|Gepäck|nm:equipajes:das:—||A1.2
+244|Hand|nf:manos:die:Hände||A1.1
+245|Fahrkarten|np|billete|A1.2
+246|schon|d||A1.1
+247|sind; werden|vp3p|ser|A1.1
+248|teuer|ap|caro|A1.1
+249|Bedauern; trotz|nm:pesares:das:—||B1.1
+250|Chirurg|nm:cirujanos:der:Chirurgen||B1.1
+251|ihm; ihr|obj|él|A1.1
+252|erklärt|pp|explicar|A2.1
+253|Risiken|np|riesgo|B1.1
+254|sie|pf|él|A1.1
+255|bestand darauf|vt3|insistir|B1.1
+256|sich unterziehen|v||B1.2
+257|Operation|nf:operaciones:die:Operationen||A2.1
+258|würde sehr gefallen|vc3|encantar|B1.1
+259|lassen würdest|vsi2|dejar|B1.2
+260|dich einladen|cl|invitar|A1.2
+261|zu Abend essen|v||A1.1
+262|könnten|vsi1p|poder|B1.2
+263|uns kennenlernen|cl|conocer|A1.2
+264|Eile|np|prisa|A2.1
+265|Schicksal|nm:destinos:das:Schicksale||B1.1
+266|stellte; brachte|vt3|poner|A2.1
+267|gleich; selbst|j||A1.2
+268|Ort|nm:lugares:der:Orte||A1.2
+269|wird sein|vf3|ser|A2.2
+270|haben|vp1p|tener|A1.1
+271|etwas|p||A1.1
+272|ausstehend|j||B1.1
+273|glaubst|vp2|creer|A1.2
+274|alle|pfp|todo|A1.1
+275|dieser|p||A1.1
+276|bist|vp2|ser|A1.1
+277|einzige|af|único|A2.1
+278|schafft|vp3|lograr|B1.1
+279|Herz|nm:corazones:das:Herzen||A1.2
+280|schlägt|vsp3|latir|B1.2
+281|Süße; Mama|nf:mamis:die:Mamas||A2.2
+282|brauchst|vp2|necesitar|A1.1
+283|Filter|nm:filtros:der:Filter||A2.1
+284|weder; noch|c||A1.2
+285|Fotos|np|foto|A1.1
+286|Leben|nf:vidas:das:Leben||A1.1
+287|rein|af|puro|A2.1
+288|Schönheit|nf:bellezas:die:Schönheiten||A2.1
+289|natürlich|j||A2.1
+290|Sie|p||A1.1
+291|ist|vp3|ser|A1.1
+292|schwarzer Kaffee|nm:tintos:der:Kaffees||B1.1
+293|Morgen; morgen|amb|mañana|A1.1
+294|Landgut|nf:fincas:das:Landgüter||B1.1
+295|Kaffee anbauende|af|cafetero|B1.2
+296|neigen|vp3p|tender|B1.1
+297|Vorschlag|nf:propuestas:der:Vorschläge||A2.2
+298|fühlen|vp3p|sentir|A2.1
+299|gebend|ger|dar|A2.1
+300|Freiheit|nf:libertades:die:Freiheiten||A2.1
+301|wählen|v||A2.1
+302|willst|vp2|querer|A1.1
+303|jemand|p||A1.1
+304|ihm zeigen|cl|demostrar|B1.1
+305|verstehst|vp2|entender|A1.2
+306|Position|nf:posiciones:die:Positionen||B1.1
+307|Bestätigung|nf:confirmaciones:die:Bestätigungen||B1.2
+308|macht; wird; vor (Zeitangabe)|vp3|hacer|A1.1
+309|suchen|v||A1.1
+310|Information|nf:informaciones:die:Informationen||A1.2
+311|verstärkt|vsp3|reforzar|B1.2
+312|unsere|pfp|nuestro|A1.1
+313|Überzeugungen|np|creencia|B1.1
+314|bestehende|ap|existente|B1.1
+315|besteht|vp3|consistir|B1.1
+316|nur; allein|amb|solo|A1.1
+317|verstehen|v||A1.1
+318|es; ihn; das|obj|él|A1.1
+319|fühlt|vp3|sentir|A2.1
+320|andere|p||A1.1
+321|sondern|c||A2.1
+322|ihn machen lassen; ihm machen|cl|hacer|A2.1
+323|wissen|v||A1.1
+324|verstehst|vp2|comprender|A2.1
+325|Staatsanwalt|nc:fiscales:der:Staatsanwälte||B2.1
+326|legte vor|vt3|presentar|A2.1
+327|Beweise; Prüfungen|np|prueba|B1.1
+328|schlagkräftige|ap|contundente|C1.1
+329|bewiesen|vi3p|demostrar|B1.1
+330|Beteiligung|nf:participaciones:die:Beteiligungen||B1.2
+331|angeklagt; Angeklagter|amb|acusar|B1.1
+332|Schule|nf:escuelas:die:Schulen||A1.1
+333|adventistisch|j||B2.1
+334|lehrten|vt3p|enseñar|A2.1
+335|einhalten|v||A2.2
+336|Akt|nm:actos:der:Akte||B1.1
+337|Glaube|nf:fes:der:—||A2.1
+338|Gehorsam|nf:obediencias:der:—||B1.2
+339|Dienst|nm:servicios:der:Dienste||A2.1
+340|Anbetung|nf:adoraciones:die:Anbetungen||B2.1
+341|Gemeinde|nf:congregaciones:die:Gemeinden||B1.2
+342|stimmte an|vt3|entonar|B1.2
+343|Hymnen|np|himno|B1.2
+344|spiegelten wider|vi3p|reflejar|B1.2
+345|tief|af|profundo|A2.1
+346|Dankbarkeit|nf:gratitudes:die:—||B1.1
+347|groß|apoc|grande|A1.1
+348|Mauer|nf:murallas:die:Mauern||B1.1
+349|schützte|vi3|proteger|A2.1
+350|Invasionen|np|invasión|B2.1
+351|auch|d||A1.1
+352|diente|vi3|servir|A2.1
+353|wie; als|c||A1.1
+354|kommerziell|j||B1.1
+355|Prozess|nm:procesos:der:Prozesse||B1.1
+356|wäre; würde werden|vc3|ser|B1.1
+357|Einwanderer|np|inmigrante|B1.1
+358|hätten|vsi3p|tener|B1.2
+359|Zugang|nm:accesos:der:Zugänge||B1.1
+360|Kurse|np|curso|A1.1
+361|kostenlose|ap|gratuito|A2.1
+362|Komitee|nm:comités:das:Komitees||B2.1
+363|akademisch|j||B1.2
+364|lehnte ab|vt3|rechazar|B1.1
+365|mangelte|vi3|carecer|B2.1
+366|Methodik|nf:metodologías:die:Methodiken||C1.1
+367|streng; gründlich|af|riguroso|B2.1
+368|Organisationen|np|organización|B1.1
+369|wohltätige|afp|benéfico|B2.1
+370|argumentieren|vp3p|argumentar|B1.2
+371|Bettelei|nf:mendicidades:die:—||B2.1
+372|sollte|vc3|deber|B1.1
+373|behandelt werden|cl|abordar|B2.1
+374|Problem|nm:problemas:das:Probleme||A1.1
+375|sozial|j||A2.1
+376|Straftat|nm:delitos:die:Straftaten||B1.2
+377|Organisatoren|np|organizador|B1.1
+378|versicherten|vt3p|asegurar|B1.1
+379|würde durchführen; bringen|vc3|llevar|B1.1
+380|Ende|nm:cabos:das:Enden||B1.1
+381|Art|nf:maneras:die:Arten||A2.1
+382|transparent|j||B1.2
+383|vor|r||B1.1
+384|Notar|nm:notarios:der:Notare||B2.1
+385|öffentlich; Publikum|amb|público|A2.1
+386|Künstler|nc:artistas:der:Künstler||A2.1
+387|eingeladen; Gast|pp|invitar|A2.1
+388|enthüllte|vt3|revelar|B2.1
+389|Figur|nm:personajes:die:Figuren||A2.1
+390|bevorzugt|j||A1.2
+391|inspiriert|pp|inspirar|B1.1
+392|eigene|afp|propio|A2.1
+393|Erfahrungen|np|experiencia|A2.1
+394|Kindheit|nf:infancias:die:Kindheiten||A2.1
+395|beauftragt|pp|contratar|B1.1
+396|Unternehmen|nf:empresas:das:Unternehmen||A2.1
+397|Umzüge|np|mudanza|A2.1
+398|verbracht; vergangen|pp|pasar|A2.1
+399|Ende|nm:fines:das:Enden||A1.2
+400|Woche|nf:semanas:die:Wochen||A1.1
+401|tragend|ger|cargar|A2.1
+402|Möbel|np|mueble|A1.2
+403|gegeben; angesichts|pp|dar|A2.1
+404|Sachverständiger|nm:peritos:der:Sachverständige||C1.1
+405|mechanisch|j||B1.2
+406|begutachtet|pp|dictaminar|C1.1
+407|Bremsen|np|freno|A2.1
+408|waren|vi3p|estar|A2.1
+409|defekte|ap|defectuoso|B1.2
+410|Versicherungsgesellschaft|nf:aseguradoras:die:Versicherungsgesellschaften||B1.2
+411|sah|vt3|ver|A2.1
+412|verpflichtet|ppf|obligar|B1.1
+413|übernehmen|v||B1.1
+414|Unfall|nm:accidentes:der:Unfälle||A2.1
+415|Streik|nf:huelgas:der:Streiks||B1.1
+416|Lokführer|np|maquinista|B1.1
+417|offensichtlich|j||B2.1
+418|Fragilität|nf:fragilidades:die:Fragilitäten||C1.1
+419|System|nm:sistemas:das:Systeme||A2.1
+420|eisenbahnbezogen|j||B2.1
+421|ist seit; trägt|vp3|llevar|A2.1
+422|Jahre|np|año|A1.1
+423|leidend|ger|sufrir|B1.1
+424|Desinvestition|nf:desinversiones:die:Desinvestitionen||C2.1
+425|systematisch|af|sistemático|B2.1
+426|je; wie viel|p||B1.1
+427|vertiefen uns|vp1p|profundizar|B2.1
+428|Techniken|np|técnica|B1.1
+429|Überzeugung|nf:persuasiones:die:Überzeugungen||B2.1
+430|offensichtlich|j||B1.1
+431|Manipulation|nf:manipulaciones:die:Manipulationen||B1.2
+432|emotional|j||B1.1
+433|Werkzeug|nf:herramientas:das:Werkzeuge||A2.1
+434|allgegenwärtig|j||C1.1
+435|Diskurs|nm:discursos:der:Diskurse||B2.1
+436|Dissonanz|nf:disonancias:die:Dissonanzen||C1.1
+437|kognitiv|af|cognitivo|C1.1
+438|erleben|vp1p|experimentar|B1.2
+439|aufrechterhalten|v||B1.2
+440|zwei|num|dos|A1.1
+441|widersprüchliche|afp|contradictorio|B2.1
+442|treibt an|vp3|impulsar|B1.2
+443|rationalisieren|v||C1.1
+444|unser|p||A1.1
+445|Verhalten|nm:comportamientos:das:Verhalten||B1.1
+446|Formen|np|forma|A2.1
+447|ungeahnte|afp|insospechado|C1.1
+448|Verhandlungsführer|nm:negociadores:der:Verhandlungsführer||B2.1
+449|geschickt|j||B1.1
+450|weiß|vp3|saber|A1.1
+451|formulieren|v||B1.1
+452|Fragen|np|pregunta|A1.1
+453|offene|afp|abierto|A1.2
+454|auferlegen|v||B2.1
+455|Behauptungen|np|afirmación|B1.2
+456|kategorische|afp|categórico|C1.1
+457|hinterfragen|v||B1.2
+458|was; welcher|p||A1.1
+459|Gesellschaft|nf:sociedades:die:Gesellschaften||A2.2
+460|stigmatisiert|vp3|estigmatizar|C1.1
+461|Verletzlichkeit|nf:vulnerabilidades:die:Verletzlichkeiten||B2.1
+462|Männer|np|hombre|A1.1
+463|fördern|v||B1.2
+464|Ausdruck|nf:expresiones:der:Ausdrücke||B1.1
+465|gesund|j||A2.1
+466|rekonstruktiv|af|reconstructivo|C1.2
+467|unterzogen|pp|someter|B1.2
+468|erforderte|vt3|requerir|B1.2
+469|Koordination|nf:coordinaciones:die:Koordinationen||B2.1
+470|Team|nm:equipos:das:Teams||A2.1
+471|multidisziplinär|j||C1.1
+472|acht|num|ocho|A1.1
+473|erlauben würdest|vsi2|permitir|B1.2
+474|dir beweisen|cl|demostrar|B1.1
+475|Tatsachen; Taten|np|hecho|B1.1
+476|fühle|vp1|sentir|A2.1
+477|würdest verstehen|vc2|entender|B1.1
+478|kann|vp1|poder|A1.1
+479|dich herausbekommen|cl|sacar|A2.1
+480|Verstand|nf:mentes:der:—||B1.1
+481|fehlen|vsp3p|faltar|B1.1
+482|Wörter|np|palabra|A1.1
+483|dich beschreiben|cl|describir|A2.1
+484|Sprache|nf:lenguas:die:Sprachen||A1.2
+485|deutsch|af|alemán|A1.1
+486|hat; ist|vp3|haber|A1.2
+487|erfunden|pp|inventar|B1.1
+488|noch|d||A1.2
+489|ausreichende|ap|suficiente|A2.1
+490|Kolumbianerin|nf:colombianas:die:Kolumbianerinnen||A2.1
+491|Deutschland|name|Alemania|A1.1
+492|Strahl|nm:rayos:der:Strahlen||B1.1
+493|Sonne|nm:soles:die:Sonnen||A1.1
+494|Wolken|np|nube|A1.2
+495|graue|ap|gris|A1.2
+496|November|nm:noviembres:der:November||A1.1
+497|starke; mutige; tolle|af|berraco|B2.1
+498|dich; dir|obj|tú|A1.1
+499|dir vornehmen würdest|vsi2|proponerse|B1.2
+500|erobern|v||B1.1
+501|Welt|nm:mundos:die:Welten||A1.1
+502|würdest anfangen|vc2|empezar|B1.1
+503|ihn bittend|gercl|pedir|B1.2
+504|Verteidigung|nf:defensas:die:Verteidigungen||B1.2
+505|führte an|vt3|alegar|C1.1
+506|hatten; waren|vi3p|haber|A2.1
+507|erlangt|ppfp|obtener|B1.2
+508|mittels|r||B1.2
+509|Verfahren|np|procedimiento|B2.1
+510|verletzten|vi3p|vulnerar|C1.1
+511|Rechte|np|derecho|A2.2
+512|grundlegende|ap|fundamental|B1.2
+513|Geschworenengericht|nm:jurados:das:Geschworenengerichte||B2.1
+514|beriet|vt3|deliberar|C1.1
+515|Tage|np|día|A1.1
+516|abgeben|v||B2.1
+517|einstimmig|j||B2.1
+518|Schuld|nf:culpabilidades:die:—||B2.1
+519|Theologie|nf:teologías:die:Theologien||B2.1
+520|behauptet; vertritt|vp3|sostener|B1.2
+521|Einhaltung|nf:observancias:die:Einhaltungen||C1.1
+522|bildet; stellt dar|vp3|constituir|B2.1
+523|Siegel|nm:sellos:das:Siegel||B1.2
+524|Beziehung|nf:relaciones:die:Beziehungen||A2.1
+525|bundesbezogen|j||C2.1
+526|zwischen|r||A1.1
+527|Gott|name|Dios|A2.1
+528|Volk|nm:pueblos:das:Völker||A2.1
+529|Pastor|nm:pastores:der:Pastoren||B1.1
+530|dachte nach|vt3|reflexionar|B1.2
+531|über|r||A1.1
+532|authentisch|af|auténtico|B1.2
+533|überschreiten|v||C1.1
+534|Rituale|np|ritual|B2.1
+535|leere|ap|vacío|A2.1
+536|sich zeigen|v||B1.2
+537|Taten|np|acto|B1.1
+538|konkrete|ap|concreto|B1.1
+539|Mitgefühl|nf:compasiones:das:—||B1.1
+540|Philosophie|nf:filosofías:die:Philosophien||B1.2
+541|konfuzianisch|af|confuciano|C1.1
+542|geprägt|pp|moldear|B2.1
+543|Strukturen|np|estructura|B1.1
+544|hierarchische|afp|jerárquico|C1.1
+545|chinesisch; China|amb|chino|A1.2
+546|Weise|nm:modos:die:Weisen||A2.1
+547|begreifen|v||A2.1
+548|westliche; Menschen aus dem Westen|ap|occidental|B1.2
+549|politische Maßnahmen|np|política|B1.2
+550|migrationsbezogene|afp|migratorio|B2.1
+551|restriktive|afp|restrictivo|C1.1
+552|erschweren|vp3p|dificultar|B1.2
+553|fördern|vp3p|fomentar|B1.2
+554|Volkswirtschaften|np|economía|B1.2
+555|verdeckte; Schatten-|ppfp|sumergir|C1.1
+556|beuten aus|vp3p|explotar|B2.1
+557|verletzliche|ap|vulnerable|B2.1
+558|Interdisziplinarität|nf:interdisciplinariedades:die:—||C2.1
+559|Forschung|nf:investigaciones:die:Forschungen||B1.2
+560|akademisch|af|académico|B1.2
+561|bewiesen|pp|demostrar|B1.1
+562|Probleme|np|problema|A1.1
+563|komplexe|ap|complejo|B1.2
+564|erfordern|vp3p|requerir|B1.2
+565|Ansätze|np|abordaje|C1.1
+566|überschreiten|vsp3p|trascender|C1.1
+567|Grenzen|np|frontera|A2.1
+568|einzige; allein|af|solo|A1.2
+569|Disziplin|nf:disciplinas:die:Disziplinen||B1.2
+570|Zeugenaussage|nm:testimonios:die:Zeugenaussagen||B2.1
+571|entscheidend; Schlüssel-|j||B1.2
+572|erwies sich|vt3|resultar|B1.1
+573|sein|v||A1.1
+574|entscheidend|j||B2.1
+575|Gericht|nm:tribunales:das:Gerichte||B1.1
+576|verurteilen möge|vsi3|condenar|B2.1
+577|Urheber|nm:autores:der:Urheber||B1.1
+578|intellektuell|j||B2.1
+579|Raub|nm:robos:der:—||B1.1
+580|paradox|j||B2.1
+581|wohlhabend|af|próspero|B2.1
+582|gibt; habe|vsp3|haber|B1.2
+583|sehen|vp3p|ver|A1.1
+584|gezwungen|ppfp|obligar|B1.1
+585|decken|v||A2.2
+586|Bedürfnisse|np|necesidad|A2.2
+587|grundlegende|afp|básico|B1.1
+588|Phänomen|nm:fenómenos:das:Phänomene||B2.1
+589|Interferenz|nf:interferencias:die:Interferenzen||C1.1
+590|sprachlich|af|lingüístico|B2.1
+591|zeigt sich|vp3|manifestarse|B1.2
+592|besonders|d||B1.1
+593|interessant|j||A1.1
+594|Sprecher|np|hablante|B1.1
+595|Sprachen|np|lengua|A1.2
+596|romanische|ap|romance|B2.1
+597|versuchen|vp3p|intentar|A2.1
+598|Vokale|np|vocal|A2.1
+599|deutsch; Deutsch; Deutscher|amb|alemán|A1.1
+600|begann|vt3|empezar|A2.1
+601|informell|j||B1.1
+602|Kollegen|np|colega|A2.1
+603|endete|vt3|terminar|A2.1
+604|sich verwandelnd|gercl|convertirse|B1.2
+605|Feier|nf:celebraciones:die:Feiern||A2.1
+606|dauerte fort|vt3|prolongarse|B2.1
+607|Morgengrauen|nm:amaneceres:das:—||B1.2
+608|bevorzugt|pp|preferir|A2.1
+609|Arbeiter|np|operario|B1.2
+610|gehabt|pp|tener|A2.1
+611|Sorgfalt|nm:cuidados:die:—||A2.1
+612|alte|ap|antiguo|A2.1
+613|einige|ppro|alguno|A1.1
+614|erlitten|vt3p|sufrir|B1.1
+615|Schäden|np|daño|B1.1
+616|irreparable|ap|irreparable|B2.1
+617|Transport|nm:traslados:der:Transporte||B1.2
+618|Entwicklung|nf:evoluciones:die:Entwicklungen||B1.2
+619|Manga|nm:mangas:der:Mangas||B1.1
+620|japanisch|j||A2.1
+621|ausgeübt|pp|ejercer|B2.1
+622|Einfluss|nf:influencias:der:Einflüsse||B1.1
+623|Erzählkunst|nf:narrativas:die:Erzählkünste||C1.1
+624|grafisch|af|gráfico|B2.1
+625|westlich|j||B1.2
+626|lernen|v||A1.1
+627|machen|v||A1.1
+628|Bezug|nf:referencias:der:Bezüge||B1.2
+629|in Anbetracht|ppf|haber|C1.1
+630|Sensoren|np|sensor|B1.2
+631|Fahrzeug|nm:vehículos:das:Fahrzeuge||A2.2
+632|autonom|j||B2.1
+633|kalibriert|ppp|calibrar|C1.1
+634|gemäß|j||B2.1
+635|Spezifikationen|np|especificación|C1.1
+636|Hersteller|nc:fabricantes:der:Hersteller||B1.1
+637|wäre möglich|vc3|caber|C1.1
+638|sich fragen|v||A2.1
+639|zivil|j||B2.1
+640|liegt; fällt zurück|vp3|recaer|B2.1
+641|Eigentümer|nm:propietarios:der:Eigentümer||B1.1
+642|oder|c||A1.1
+643|Anbieter|nm:proveedores:der:Anbieter||B1.1
+644|Rhetorik|nf:retóricas:die:Rhetoriken||C1.1
+645|sophistisch|j||C2.1
+646|weit|d||A1.2
+647|haben|v||A1.2
+648|geblieben|pp|quedar|A2.1
+649|verbannt|ppf|relegar|C1.1
+650|Annalen|np|anal|C2.1
+651|Antike|nf:antigüedades:die:—||B2.1
+652|durchdringt|vp3|permear|C1.1
+653|jeder|p||A1.1
+654|Faser|nf:fibras:die:Fasern||B1.2
+655|Debatte|nm:debates:die:Debatten||B1.1
+656|zeitgenössisch|j||B2.1
+657|Wirksamkeit|nf:eficacias:die:Wirksamkeiten||B2.1
+658|erstaunt|pp|asombrar|B1.2
+659|höchstselbst|super|mismo|C1.1
+660|Gorgias|name|Gorgias|C2.1
+661|Prinzip|nm:principios:das:Prinzipien||B1.1
+662|Gegenseitigkeit|nf:reciprocidades:die:Gegenseitigkeiten||C1.1
+663|Stein|nf:piedras:der:Steine||A2.1
+664|grundlegend; Eck-|j||C1.1
+665|gemäß; laut|r||A2.1
+666|Cialdini|name|Cialdini|C1.1
+667|nutzt aus|vp3|explotar|B2.1
+668|unsere|pf|nuestro|A1.1
+669|Bedürfnis|nf:necesidades:das:Bedürfnisse||A2.2
+670|angeboren|af|innato|B2.1
+671|erwidern|v||B1.2
+672|Gefallen|np|favor|A2.1
+673|selbst; sogar|d||B1.1
+674|besagte|ap|dicho|B2.1
+675|haben|vsp3p|haber|B1.2
+676|auferlegt|ppp|imponer|B2.1
+677|Zustimmung|nm:consentimientos:die:Zustimmungen||B1.2
+678|wäre; war|vsi3|ser|B1.2
+679|einst|d||C2.1
+680|maritim|af|marítimo|B2.1
+681|gefährlich|af|peligroso|A2.1
+682|verwandelt|ppf|transformar|B1.1
+683|dank; Gnade|idiom|merced|C1.2
+684|Fortschritte|np|avance|B1.1
+685|Navigation|nf:navegaciones:die:Navigationen||B1.2
+686|satellitengestützt|j||C1.1
+687|Korridor|nm:corredores:der:Korridore||B2.1
+688|Vorhersehbarkeit|nf:previsibilidades:die:Vorhersehbarkeiten||C1.2
+689|absolut|af|absoluto|B1.1
+690|Gaslighting|nm:—:das:—||C1.1
+691|Form|nf:formas:die:Formen||A2.1
+692|raffiniert|ppf|refinar|B2.1
+693|psychologisch|af|psicológico|B1.2
+694|wirkt|vp3|operar|B1.2
+695|Destabilisierung|nf:desestabilizaciones:die:Destabilisierungen||C1.1
+696|Wahrnehmung|nf:percepciones:die:Wahrnehmungen||B2.1
+697|Realität|nf:realidades:die:Realitäten||B1.1
+698|zweifeln|v||B1.1
+699|eigene|af|propio|A2.1
+700|Vernunft|nf:corduras:die:—||C1.1
+701|erlaube mir|impcl|permitir|B1.1
+702|dir machen|cl|hacer|A2.1
+703|Geständnis|nf:confesiones:das:Geständnisse||B1.2
+704|vielleicht|d||A2.1
+705|sollte|vsi3|deber|B2.1
+706|Moment|nm:momentos:der:Momente||A1.2
+707|intim|j||B1.1
+708|Gespräch|nf:conversaciones:das:Gespräche||A1.2
+709|mit dir|ct|con + ti|A1.2
+710|scheint|vp3|parecer|A2.1
+711|unzureichend|j||B1.2
+712|dich; dir|prepobj|tú|A1.1
+713|lässt|vp3|dejar|A2.1
+714|in eine Schublade stecken|v||C1.1
+715|keine|pf|ninguno|A2.1
+716|Kategorien|np|categoría|B1.2
+717|Psychologie|nf:psicologías:die:Psychologien||B1.2
+718|klassifizieren|v||B1.2
+719|Gefühle|np|emoción|A2.1
+720|menschliche|afp|humano|B1.1
+721|Verführung|nf:seducciones:die:Verführungen||B2.1
+722|Kunst|nm:artes:die:Künste||A2.1
+723|wärst|vc2|ser|B1.1
+724|Renaissance|nm:renacimientos:die:Renaissancen||B2.1
+725|ganz|j||A2.1
+726|klassisch|af|clásico|B1.1
+727|dein|p||A1.1
+728|Eleganz|nf:elegancias:die:—||B1.2
+729|revolutionär|af|revolucionario|B2.1
+730|Wirkung|nm:efectos:die:Wirkungen||B1.1
+731|könnte|vsi3|poder|B1.2
+732|dich in Flaschen abfüllen|cl|embotellar|B2.1
+733|würde eröffnen|vc3|abrir|B1.1
+734|Kette|nf:cadenas:die:Ketten||A2.1
+735|Parfümerien|np|perfumería|B1.1
+736|würde brechen|vc3|quebrantar|C1.1
+737|Gesetze|np|ley|A2.1
+738|Wirtschaft|nf:economías:die:Wirtschaften||B1.1
+739|Nachfrage|nf:demandas:die:Nachfragen||B1.2
+740|unendlich|af|infinito|B1.2
+741|Magie|nf:magias:die:—||B1.1
+742|Erde|nf:tierras:die:Erden||A1.2
+743|sagen|vp3p|decir|A1.1
+744|machte|vt3|hacer|A2.1
+745|Menschheit|nf:humanidades:die:—||B1.2
+746|perfekt|af|perfecto|A2.1
+747|erschuf|vt3|crear|B1.1
+748|Revision|nf:casaciones:die:Revisionen||C1.2
+749|eingelegt|ppf|interponer|C1.1
+750|gründete sich|vt3|fundamentarse|B2.1
+751|Instanz|nf:instancias:die:Instanzen||C1.1
+752|begangen; verfallen|pp|incurrir|C1.1
+753|fehlerhaft|af|erróneo|B2.1
+754|Bewertung|nf:valoraciones:die:Bewertungen||B1.2
+755|indiziell; situationsbedingt|ap|circunstancial|C1.1
+756|verletzend|ger|vulnerar|C1.1
+757|so|d||A1.1
+758|Vermutung|nf:presunciones:die:Vermutungen||C1.1
+759|Unschuld|nf:inocencias:die:—||B1.2
+760|Mikroanastomose|nf:microanastomosis:die:Mikroanastomosen||C2.2
+761|vaskulär|j||C1.2
+762|Transplantation|nm:trasplantes:die:Transplantationen||B2.1
+763|Gewebe|nm:tejidos:das:Gewebe||B2.1
+764|frei|j||A1.2
+765|bildete|vt3|constituir|B2.1
+766|einer; man|p||A1.1
+767|anspruchsvolle|ap|exigente|B1.2
+768|konfrontiert|pp|enfrentar|B1.2
+769|chirurgisch|j||B2.1
+770|letzte|af|último|A1.2
+771|Jahrzehnt|nf:décadas:das:Jahrzehnte||B1.1
+772|Eschatologie|nf:escatologías:die:Eschatologien||C2.1
+773|verwurzelt|ppf|enraizar|C1.1
+774|Hermeneutik|nf:hermenéuticas:die:Hermeneutiken||C2.1
+775|historistisch|j||C2.1
+776|interpretiert|vp3|interpretar|B1.2
+777|Prophezeiungen|np|profecía|C1.1
+778|apokalyptische|afp|apocalíptico|C1.1
+779|Kontinuum|foreign|continuo|C1.2
+780|erstreckt sich|vp3|extenderse|B1.2
+781|biblisch|af|bíblico|B2.1
+782|Vollendung|nf:consumaciones:die:Vollendungen||C1.2
+783|Zeiten|np|tiempo|A1.1
+784|Strategie|nf:estrategias:die:Strategien||B1.2
+785|geopolitisch|af|geopolítico|C1.1
+786|Streifen; Gürtel|nf:franjas:der:Streifen||B2.1
+787|Erbin|nf:herederas:die:Erbinnen||B2.1
+788|konzeptionell|j||C1.1
+789|alte|af|antiguo|A2.1
+790|hervorgerufen|pp|suscitar|C1.1
+791|so viel|p||A1.2
+792|Bewunderung|nf:admiraciones:die:Bewunderungen||B1.1
+793|Ehrgeiz|nf:ambiciones:der:—||B1.2
+794|Bedenken|np|recelo|C1.1
+795|Auswirkungen|np|implicación|B2.1
+796|neokoloniale|ap|neocolonial|C1.2
+797|Diasporas|np|diáspora|C1.1
+798|zeitgenössische|afp|contemporáneo|B2.1
+799|gestalten|vp3p|configurar|B2.1
+800|Identitäten|np|identidad|B1.2
+801|transnationale|ap|transnacional|C1.1
+802|deren|pf|cuyo|B1.1
+803|Komplexität|nf:complejidades:die:Komplexitäten||B2.1
+804|fordert heraus|vp3|desafiar|B1.2
+805|Vorstellungen|np|noción|B2.1
+806|aus dem neunzehnten Jahrhundert|afp|decimonónico|C2.1
+807|Staatsbürgerschaft|nf:ciudadanías:die:Staatsbürgerschaften||B2.1
+808|Zugehörigkeit|nf:pertenencias:die:Zugehörigkeiten||B2.1
+809|bestimmen; gelten|vp3p|regir|C1.1
+810|Mehrheit|nf:mayorías:die:Mehrheiten||B1.1
+811|Rahmen|np|marco|B1.2
+812|rechtliche|ap|jurídico|B2.1
+813|Kommerzialisierung|nf:mercantilizaciones:die:Kommerzialisierungen||C1.2
+814|Wissen|nm:conocimientos:das:—||B1.1
+815|verschärft|pp|exacerbar|C1.1
+816|Abhängigkeit|nf:dependencias:die:Abhängigkeiten||B1.2
+817|Kennzahlen|np|métrica|C1.1
+818|bibliometrische|afp|bibliométrico|C2.1
+819|droht|vp3|amenazar|B1.1
+820|untergraben|v||C1.1
+821|Grundlage|nm:fundamentos:die:Grundlagen||B2.1
+822|wissenschaftlich|af|científico|B1.1
+823|Phänomenologie|nf:fenomenologías:die:Phänomenologien||C2.1
+824|städtisch|af|urbano|B1.1
+825|zeigt; enthüllt|vp3|revelar|B2.1
+826|hinter; nach|r||B1.1
+827|scheinbar|j||B1.2
+828|Homogenität|nf:homogeneidades:die:Homogenitäten||C1.2
+829|Armut|nf:pobrezas:die:—||B1.1
+830|sichtbar|j||A2.1
+831|verbergen sich|vp3p|esconderse|A2.1
+832|Lebenswege|np|trayectoria|C1.1
+833|lebensbezogene; lebenswichtige|ap|vital|B2.1
+834|verschiedene|afp|diverso|B1.1
+835|Kräfte|np|fuerza|A2.1
+836|strukturelle|ap|estructural|B2.1
+837|hervorbrachten|vt3p|producir|B1.1
+838|Mechanismen|np|mecanismo|B2.1
+839|wahrscheinlichkeitstheoretische|ap|probabilístico|C1.2
+840|liegen zugrunde|vp3p|subyacer|C1.2
+841|Verlosungen|np|sorteo|B1.1
+842|seien; werden|vsp3p|ser|B1.2
+843|erklärt|ppp|explicar|A2.1
+844|schaffen|vp3p|conseguir|A2.1
+845|abbringen|v||C1.1
+846|Spieler|nm:jugadores:der:Spieler||A2.1
+847|zwanghaft|j||B2.1
+848|Überzeugung|nf:convicciones:die:Überzeugungen||B2.1
+849|irrational|j||B2.1
+850|kann|vp3|poder|A1.1
+851|gezähmt|ppf|domesticar|B2.1
+852|Semiotik|nf:semióticas:die:Semiotiken||C2.1
+853|geht hinaus|vp3|trascender|C1.1
+854|bloße|af|mero|B2.1
+855|Nachahmung|nf:imitaciones:die:Nachahmungen||B1.2
+856|performativ|j||C1.2
+857|welcher; der|p||B1.1
+858|Individuum|nm:individuos:das:Individuen||B2.1
+859|verhandelt|vp3|negociar|B1.2
+860|Identität|nf:identidades:die:Identitäten||B1.2
+861|Schnittpunkt|nf:intersecciones:der:Schnittpunkte||C1.1
+862|Fiktion|nf:ficciones:die:Fiktionen||B2.1
+863|Selbstwahrnehmung|nf:autopercepciones:die:Selbstwahrnehmungen||C1.2
+864|Erwerb|nf:adquisiciones:der:Erwerbe||C1.1
+865|zweite|af|segundo|A1.1
+866|Alter|nf:edades:das:—||A1.1
+867|erwachsene|af|adulto|A2.1
+868|gestaltet neu|vp3|reconfigurar|C1.1
+869|Netze|np|red|B1.1
+870|neuronale|ap|neuronal|C1.1
+871|Hemisphäre|nm:hemisferios:die:Hemisphären||C1.1
+872|links|j||A1.1
+873|Studien|np|estudio|B1.1
+874|Neurobildgebung|nf:neuroimágenes:die:—||C2.2
+875|funktionell|j||B2.1
+876|ähnelt|vp3|asemejarse|C1.1
+877|Plastizität|nf:plasticidades:die:Plastizitäten||C1.2
+878|kindlich|j||B1.2
+879|glaubte|vi3|creer|A2.1
+880|wenig|d||A1.1
+881|jene|pf|aquel|A2.1
+882|Abendveranstaltung|nf:veladas:die:Abendveranstaltungen||C1.1
+883|begann|vt3|comenzar|A2.1
+884|Höflichkeit|nf:cortesías:die:Höflichkeiten||B1.1
+885|protokollarisch|af|protocolario|C1.1
+886|gipfelte|vt3|culminar|C1.1
+887|Katharsis|nf:catarsis:die:Katharsen||C2.1
+888|kollektiv|af|colectivo|B2.1
+889|Hervorhebung; Relief|idiom|relieve|C1.1
+890|Funktion|nf:funciones:die:Funktionen||B1.1
+891|anthropologisch|af|antropológico|C1.1
+892|Mechanismus|nm:mecanismos:der:Mechanismen||B2.1
+893|Zusammenhalt|nf:cohesiones:der:—||C1.1
+894|Doxologie|nf:doxologías:die:Doxologien||C2.1
+895|trinitarisch|af|trinitario|C2.1
+896|liturgisch|af|litúrgico|C1.2
+897|drückt aus|vp3|articular|B2.1
+898|Verständnis|nf:comprensiones:das:—||B1.1
+899|göttlich|j||B2.1
+900|ontologische|afp|ontológico|C2.1
+901|Denken|nm:pensamientos:das:—||B1.1
+902|philosophisch|j||B2.1
+903|Entwurzelung|nm:desarraigos:die:Entwurzelungen||C1.1
+904|bringt mit sich|vp3|conllevar|B2.1
+905|transnational|j||C1.1
+906|stellt|vp3|poner|A1.2
+907|Probe|nf:pruebas:die:Proben||A2.1
+908|Resilienz|nf:resiliencias:die:—||C1.1
+909|diejenigen; wer|ppro|quien|B1.1
+910|haben|vp3p|haber|A1.2
+911|können|vp3p|poder|A1.1
+912|wirklich|d||B1.1
+913|Arzt-Patienten-|compound|médico-paciente|C1.1
+914|Transformation|nf:transformaciones:die:Transformationen||B2.1
+915|paradigmatisch|af|paradigmático|C1.2
+916|Paternalismus|nm:paternalismos:der:—||C1.2
+917|hippokratisch|j||C2.1
+918|aus dem neunzehnten Jahrhundert|j||C2.1
+919|haben; sind|vp1p|haber|A1.2
+920|übergegangen|pp|transitar|B2.1
+921|in Richtung; hin zu|r||A2.1
+922|Modell|nm:modelos:das:Modelle||B1.1
+923|geteilt|ppf|compartir|A2.1
+924|paradoxerweise|d||C1.1
+925|steigert|vp3|incrementar|B2.1
+926|Angst|nf:ansiedades:die:Ängste||B1.2
+927|Burnout|nm:burnouts:das:Burnouts||B2.1
+928|Fachkräfte|np|profesional|B1.1
+929|medizinische; Gesundheits-|ap|sanitario|B2.1
+930|Pandemie|nf:pandemias:die:Pandemien||B1.2
+931|Ausmaße|np|proporción|B2.1
+932|solche|ppro|tal|B1.1
+933|selbe|af|mismo|A1.2
+934|öffentlich|af|público|A2.1
+935|ich|p||A1.1
+936|gebeten|pp|pedir|A2.1
+937|Entschuldigungen|np|disculpa|A1.2
+938|zu; zu viel|d||A1.2
+939|gefallen|pp|gustar|A1.2
+940|hättest; wärst|vsi2|haber|B2.1
+941|Bescheid gesagt|pp|avisar|B1.1
+942|gekonnt|pp|poder|A2.1
+943|Zeit|nm:tiempos:die:Zeiten||A1.1
+944|Auto|nm:coches:das:Autos||A1.1
+945|war|vi3|estar|A2.1
+946|beladen|pp|cargar|A2.1
+947|operiert|pp|operar|B1.1
+948|würde sich unterziehen|vc3|someterse|B1.2
+949|Eingriff|nf:intervenciones:der:Eingriffe||B1.2
+950|gewusst|pp|saber|A2.1
+951|Flug|nm:vuelos:der:Flüge||A1.2
+952|annulliert|pp|cancelar|A2.1
+953|Vorlauf|nf:anticipaciones:der:Vorläufe||B1.2
+954|sagte aus|vt3|declarar|B1.2
+955|bedroht|pp|amenazar|B1.1
+956|Angeklagte|ppp|acusar|B1.1
+957|Grund|nf:razones:der:Gründe||A2.1
+958|gewagt|pp|atreverse|B1.1
+959|sprechen|v||A1.1
+960|gegangen|pp|ir|A2.1
+961|hätte; wäre|vsi3|haber|B2.1
+962|nächste|j||A1.2
+963|gehört|pp|escuchar|A2.1
+964|Aufmerksamkeit|nf:atenciones:die:Aufmerksamkeiten||A2.1
+965|ganze; alle|pf|todo|A1.1
+966|behandelte; handelte|vt3|tratar|B1.1
+967|Vergebung|nm:perdones:die:Vergebungen||B1.1
+968|gewährt|pp|conceder|B1.2
+969|gewollt|pp|querer|A2.1
+970|dir sagen|cl|decir|A1.2
+971|fürchtete|vi3|temer|B1.1
+972|verstanden|pp|entender|A2.1
+973|wirklich|d||A2.1
+974|bedeutest|vp2|significar|A2.1
+975|mir; mich|prepobj|yo|A1.1
+976|zurückkehren|v||A1.2
+977|lernten kennen|vt1p|conocer|A2.1
+978|genau|d||A2.1
+979|sagte|vt1|decir|A2.1
+980|hättest; wärst|vc2|haber|B1.2
+981|gefunden|pp|encontrar|A2.1
+982|Situation|nf:situaciones:die:Situationen||A2.1
+983|heikel; verpflichtet|ppf|comprometer|B1.2
+984|genehmigt|ppf|aprobar|B1.1
+985|Einstimmigkeit|nf:unanimidades:die:—||B2.1
+986|normale|ap|normal|A1.2
+987|abgelehnt|ppf|rechazar|B1.1
+988|Mangel|nm:vicios:der:Mängel||B2.1
+989|entdeckt|pp|descubrir|A2.1
+990|Stunde|nf:horas:die:Stunden||A1.1
+991|gesehen|pp|ver|A2.1
+992|kennenlernen|v||A1.1
+993|Person|nf:personas:die:Personen||A1.1
+994|habe; bin|vp1|haber|A1.2
+995|kennengelernt|pp|conocer|A2.1
+996|hoffentlich; wenn doch|i||B1.1
+997|gehandelt|pp|actuar|B1.1
+998|mich beurteilen|cl|juzgar|B1.1
+999|gehabt; habend|ger|haber|B1.2
+1000|verhört|pp|interrogar|B1.2
+1001|gemacht; Tat|amb|hacer|A2.1
+1002|beliebig; jeder|apocp|cualquiera|A2.1
+1003|Ware|nf:mercancías:die:Waren||B1.1
+1004|transportiert|ppf|transportar|A2.1
+1005|hätten; wären|vc3p|haber|B1.2
+1006|genehmigt|ppfp|aprobar|B1.1
+1007|kein|apocp|ninguno|A1.2
+1008|Inspektor|nm:inspectores:der:Inspektoren||B1.2
+1009|kam an|vt3|llegar|A2.1
+1010|beschädigt|ppf|dañar|B1.1
+1011|Hafen|nm:puertos:der:Häfen||A2.1
+1012|seiend; werdend|ger|ser|B1.1
+1013|kolumbianisch; Kolumbianer|amb|colombiano|A2.1
+1014|erwartet|pp|esperar|A2.1
+1015|Deutsche|ap|alemán|A1.1
+1016|wären|vsi3p|ser|B1.2
+1017|kalte|ap|frío|A1.1
+1018|entdeckte|vt1|descubrir|A2.1
+1019|gebrochen|pp|romper|A2.1
+1020|Eis|nm:hielos:das:—||A1.2
+1021|unglaublich|d||B1.1
+1022|herzliche|afp|cálido|B1.1
+1023|Stadt|nf:ciudades:die:Städte||A1.1
+1024|existierte|vi3|existir|A2.1
+1025|gekommen|pp|venir|A2.1
+1026|Psychologe|nm:psicólogos:der:Psychologen||B1.1
+1027|gesagt|pp|decir|A2.1
+1028|Jahr|nm:años:das:Jahre||A1.1
+1029|gelacht|pp|reírse|A2.1
+1030|schau|imp|mirar|A1.1
+1031|jetzt|d||A1.1
+1032|Manipulator|nm:manipuladores:der:Manipulatoren||B2.1
+1033|identifiziert|pp|identificar|B1.1
+1034|Unsicherheiten|np|inseguridad|B1.2
+1035|benutzt|pp|utilizar|A2.1
+1036|Hebel|np|palanca|B2.1
+1037|emotionale|ap|emocional|B1.1
+1038|erreichen|v||A2.1
+1039|wünschte|vi3|desear|A2.1
+1040|Dokumentation|nf:documentaciones:die:Dokumentationen||B1.2
+1041|geprüft|ppf|revisar|B1.1
+1042|Instanzen|np|instancia|C1.1
+1043|ausreichend|j||A2.1
+1044|gefehlt|pp|faltar|A2.1
+1045|Unterschrift|nf:firmas:die:Unterschriften||A2.1
+1046|Adventisten|np|adventista|B2.1
+1047|beibehalten|pp|mantener|B1.1
+1048|hinsichtlich|idiom|respecto|B2.1
+1049|Merkmale|np|seña|B1.2
+1050|unterscheidet|vp3|distinguir|B1.2
+1051|gelaufen; hinausgegangen|pp|salir|A2.1
+1052|gut|d||A1.1
+1053|koordiniert|pp|coordinar|B1.2
+1054|Präzision|nf:precisiones:die:Präzisionen||B2.1
+1055|gewährt|ppf|conceder|B1.2
+1056|beginnen|v||A1.2
+1057|Semester|nm:semestres:das:Semester||A2.1
+1058|Sorgen|np|preocupación|A2.1
+1059|finanzielle|afp|financiero|B1.2
+1060|Wanderer|nc:senderistas:der:Wanderer||B1.1
+1061|erschöpft|pp|agotar|B1.1
+1062|gewandert|pp|caminar|A2.1
+1063|sieben|num|siete|A1.1
+1064|Gelände|nm:terrenos:das:Gelände||B1.1
+1065|kartiert|pp|cartografiar|C1.1
+1066|entschied|vt3|decidir|A2.1
+1067|Rand|nm:bordes:der:Ränder||A2.1
+1068|Fluss|nm:ríos:der:Flüsse||A1.2
+1069|unvorstellbar|j||B2.1
+1070|wer; der|p||A2.1
+1071|anvertraut|pp|confiar|B1.1
+1072|heikel|af|delicado|B1.2
+1073|überprüft|pp|verificar|B1.2
+1074|persönlich|d||A2.1
+1075|alle|ppro|todo|A1.1
+1076|Instrumente|np|instrumento|A2.1
+1077|wären|vsi3p|estar|B1.2
+1078|sterilisiert|ppp|esterilizar|B2.1
+1079|deren|pfp|cuyo|B1.1
+1080|Anträge|np|solicitud|B1.1
+1081|abgelehnt|ppfp|rechazar|B1.1
+1082|Gründe|np|motivo|A2.1
+1083|bloß|d||B2.1
+1084|bürokratische|ap|burocrático|B2.1
+1085|Beratung|nf:asesorías:die:Beratungen||B1.2
+1086|rechtlich|j||B1.1
+1087|sie|ppro|él|A1.1
+1088|erhalten|pp|obtener|B1.1
+1089|verdienten|vi3p|merecer|B1.1
+1090|Beweismaterial|nf:evidencias:das:Beweismaterialien||B2.1
+1091|gesammelt|ppf|recopilar|B2.1
+1092|Monate|np|mes|A1.1
+1093|Forscher|np|investigador|B1.1
+1094|ausgewählt|ppp|seleccionar|B1.1
+1095|gezielt; ausdrücklich|d||B2.1
+1096|Fall|nm:casos:der:Fälle||A2.1
+1097|gereicht|pp|bastar|B1.1
+1098|erlassen|v||B2.1
+1099|Urteil|nf:sentencias:das:Urteile||B1.2
+1100|erklärt|pp|declarar|B1.2
+1101|verfahrensrechtlich|j||C1.1
+1102|überquert|pp|cruzar|A2.1
+1103|Ozeane|np|océano|A2.1
+1104|dich finden|cl|encontrar|A1.2
+1105|Seele|nf:almas:die:Seelen||B1.1
+1106|deine|pf|tuyo|A1.2
+1107|geht; passiert|vp3|pasar|A1.2
+1108|unbemerkt|af|desapercibido|B2.1
+1109|meine|ppro|mi|A1.1
+1110|Augen|np|ojo|A1.1
+1111|gewöhnt|ppp|acostumbrar|A2.1
+1112|Schatten|np|sombra|A2.1
+1113|Einsamkeit|nf:soledades:die:Einsamkeiten||B1.1
+1114|weitergemacht; gefolgt|pp|seguir|A2.1
+1115|dich suchend|gercl|buscar|A2.1
+1116|suchten|vi3p|buscar|A2.1
+1117|würde überleben|vc3|sobrevivir|B1.2
+1118|Winter|nm:inviernos:der:Winter||A1.1
+1119|sich beschweren|v||A2.1
+1120|war; wurde|vi3|ser|A2.1
+1121|verlogen|j||B1.1
+1122|Wahlkampf|nf:campañas:der:Wahlkämpfe||B1.2
+1123|verteilt|ppf|repartir|B1.1
+1124|gerecht|af|justo|A2.1
+1125|Universum|nm:universos:das:Universen||B1.1
+1126|protestiert|pp|protestar|B1.1
+1127|gaben|vt3p|dar|A2.1
+1128|stand zu; entsprach|vi3|corresponder|B1.2
+1129|Überzeuger|nm:persuasores:der:Überzeuger||C1.1
+1130|begriffen|pp|comprender|A2.1
+1131|Widerstand|nf:resistencias:der:Widerstände||B1.2
+1132|Gesprächspartner|nm:interlocutores:der:Gesprächspartner||C1.1
+1133|motiviert|ppf|motivar|B1.1
+1134|Angst|nm:miedos:die:Ängste||A2.1
+1135|angepasst|pp|ajustar|B1.2
+1136|kommunikativ|af|comunicativo|B1.2
+1137|verlieren|v||A1.2
+1138|Glaubwürdigkeit|nf:credibilidades:die:—||B2.1
+1139|verteidigt|ppf|defender|B1.1
+1140|Erfolg|nm:éxitos:der:Erfolge||A2.1
+1141|Doktorand|nm:doctorandos:der:Doktoranden||B2.1
+1142|ausgelassen|pp|omitir|B2.1
+1143|Daten|np|dato|A2.1
+1144|entscheidende|ap|crucial|B2.1
+1145|hatte; musste|vt3|tener|A2.1
+1146|neu geschrieben|ppf|reescribir|B1.2
+1147|null|num|cero|A1.1
+1148|Aufsicht|nf:supervisiones:die:Aufsichten||B2.1
+1149|neu|j||A1.1
+1150|Leiter|nm:directores:der:Leiter||A2.1
+1151|Gelder|np|fondo|B1.1
+1152|gesammelt|ppp|recaudar|B2.1
+1153|organisiert|ppp|organizar|A2.1
+1154|Freiwillige|np|voluntario|B1.1
+1155|engagierte; verpflichtete|ppp|comprometer|B1.2
+1156|finanzieren|v||B1.1
+1157|Projekt|nm:proyectos:das:Projekte||A2.1
+1158|veruntreut|ppp|malversar|C1.1
+1159|Gremium|nf:juntas:das:Gremien||B2.1
+1160|leitend|af|directivo|B2.1
+1161|abgeholt|pp|recoger|A2.1
+1162|Dienste|np|servicio|A2.1
+1163|soziale|ap|social|A2.1
+1164|gemeldet; angezeigt|pp|denunciar|B1.1
+1165|lebte seit; trug|vi3|llevar|A2.1
+1166|überlebend|ger|sobrevivir|B1.2
+1167|Dank; danke|np|gracia|A1.1
+1168|Wohltätigkeit|nf:caridades:die:Wohltätigkeiten||B2.1
+1169|Passanten|np|transeúnte|B2.1
+1170|Cosplayer|nc:cosplayers:der:Cosplayer||B2.1
+1171|dessen|p||B1.1
+1172|Kostüm|nm:disfraces:das:Kostüme||B1.1
+1173|ausgezeichnet|pp|premiar|B1.2
+1174|Kongress; Convention|nf:convenciones:der:Kongresse||B1.2
+1175|disqualifiziert|pp|descalificar|B2.1
+1176|Materialien|np|material|B1.1
+1177|verwendet|ppp|utilizar|A2.1
+1178|angegeben|ppp|declarar|B1.2
+1179|Regelwerk|nm:reglamentos:das:Regelwerke||B1.2
+1180|verlaufen|pp|transcurrir|B2.1
+1181|Zwischenfälle|np|incidente|B1.1
+1182|beauftragt|ppf|contratar|B1.1
+1183|erfüllt|pp|cumplir|B1.1
+1184|vereinbarte|ppfp|pactar|B2.1
+1185|Katastrophe|nm:desastres:die:Katastrophen||B1.1
+1186|logistisch|j||B2.1
+1187|epische|afp|épico|C1.1
+1188|Gläubige|ap|fiel|B1.2
+1189|gewarnt|ppp|advertir|B1.1
+1190|Gefahren|np|peligro|A2.1
+1191|Materialismus|nm:materialismos:der:—||B2.1
+1192|gefallen|pp|caer|A2.1
+1193|Falle|nf:trampas:die:Fallen||B1.1
+1194|Konsumismus|nm:consumismos:der:—||C1.1
+1195|Werte|np|valor|B1.1
+1196|Zeugen|np|testigo|B1.1
+1197|wirtschaftlich|af|económico|B1.1
+1198|schnell|af|rápido|A1.1
+1199|Geschichte|nf:historias:die:Geschichten||A1.2
+1200|Bürger|np|ciudadano|B1.1
+1201|ältere; größere|compp|grande|A2.1
+1202|oft|idiom|menudo|A2.1
+1203|fragen|vp3p|preguntar|A1.1
+1204|Moderne|nf:modernidades:die:—||B2.1
+1205|erreicht|ppf|alcanzar|B1.1
+1206|Kosten; Küste|idiom|costa|B1.2
+1207|Tradition|nf:tradiciones:die:Traditionen||A2.1
+1208|freigesprochen|pp|absolver|C1.1
+1209|gutachterliche|ap|pericial|C1.1
+1210|verurteilt; beurteilt|pp|juzgar|B1.1
+1211|Normen|np|norma|B1.2
+1212|gegolten|pp|regir|C1.1
+1213|unparteiisch|j||B2.1
+1214|Ergebnis|nm:resultados:das:Ergebnisse||A2.1
+1215|diametral|d||C1.1
+1216|entgegengesetzt|pp|oponer|B2.1
+1217|anvertraut|pp|encomendar|C1.1
+1218|komplex|af|complejo|B1.2
+1219|durchgeführt|pp|realizar|B1.1
+1220|Klinik|nf:clínicas:die:Kliniken||A2.1
+1221|konsultiert|pp|consultar|B1.1
+1222|Ergebnisse|np|resultado|A2.1
+1223|Magnetresonanztomografie|nf:resonancias:die:Magnetresonanztomografien||C1.2
+1224|analysiert|ppp|analizar|B1.2
+1225|Radiologie|nf:radiologías:die:—||C1.1
+1226|verstanden|ppf|entender|A2.1
+1227|jenes; das|p||A2.1
+1228|akzeptiert|pp|aceptar|A2.1
+1229|geblendet|pp|cegar|B2.1
+1230|eigene|ap|propio|A2.1
+1231|Verzerrungen|np|sesgo|B2.1
+1232|gelehrt|ppf|enseñar|A2.1
+1233|Schulen|np|escuela|A1.1
+1234|Qualität|nf:calidades:die:Qualitäten||A2.1
+1235|verbessert|pp|mejorar|A2.1
+1236|unermesslich|d||C1.2
+1237|irgendeine|pf|alguno|A1.2
+1238|fragen würden|vsi3p|preguntar|B1.2
+1239|welcher|p||A1.1
+1240|verändert; getauscht|pp|cambiar|A2.1
+1241|nichts|p||A1.1
+1242|würde sagen|vc3|decir|B1.1
+1243|zögern|v||B2.1
+1244|jener|p||A2.1
+1245|dich bereits habend|gercl|haber|B2.1
+1246|kaum; erst|d||B1.1
+1247|einige; ein paar|tfp|un|A1.1
+1248|gewählt|pp|elegir|B1.1
+1249|gefangen|ppfp|atrapar|B1.1
+1250|Kehle|nf:gargantas:die:Kehlen||A2.1
+1251|Silbe|nf:sílabas:die:Silben||A2.1
+1252|spreche aus|vp1|pronunciar|A2.1
+1253|damals; dann; seitdem|d||A1.2
+1254|versteckt|ppf|encubrir|C1.1
+1255|dich suchen|cl|buscar|A1.2
+1256|Wissenschaft|nf:ciencias:die:Wissenschaften||B1.1
+1257|modern|af|moderno|A2.1
+1258|Wissenschaftler|np|científico|B1.1
+1259|erschaffen|v||A2.1
+1260|neue|af|nuevo|A1.1
+1261|Einheit|nf:unidades:die:Einheiten||B1.1
+1262|quantifizieren|v||C1.1
+1263|Kolumbien|name|Colombia|A1.2
+1264|Peso; Gewicht|nm:pesos:der:Pesos||A2.1
+1265|Ausland; ausländisch; Ausländer|amb|extranjero|A2.1
+1266|vermisst; seltsam|amb|extrañar|A2.1
+1267|bezahlt|pp|pagar|A2.1
+1268|Schuld|nf:deudas:die:Schulden||B1.1
+1269|äußere|af|externo|B1.2
+1270|Weile|nm:ratos:die:Weilen||A2.1
+1271|Verankerung|nm:anclajes:die:Verankerungen||C1.1
+1272|kognitiv|j||C1.1
+1273|analysiert|pp|analizar|B1.2
+1274|unzählige|ap|innumerable|B2.1
+1275|unbemerkte|ap|desapercibido|B2.1
+1276|Verbreitung|nf:difusiones:die:Verbreitungen||B2.1
+1277|medial|af|mediático|B2.1
+1278|beweist|vp3|demostrar|B1.1
+1279|erhalten|ppf|recibir|A2.1
+1280|prägt|vp3|moldear|B2.1
+1281|unumkehrbar|d||C1.1
+1282|Rahmen|nm:marcos:der:Rahmen||B1.2
+1283|drinnen; innerhalb|d||A1.2
+1284|Entscheidungen|np|decisión|A2.2
+1285|spätere|ap|posterior|B2.1
+1286|getroffen; genommen|ppfp|tomar|A2.1
+1287|reformiert|ppfp|reformar|B2.1
+1288|Gesetzgeber|np|legislador|B2.1
+1289|Jahrzehnte|np|década|B1.1
+1290|dokumentiert|pp|documentar|B1.2
+1291|Folgen|np|consecuencia|B1.1
+1292|Bürokratie|nf:burocracias:die:Bürokratien||B2.1
+1293|Antragsteller|np|solicitante|B1.2
+1294|bleiben|vp3p|permanecer|B1.1
+1295|festgefahren|ppfp|estancar|C1.1
+1296|Paradigma|nm:paradigmas:das:Paradigmen||C1.1
+1297|aufgegeben|pp|abandonar|B1.1
+1298|bereist|ppf|recorrer|B1.1
+1299|Händler|np|mercader|C1.1
+1300|Vermögen|np|fortuna|B1.2
+1301|undenkbare|ap|impensable|B2.1
+1302|Toleranz|nf:tolerancias:die:Toleranzen||B1.2
+1303|Khane|np|kan|C1.2
+1304|mongolische; Mongolen|ap|mongol|B2.1
+1305|Präzedenzfall|nm:precedentes:der:Präzedenzfälle||C1.1
+1306|Globalisierung|nf:globalizaciones:die:Globalisierungen||B2.1
+1307|sich wiederholen|v||B2.1
+1308|geopolitische|afp|geopolítico|C1.1
+1309|Pünktlichkeit|nf:puntualidades:die:—||A2.1
+1310|betrachtet|ppf|considerar|B1.1
+1311|legendär|af|legendario|B2.1
+1312|Fahrgast|nm:pasajeros:der:Fahrgäste||A2.1
+1313|Fleisch; Leib|nf:carnes:das:—||A1.1
+1314|ständige|ap|constante|B1.1
+1315|Verspätungen|np|retraso|A2.1
+1316|Deutsche|name|Deutsche Bahn|A2.1
+1317|Bahn|name|Deutsche Bahn|A2.1
+1318|funktionieren würde|vsi3|funcionar|B1.2
+1319|Broschüren|np|folleto|B1.1
+1320|versprechen|vp3p|prometer|A2.1
+1321|Reisende|np|viajero|A2.1
+1322|gezwungen|ppp|obligar|B1.1
+1323|planen|v||B1.1
+1324|Spielräume|np|margen|B2.1
+1325|Fehler|nm:errores:der:Fehler||A1.2
+1326|absurde|ap|absurdo|B1.2
+1327|angestimmt|ppf|entonar|B1.2
+1328|Generationen|np|generación|B1.1
+1329|deren; dessen|ppro|cuyo|B1.1
+1330|Vorfahren|np|antepasado|B1.2
+1331|verfolgt|ppp|perseguir|B1.1
+1332|gleichen|afp|mismo|A1.2
+1333|gefeiert|ppfp|celebrar|A2.1
+1334|Tempel|np|templo|B1.1
+1335|gebaut|ppp|construir|A2.1
+1336|Opfer|nm:sacrificios:das:Opfer||B1.2
+1337|hallt wider|vp3|resonar|B2.1
+1338|Tiefe|nf:profundidades:die:Tiefen||B1.2
+1339|theologisch|af|teológico|B2.1
+1340|verstanden|ppf|comprender|A2.1
+1341|spirituell|j||B1.2
+1342|doktoral|j||C1.1
+1343|veröffentlicht|ppf|publicar|B1.1
+1344|Zeitschrift|nf:revistas:die:Zeitschriften||A1.2
+1345|hoch; übersehen (pasar por alto)|amb|alto|A1.2
+1346|Wirkung|nm:impactos:die:Wirkungen||B1.2
+1347|bewertend|j||B2.1
+1348|infrage gestellt|pp|cuestionar|B1.2
+1349|validiert|ppf|validar|B2.1
+1350|Fachkollegen; Paare|np|par|B2.1
+1351|externe|ap|externo|B1.2
+1352|unterzogen|ppf|someter|B1.2
+1353|Überprüfung|nf:revisiones:die:Überprüfungen||B1.1
+1354|gründlich|af|exhaustivo|C1.1
+1355|demoralisiert|pp|desmoralizar|C1.1
+1356|Forscher|nm:investigadores:der:Forscher||B1.1
+1357|beharrlich|j||B2.1
+1358|Lotterie|nf:loterías:die:Lotterien||B1.1
+1359|Gewinne|np|premio|A2.1
+1360|verteilt|ppp|repartir|B1.1
+1361|gerecht|af|equitativo|B2.1
+1362|ideal|j||A2.1
+1363|entworfen|ppf|diseñar|B1.1
+1364|ausbeuten|v||B2.1
+1365|Optimismus|nm:optimismos:der:—||B1.2
+1366|hindert|vp3|impedir|B1.1
+1367|berechnen|v||B1.1
+1368|richtig|d||A2.1
+1369|Wahrscheinlichkeiten|np|probabilidad|B2.1
+1370|Warteschlangen|np|cola|A2.1
+1371|gegenüber; Vorderseite|idiom|frente|A2.1
+1372|Punkte; Stellen|np|punto|A1.2
+1373|Verkauf|nf:ventas:der:Verkäufe||A2.1
+1374|verschwunden|pp|desaparecer|B1.1
+1375|begänne|vsi3|empezar|B1.2
+1376|Unwetter|nf:tormentas:das:Unwetter||A2.1
+1377|sagten|vt3p|decir|A2.1
+1378|abgesagt|ppf|cancelar|A2.1
+1379|rief an|vt1|llamar|A2.1
+1380|bestätigen|v||A2.1
+1381|Termin|nf:citas:der:Termine||A1.2
+1382|Paket|nm:paquetes:das:Pakete||A1.2
+1383|zugestellt|pp|entregar|B1.1
+1384|vergangene; übersehen (pasar por alto)|ppf|pasar|A1.2
+1385|noch|d||A1.1
+1386|gesprochen|pp|hablar|A2.1
+1387|mit mir|ct|con + mí|A1.2
+1388|mich konsultieren|cl|consultar|B1.1
+1389|denken|v||A1.1
+1390|wüsstest|vsi2|saber|B1.2
+1391|ansieht|vsp3|mirar|B1.1
+1392|seltsam|j||A2.1
+1393|lächelst|vp2|sonreír|A1.2
+1394|gewarnt|pp|advertir|B1.1
+1395|verlassen|v||B1.1
+1396|Land|nm:países:das:Länder||A1.1
+1397|entdeckt|pp|detectar|B1.2
+1398|Flughafen|nm:aeropuertos:der:Flughäfen||A1.1
+1399|sprechen aus|vp1p|pronunciar|A2.1
+1400|erhört|ppf|escuchar|A2.1
+1401|Ohren|np|oído|A1.2
+1402|würde verändern|vc3|transformar|B1.1
+1403|gelehrt|pp|enseñar|A2.1
+1404|treffen; nehmen|vp3p|tomar|A1.2
+1405|dann; später|d||A1.1
+1406|rechtfertigen|vp3p|justificar|B1.2
+1407|Argumente|np|argumento|B1.1
+1408|rationale|ap|racional|B2.1
+1409|Exposition|nf:exposiciones:die:Expositionen||B2.1
+1410|Zajonc|name|Zajonc|C1.1
+1411|neigen|vp1p|tender|B1.1
+1412|bevorzugen|v||A2.1
+1413|vertraut|j||A2.1
+1414|sogar|d||A2.1
+1415|sind|vp1p|ser|A1.1
+1416|bewusste|ap|consciente|B1.2
+1417|es haben|cl|haber|B1.1
+1418|Sache|nf:cosas:die:Sachen||A1.1
+1419|dich bereits haben|cl|haber|B1.1
+1420|gewesen|pp|estar|A2.1
+1421|bereit; vorbereitet|pp|preparar|A2.1
+1422|dich lieben|cl|amar|A1.2
+1423|verdienst|vp2|merecer|B1.1
+1424|Süße|dimin|mamá|B1.1
+1425|Vallenato|nm:vallenatos:der:Vallenatos||C1.1
+1426|Diomedes|name|Diomedes Díaz|B2.1
+1427|Díaz|name|Diomedes Díaz|B2.1
+1428|höre|vp1|escuchar|A1.1
+1429|erkennt|vp3|reconocer|A2.1
+1430|einzig|j||A2.1
+1431|grüßt|vp3|saludar|A1.1
+1432|eintreten|v||A1.1
+1433|Aufzug|nm:ascensores:der:Aufzüge||A1.2
+1434|Mitglieder|np|miembro|A2.1
+1435|Kirche|nf:iglesias:die:Kirchen||A1.2
+1436|ausgebildet|ppp|formar|B1.1
+1437|kritisch|j||B1.1
+1438|unterscheiden|v||B1.2
+1439|echt|af|genuino|B2.1
+1440|religiös|af|religioso|B1.1
+1441|begründet|ppf|fundamentar|B2.1
+1442|gesammelt|ppfp|recopilar|B2.1
+1443|unregelmäßig|j||A2.1
+1444|aufgehoben|ppf|anular|B1.2
+1445|Berufung|nf:apelaciones:die:Berufungen||B2.1
+1446|ausgestattet|pp|equipar|B1.1
+1447|Systeme|np|sistema|A2.1
+1448|moderne|ap|moderno|A2.1
+1449|Überfahrt|nf:travesías:die:Überfahrten||B1.2
+1450|vernünftig|j||B1.1
+1451|warten|v||A1.1
+1452|aufgelöst; frei geworden|pp|despejar|B1.2
+1453|versuchen|v||A2.1
+1454|Student|nc:estudiantes:der:Studenten||A1.1
+1455|geknüpft; bedingt|ppf|condicionar|B2.1
+1456|beibehalten|v||B1.1
+1457|Durchschnitt|nm:promedios:der:Durchschnitte||B1.2
+1458|gezwungen|pp|obligar|B1.1
+1459|verzichten|v||B1.1
+1460|Technik|nf:técnicas:die:Techniken||B1.1
+1461|Fuß|nm:pies:der:Füße||A1.1
+1462|erhält|vp3|obtener|B1.1
+1463|klein|j||A1.1
+1464|Verpflichtung|nm:compromisos:die:Verpflichtungen||B1.2
+1465|größer; älter|comp|grande|A2.1
+1466|angewandt|ppf|aplicar|B1.1
+1467|ethisch|af|ético|B2.1
+1468|gebildet|pp|constituir|B2.1
+1469|pädagogisch|af|educativo|B1.2
+1470|wertvoll|af|valioso|B1.1
+1471|Dunning-Kruger|name|Dunning-Kruger|C1.1
+1472|fehlinterpretiert|pp|malinterpretar|B2.1
+1473|zitieren|vp3p|citar|B1.1
+1474|gelesen|pp|leer|A2.1
+1475|geworden|pp|convertir|B1.1
+1476|Beispiel|nm:ejemplos:das:Beispiele||A1.1
+1477|versucht; beabsichtigt|vp3|pretender|B1.1
+1478|beschreiben|v||A2.1
+1479|fühlte|vi3|sentir|A2.1
+1480|vielleicht (tal vez); so (tal como)|idiom|tal|B1.1
+1481|vermieden|pp|evitar|B1.1
+1482|Ungewissheit|nf:incertidumbres:die:Ungewissheiten||B2.1
+1483|beide|ppro|ambos|A2.1
+1484|spielten|vi1p|jugar|A2.1
+1485|vortäuschen|v||B1.2
+1486|Gleichgültigkeit|nf:indiferencias:die:—||B2.1
+1487|schöne|af|hermoso|A2.1
+1488|verursachst|vp2|causar|B1.1
+1489|trittst ein|vp2|entrar|A1.2
+1490|Zimmer|nf:habitaciones:das:Zimmer||A1.1
+1491|abwenden|v||B1.1
+1492|Blick|nf:miradas:der:Blicke||A2.1
+1493|Mittagessen|nm:almuerzos:das:Mittagessen||A1.1
+1494|Suppe|nf:sopas:die:Suppen||A1.1
+1495|Auto|nm:carros:das:Autos||A1.1
+1496|Benzin|nf:gasolinas:das:—||A2.1
+1497|sah an|vt3|mirar|A2.1
+1498|Klingonisch|name|klingon|C1.1
+1499|unbewusste|ap|inconsciente|B2.1
+1500|theoretisiert|ppp|teorizar|C1.1
+1501|Anna|name|Anna Freud|A2.1
+1502|Freud|name|Anna Freud|B2.1
+1503|Erweiterung|nf:extensiones:die:Erweiterungen||B1.2
+1504|Werk|nf:obras:das:Werke||B1.1
+1505|Vater|nm:padres:der:Väter||A1.1
+1506|geblieben|pp|permanecer|B1.1
+1507|Dunkelheit|nf:oscuridades:die:Dunkelheiten||B1.1
+1508|bekannt gemacht|ppp|popularizar|B2.1
+1509|Psychotherapie|nf:psicoterapias:die:Psychotherapien||B2.1
+1510|Behörden|np|autoridad|B1.2
+1511|Einwanderung|nf:inmigraciones:die:Einwanderungen||B1.1
+1512|bearbeitet|pp|procesar|B1.2
+1513|Sorgfalt|nf:diligencias:die:—||C1.1
+1514|eigen|j||A2.1
+1515|verlangt|vp3|exigir|B1.1
+1516|Hunderte|numpl|ciento|A2.1
+1517|Familien|np|familia|A1.1
+1518|getrennt|ppfp|separar|A2.1
+1519|informiert|pp|informar|A2.1
+1520|zeigte; wies auf|vi3|presentar|A2.1
+1521|Reaktion|nf:reacciones:die:Reaktionen||B1.1
+1522|ungünstige; unerwünschte|af|adverso|B2.1
+1523|vorhergesehen|ppf|prever|B2.1
+1524|Analysen|np|análisis|B1.2
+1525|präoperative|ap|preoperatorio|C1.2
+1526|improvisieren|v||B1.2
+1527|Protokoll|nm:protocolos:das:Protokolle||B1.2
+1528|Notfall|nf:emergencias:der:Notfälle||A2.1
+1529|gebaut|ppf|construir|A2.1
+1530|lang|j||A1.1
+1531|mehrere|ppro|vario|A2.1
+1532|Jahrhunderte|np|siglo|A2.1
+1533|Millionen|numpl|millón|A2.1
+1534|Arbeiter|np|trabajador|A2.1
+1535|gezwungene; Zwangs-|ppp|forzar|B1.2
+1536|dokumentiert|ppf|documentar|B1.2
+1537|Technologie|nf:tecnologías:die:Technologien||B1.1
+1538|aktuell|j||A2.1
+1539|Bau|nf:construcciones:der:Bauten||B1.1
+1540|wünschenswert|j||B2.1
+1541|so viele|ppro|tanto|A1.2
+1542|Änderungen|np|cambio|A2.1
+1543|doktrinäre|ap|doctrinal|C1.1
+1544|erhalten|pp|recibir|A2.1
+1545|Erklärung|nf:explicaciones:die:Erklärungen||A2.1
+1546|neue|afp|nuevo|A1.1
+1547|Richtlinien|np|directriz|C1.1
+1548|umgesetzt|ppfp|implementar|B2.1
+1549|konzeptualisiert|pp|conceptualizar|C1.2
+1550|Dichter|np|poeta|B1.1
+1551|Jahrhundert|nm:siglos:das:Jahrhunderte||A2.1
+1552|Gold|nm:oros:das:—||A2.1
+1553|beraubt|pp|despojar|C1.1
+1554|Dimension|nf:dimensiones:die:Dimensionen||B2.1
+1555|lyrisch|af|lírico|C1.1
+1556|zeitgenössisch|af|contemporáneo|B2.1
+1557|Romanze|nm:romances:die:Romanzen||B1.2
+1558|bewahrt|pp|conservar|B1.1
+1559|Liebeswerbung|nm:cortejos:die:Liebeswerbungen||C1.1
+1560|Wort|nf:palabras:das:Wörter||A1.1
+1561|geschätzt|ppf|valorar|B1.1
+1562|erlesen|j||B2.1
+1563|hast; bist|vp2|haber|A1.2
+1564|gewidmet|pp|dedicar|B1.1
+1565|sie verwandeln|cl|convertir|B1.1
+1566|Sternbild|nf:constelaciones:das:Sternbilder||B2.1
+1567|Firmament|nm:firmamentos:das:Firmamente||C1.1
+1568|Astronomen|np|astrónomo|B2.1
+1569|erklären|v||A2.1
+1570|Theorien|np|teoría|B1.1
+1571|Overton|name|Overton|C1.1
+1572|konzipiert|ppf|concebir|B2.1
+1573|Ideen|np|idea|A1.2
+1574|randständige|ap|marginal|B2.1
+1575|allmählich|d||B1.2
+1576|normalisiert|ppfp|normalizar|B2.1
+1577|Wiederholung|nf:repeticiones:die:Wiederholungen||A2.1
+1578|strategisch|af|estratégico|B2.1
+1579|harmlos|af|inocuo|C1.1
+1580|vereinnahmt|ppf|cooptar|C2.1
+1581|Ideologen|np|ideólogo|C1.1
+1582|Ziel|nm:objetivos:das:Ziele||A2.1
+1583|verschieben|v||B1.2
+1584|Grenzen|np|límite|B1.1
+1585|akzeptabel|j||B1.1
+1586|Autorität|nf:autoridades:die:Autoritäten||B1.2
+1587|gehorchen|v||B1.1
+1588|Anweisungen|np|instrucción|A2.1
+1589|Figuren; Persönlichkeiten|np|figura|B1.1
+1590|wahrgenommen|ppfp|percibir|B1.2
+1591|überlegene|ap|superior|B2.1
+1592|Legitimität|nf:legitimidades:die:Legitimitäten||C1.1
+1593|Milgram|name|Milgram|C1.1
+1594|berühmt|j||B1.1
+1595|Experiment|nm:experimentos:das:Experimente||B1.1
+1596|gefehlt|pp|carecer|B2.1
+1597|Säulen|np|pilar|B1.2
+1598|empirische|ap|empírico|C1.1
+1599|verstörende|ap|perturbador|B2.1
+1600|aufhört; lässt|vsp3|dejar|B1.1
+1601|sagen|v||A1.1
+1602|was geht|ct|qué hubo|B1.2
+1603|antworten|v||A1.1
+1604|Telefon|nm:teléfonos:das:Telefone||A1.1
+1605|werden wissen|vf1p|saber|A2.2
+1606|wird haben|vf3|haber|B1.1
+1607|gewonnen|pp|ganar|A2.1
+1608|Schlacht|nf:batallas:die:Schlachten||B1.2
+1609|Arepa|nf:arepas:die:Arepas||B2.1
+1610|ersetzt|ppf|reemplazar|B1.1
+1611|Croissant|nm:croissants:das:Croissants||A2.1
+1612|Verhör|nm:interrogatorios:das:Verhöre||B2.1
+1613|eingestuft|ppfp|clasificar|B1.2
+1614|Folter|nf:torturas:die:—||B2.1
+1615|zahlreiche|ap|múltiple|B1.2
+1616|Organisationen; Organe|np|organismo|B1.2
+1617|internationale|ap|internacional|A2.1
+1618|Euphemismus|nm:eufemismos:der:Euphemismen||C1.2
+1619|verbesserte|ppfp|mejorar|A2.1
+1620|reagiert|pp|reaccionar|B1.1
+1621|Empörung|nf:indignaciones:die:Empörungen||B2.1
+1622|Schwere|nf:gravedades:die:—||B2.1
+1623|verlangte|vi3|demandar|B2.1
+1624|Gentrifizierung|nf:gentrificaciones:die:Gentrifizierungen||C1.1
+1625|Stadtviertel|np|barrio|A2.1
+1626|traditionell|d||B1.1
+1627|bettelten|vi3p|mendigar|B1.1
+1628|Benachteiligte|ppp|desfavorecer|B2.1
+1629|Folge|nf:consecuencias:die:Folgen||B1.1
+1630|pervers; verkehrt|af|perverso|B2.1
+1631|unsichtbar machen|v||C1.1
+1632|sie verdrängend|gercl|desplazar|B2.1
+1633|Zonen|np|zona|A2.1
+1634|periphere|afp|periférico|C1.1
+1635|Solidarität|nf:solidaridades:die:—||B1.2
+1636|nachbarschaftlich|j||B2.1
+1637|abfedern|v||B2.1
+1638|Auswirkungen|np|efecto|B1.1
+1639|praktisch; nahezu|d||B1.1
+1640|inexistent|j||B2.1
+1641|hepatisch|j||C1.2
+1642|angesehen|pp|considerar|B1.1
+1643|halb; Mitte|amb|medio|A1.2
+1644|Verfahren|nm:procedimientos:das:Verfahren||B2.1
+1645|Rate|nf:tasas:die:Raten||B1.2
+1646|gesteigert|ppf|incrementar|B2.1
+1647|Immunsuppression|nf:inmunosupresiones:die:Immunsuppressionen||C2.1
+1648|übersteigt|vp3|superar|B1.1
+1649|neunzig|num|noventa|A1.1
+1650|Zentren|np|centro|A1.2
+1651|spezialisierte|ppp|especializar|B1.2
+1652|Konfuzianismus|nm:confucianismos:der:—||C1.1
+1653|Lehren|np|enseñanza|B1.1
+1654|vergessen|ppfp|olvidar|A2.1
+1655|zusammengestellt|ppfp|compilar|C1.1
+1656|Schüler|np|discípulo|B2.1
+1657|verstanden|vt3p|comprender|A2.1
+1658|Tragweite|nf:trascendencias:die:Tragweiten||C1.1
+1659|Meister|nm:maestros:der:Meister||B1.1
+1660|durchdrungen|pp|permear|C1.1
+1661|Schicht|nm:estratos:die:Schichten||C1.1
+1662|Vorstellung|nf:concepciones:die:Vorstellungen||B2.1
+1663|östlich|j||B1.2
+1664|Hierarchie|nf:jerarquías:die:Hierarchien||B2.1
+1665|Frömmigkeit|nf:piedades:die:—||C1.1
+1666|kindlich|j||C1.1
+1667|Kurs|nm:cursos:der:Kurse||A1.1
+1668|radikal|d||B2.1
+1669|anders|j||A1.2
+1670|Gurt|nm:cinturones:der:Gurte||A2.1
+1671|Sicherheit|nf:seguridades:die:Sicherheiten||A2.1
+1672|Komplimente machen|v||B1.1
+1673|sich verlieben|v||A2.1
+1674|er|p||A1.1
+1675|gab zu|vt3|admitir|B1.1
+1676|analysiert|ppf|analizar|B1.2
+1677|fazial; Gesichts-|j||B2.1
+1678|entschlüsselt|ppf|descifrar|B2.1
+1679|Mühe|nm:esfuerzos:die:Mühen||A2.1
+1680|behauptete|vt3|afirmar|B1.1
+1681|fasziniert|ppf|fascinar|B1.2
+1682|unbestreitbar|j||B2.1
+1683|Logik|nf:lógicas:die:Logiken||B1.2
+1684|vermutete|vt1|sospechar|B1.1
+1685|Gesten|np|gesto|A2.1
+1686|gespiegelt|ppp|espejear|C1.2
+1687|unbewusst|d||B2.1
+1688|fragte|vt3|preguntar|A2.1
+1689|Zögern|nf:vacilaciones:das:—||B2.1
+1690|wahrgenommen|ppf|percibir|B1.2
+1691|Desinteresse|nm:desintereses:das:—||B1.2
+1692|vorgetäuscht|ppf|fingir|B1.2
+1693|Kälte|nf:frialdades:die:—||B1.2
+1694|durchschaut|ppf|calar|C1.1
+1695|sofort|d||A2.1
+1696|nimmt an|vp3|suponer|B1.1
+1697|Wünsche|np|deseo|A2.1
+1698|projiziert|ppp|proyectar|B2.1
+1699|gestand|vt3|confesar|B1.2
+1700|angezogen|pp|atraer|B1.1
+1701|magisch|d||B1.2
+1702|analytisch|af|analítico|B2.1
+1703|dachte|vt3|pensar|A2.1
+1704|wahre|ap|verdadero|A2.1
+1705|Gefühle|np|sentimiento|A2.1
+1706|wären; würden werden|vc3p|ser|B1.1
+1707|verborgen|ppp|ocultar|B1.1
+1708|hinter|d||A1.2
+1709|Maske|nf:máscaras:die:Masken||A2.1
+1710|Debatten|np|debate|B1.1
+1711|intellektuelle|ap|intelectual|B2.1
+1712|hervorgerufen|ppp|provocar|B1.2
+1713|absichtlich|d||B1.2
+1714|scherzte|vt3|bromear|A2.1
+1715|sagend|ger|decir|A2.1
+1716|Herzschlag|nm:latidos:der:Herzschläge||B1.1
+1717|manipuliert|pp|manipular|B1.2
+1718|Stimme|nf:voces:die:Stimmen||A1.2
+1719|flüsterte|vi3|susurrar|B1.1
+1720|vollständig|d||A2.1
+1721|gefesselt|ppf|cautivar|B2.1
+1722|hoffte; wartete|vi3|esperar|A2.1
+1723|Mehrdeutigkeiten|np|ambigüedad|C1.1
+1724|gedeutet|ppfp|interpretar|B1.2
+1725|vermutete|vi3|sospechar|B1.1
+1726|Energie|nf:energías:die:Energien||A2.1
+1727|ausgestrahlt|ppf|irradiar|C1.1
+1728|bewusst|d||B1.2
+1729|direkte|afp|directo|A2.1
+1730|verwirrende|ap|desconcertante|B2.1
+1731|offensichtlich|af|obvio|B1.2
+1732|Spannung|nf:tensiones:die:Spannungen||B1.1
+1733|ignoriert|ppf|ignorar|B1.1
+1734|Gedanken|np|pensamiento|B1.1
+1735|erstickt|ppp|ahogar|B1.2
+1736|Melodie|nf:melodías:die:Melodien||A2.1
+1737|überwältigt|pp|abrumar|B2.1
+1738|Details|np|detalle|A2.1
+1739|beobachtet|pp|observar|B1.1
+1740|sehr|d||A1.1
+1741|nah|d||A1.1
+1742|Scherz|nf:bromas:der:Scherze||A2.1
+1743|verführt|ppf|seducir|B2.1
+1744|Interesse|nm:intereses:das:Interessen||A2.1
+1745|geweckt|pp|despertar|A2.1
+1746|Natur|nf:naturalezas:die:Naturen||A2.1
+1747|meinte|vt3|opinar|A2.1
+1748|Kommentare|np|comentario|A2.1
+1749|scharfsinnige|ap|perspicaz|C1.1
+1750|bewundert|ppp|admirar|B1.1
+1751|sagte|vi3|decir|A2.1
+1752|überrascht|pp|sorprender|A2.1
+1753|geistreich|af|ingenioso|B2.1
+1754|Antwort|nf:respuestas:die:Antworten||A1.1
+1755|Aura|nf:auras:die:Auren||B2.1
+1756|geheimnisvoll|af|misterioso|B1.1
+1757|wahrgenommen|pp|percibir|B1.2
+1758|Fassade|nf:fachadas:die:Fassaden||B1.2
+1759|gebrochen|ppf|romper|A2.1
+1760|berichtete|vt3|informar|A2.1
+1761|Stille|nm:silencios:die:—||A2.1
+1762|unangenehm|j||A2.1
+1763|beendet|pp|terminar|A2.1
+1764|unmittelbar|j||B1.1
+1765|Erscheinung|nf:apariciones:die:Erscheinungen||B1.2
+1766|souverän|af|soberano|B2.1
+1767|Gruppe|nm:grupos:die:Gruppen||A1.2
+1768|hypnotisiert|pp|hipnotizar|B2.1
+1769|charismatisch|af|carismático|B2.1
+1770|flüsterte|vt3|susurrar|B1.1
+1771|diese|ppro|este|A1.1
+1772|empfindsame|ap|sensible|B1.1
+1773|geschätzt|ppp|apreciar|B1.1
+1774|Haltung|nf:posturas:die:Haltungen||B1.1
+1775|sicher|af|seguro|A1.2
+1776|sich; ja|amb|sí|A1.1
+1777|fehlinterpretiert|ppf|malinterpretar|B2.1
+1778|Arroganz|nf:arrogancias:die:Arroganzen||B2.1
+1779|Vertrauen|nf:confianzas:das:—||A2.1
+1780|gewonnen|ppf|ganar|A2.1
+1781|schnell|d||A2.1
+1782|einfach; unkompliziert|af|sencillo|A2.1
+1783|Persönlichkeit|nf:personalidades:die:Persönlichkeiten||B1.1
+1784|nahm an|vt3|asumir|B1.1
+1785|verführt|pp|seducir|B2.1
+1786|Charme|nm:encantos:der:—||B1.1
+1787|zurückhaltend|ppf|reservar|B1.1
+1788|extrovertierte|afp|extrovertido|B2.1
+1789|zeigte an|vt3|indicar|B1.1
+1790|zutiefst|d||B1.2
+1791|gerührt|pp|conmover|B1.2
+1792|Antworten|np|respuesta|A1.1
+1793|einfühlsame|afp|empático|B2.1
+1794|deutete an|vt3|insinuar|B2.1
+1795|Humor|nm:humores:der:—||A2.1
+1796|kleine|ap|pequeño|A1.1
+1797|erfasst|ppp|captar|B1.2
+1798|aufmerksam|af|atento|A2.1
+1799|Erwartungen|np|expectativa|B1.1
+1800|erfüllt|ppfp|cumplir|B1.1
+1801|einige|tp|un|A1.1
+1802|wenige|ppro|poco|A1.1
+1803|überzeugt|pp|convencer|B1.1
+1804|erkannt|ppf|reconocer|A2.1
+1805|absolut|d||B1.1
+1806|lebenswichtig|j||B2.1
+1807|Bedeutung|nf:importancias:die:Bedeutungen||A2.1
+1808|verankern|vsp1p|anclar|B2.1
+1809|fest|d||B1.1
+1810|wirtschaftlich|j||B1.1
+1811|Entscheidungsträger|nm:tomadores:der:Entscheidungsträger||B2.1
+1812|muss; soll|vp3|deber|A1.2
+1813|Auswirkungen|np|repercusión|B2.1
+1814|Frist|nm:plazos:die:Fristen||B1.1
+1815|Handlungen|np|acción|B1.1
+1816|Bedingung|nf:condiciones:die:Bedingungen||B1.1
+1817|vorherige|af|previo|B1.2
+1818|kulturell|j||A2.1
+1819|wahrgenommen werden|cl|percibir|B1.2
+1820|Bereicherung|nm:enriquecimientos:die:Bereicherungen||B2.1
+1821|Herausforderungen|np|desafío|B1.2
+1822|umsetzen|vsp1p|implementar|B2.1
+1823|Maßnahmen; Maße|np|medida|B1.1
+1824|Bildung|nf:educaciones:die:—||B1.1
+1825|hat|vp3|tener|A1.1
+1826|tägliche|af|diario|A1.2
+1827|spiegelt wider|vp3|reflejar|B1.2
+1828|tiefe|afp|profundo|A2.1
+1829|Risse|np|grieta|B1.2
+1830|Bevölkerung|nf:poblaciones:die:Bevölkerungen||B1.1
+1831|Voraussetzungen|np|requisito|B1.2
+1832|müssen; sollen|vp3p|deber|A1.2
+1833|erfüllt werden|cl|cumplir|B1.1
+1834|kann|vsp3|poder|B1.1
+1835|umgesetzt werden|cl|implementar|B2.1
+1836|Presse|nf:prensas:die:Pressen||B1.1
+1837|negative|afp|negativo|A2.1
+1838|Demokratie|nf:democracias:die:Demokratien||B1.1
+1839|müssen; sollen|vp1p|deber|A1.2
+1840|sicherstellen|v||B1.1
+1841|Entscheidungsträger|np|tomador|B2.1
+1842|wahrnehmen|vsp3p|percibir|B1.2
+1843|ernsthaft|d||B1.1
+1844|Innovation|nf:innovaciones:die:Innovationen||B2.1
+1845|betonen|v||B1.2
+1846|Konsum|nm:consumos:der:—||B1.1
+1847|Regierung|nm:gobiernos:die:Regierungen||B1.1
+1848|wird treffen; wird nehmen|vf3|tomar|A2.2
+1849|offene|af|abierto|A1.2
+1850|notwendige|af|necesario|A2.1
+1851|lösen|v||A2.1
+1852|zusammenarbeiten|vsp1p|cooperar|B1.2
+1853|können|vp1p|poder|A1.1
+1854|überwinden|v||B1.1
+1855|sind|vp3p|estar|A1.1
+1856|verankert|ppp|anclar|B2.1
+1857|Verfassung|nf:constituciones:die:Verfassungen||B2.1
+1858|verursachen|v||B1.1
+1859|unsere|ppro|nuestro|A1.1
+1860|Pläne|np|plan|A2.1
+1861|konsequent|j||B1.2
+1862|Lösungen|np|solución|A2.1
+1863|konventionelle|ap|convencional|B2.1
+1864|Mut; Wert|amb|valor|A2.1
+1865|Reform|nf:reformas:die:Reformen||B1.2
+1866|vollständig|d||B1.2
+1867|wahrnehmbar|j||B2.1
+1868|heute|d||A1.1
+1869|blieb|vt1|quedarse|A2.1
+1870|völlig|d||A2.1
+1871|eingeschlafen|pp|dormir|A2.1
+1872|verpasste; verlor|vt1|perder|A2.1
+1873|Bus|nm:autobuses:der:Busse||A1.1
+1874|beenden|v||A1.2
+1875|Arbeitstag|nf:jornadas:der:Arbeitstage||B1.1
+1876|habe; muss|vp1|tener|A1.1
+1877|dringend|d||B1.1
+1878|Nahverkehr; Umgebung|np|cercanía|B1.1
+1879|täglich|j||A1.2
+1880|strapaziert; erschöpft|vp3|agotar|B1.1
+1881|Nerven|np|nervio|A2.1
+1882|Hitze|nm:calores:die:—||A1.1
+1883|lernt|vp3|aprender|A1.1
+1884|Geld|nm:dineros:das:—||A1.1
+1885|Monat|nm:meses:der:Monate||A1.1
+1886|Wochen|np|semana|A1.1
+1887|kündigte|vt3|renunciar|B1.1
+1888|zog um|vt3|mudarse|A2.1
+1889|Hamburg|name|Hamburgo|A1.2
+1890|wartend|ger|esperar|A2.1
+1891|Kino|nm:cines:das:Kinos||A1.1
+1892|Freund|nm:amigos:der:Freunde||A1.1
+1893|Film|nf:películas:der:Filme||A1.1
+1894|beschwert sich|vp3|quejarse|A2.1
+1895|Lärm|nm:ruidos:der:—||A2.1
+1896|Wohnung|nm:apartamentos:die:Wohnungen||A1.1
+1897|Seite|nm:lados:die:Seiten||A1.2
+1898|Kopfhörer; Hörgeräte|np|audífono|B1.1
+1899|Hund|nm:perros:der:Hunde||A1.1
+1900|versteckt sich|vp3|esconderse|A2.1
+1901|darunter|d||A1.1
+1902|Tisch|nf:mesas:der:Tische||A1.1
+1903|laut|af|ruidoso|A2.1
+1904|Stühle|np|silla|A1.1
+1905|gehe|vp1|ir|A1.1
+1906|durch|idiom|través|A2.1
+1907|Park|nm:parques:der:Parks||A1.1
+1908|vorbeigehend|ger|pasar|A2.1
+1909|neben; zusammen|idiom|junto|A1.2
+1910|Statue|nf:estatuas:die:Statuen||A2.1
+1911|werde gehen|vf1|ir|A2.2
+1912|Köln|name|Colonia|A1.2
+1913|bist|vsp2|estar|B1.1
+1914|bereit|j||A1.2
+1915|gewöhnt|pp|acostumbrar|A2.1
+1916|Büro|nf:oficinas:das:Büros||A1.1
+1917|Zentrum|nm:centros:das:Zentren||A1.1
+1918|kam an; gelangte|vt1|llegar|A2.1
+1919|Vereinbarung|nm:acuerdos:die:Vereinbarungen||B1.1
+1920|Chef|nm:jefes:der:Chefs||A1.2
+1921|interessiert sich|vp3|interesarse|A1.2
+1922|ab; aufbrechen|idiomv|partir|A2.1
+1923|nächst|j||A1.2
+1924|Akademie|nf:academias:die:Akademien||B1.1
