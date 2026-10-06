@@ -25,8 +25,7 @@ Keep the existing production JWT secret to preserve sign-ins and durable study
 commands. Configure the existing DB and AI keys only in the protected environment
 file. Do not include an account password, VPS sudo password, or Hope secrets.
 
-The VPS firewall needs only Gramatik TCP 80 (ACME) and 8443 (HTTPS) in addition to
-the existing rules. It must keep Node port 4000, the proxy admin port, and SSH
+Both the VPS firewall and OVH’s IPv4 Edge Network Firewall need Gramatik TCP 80 (ACME) and 8443 (HTTPS) in addition to the existing rules. The edge rules authorise those destination ports from any source before the existing IPv4 deny rule; retain Hope’s Cloudflare-only TCP 443 rules and established-traffic rule. Verify public HTTPS over both IPv4 and IPv6: a successful IPv6 request alone does not prove IPv4 access. It must keep Node port 4000, the proxy admin port, and SSH
 closed externally. Do not disable UFW or modify Hope's routes.
 
 ## Deployment and verification
