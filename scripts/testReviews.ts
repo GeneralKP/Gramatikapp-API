@@ -85,7 +85,7 @@ try {
   assert.match(unauthorized.errors[0].message, /Unauthorized/);
   console.log("PASS sibling bury/restore and ownership protection");
 
-  const now = new Date(), dayCard = await makeCard({ isNew: false, interval: 5, lastReviewed: new Date() });
+  const now = new Date(), dayCard = await makeCard({ isNew: false, interval: 5, lastReviewed: now, nextDueDate: now });
   dayCard.scheduler.options = { ...DEFAULT_OPTIONS, newPerDay: 2, reviewsPerDay: 1 };
   p.scheduler.options = dayCard.scheduler.options;
   const due = selectStudyQueue([dayCard, p], new Map(), now, 50, 10);

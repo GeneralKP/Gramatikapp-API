@@ -13,6 +13,7 @@ type UserSettings {
   errorSound: Boolean!
   popSound: Boolean!
   darkMode: Boolean!
+  dailyNewCards: Int!
 }
 
 input UserSettingsInput {
@@ -22,6 +23,7 @@ input UserSettingsInput {
   errorSound: Boolean
   popSound: Boolean
   darkMode: Boolean
+  dailyNewCards: Int
 }
 
 type AuthPayload {

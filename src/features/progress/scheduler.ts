@@ -161,6 +161,9 @@ export function initialScheduler(progress: UserProgress, options = DEFAULT_OPTIO
     queue: phase === "NEW" ? "NEW" : untouched && raw.queue === 1 ? "MINUTE" : "DAY", options: { ...options }, timeZone, rollover };
 }
 
+export function schedulerSeed(progress: UserProgress): bigint {
+  return progress.card?.sourceCardId ? BigInt(progress.card.sourceCardId) : BigInt("0x" + createHash("sha256").update(progress.itemId.toString()).digest("hex").slice(0, 15));
+}
 export function scheduleReview(progress: UserProgress, grade: Grade, now: Date, earlyReview = false) {
   const current = progress.scheduler ?? initialScheduler(progress);
   const today = studyDay(now, current.timeZone, current.rollover);
@@ -168,7 +171,7 @@ export function scheduleReview(progress: UserProgress, grade: Grade, now: Date, 
   // study preserves the future due day and applies the early-review rules.
   const originalDueDay = studyDay(progress.nextDueDate, current.timeZone, current.rollover);
   const dueDay = earlyReview ? originalDueDay : Math.min(today, originalDueDay);
-  const seedId = progress.card?.sourceCardId ? BigInt(progress.card.sourceCardId) : BigInt("0x" + createHash("sha256").update(progress.itemId.toString()).digest("hex").slice(0, 15));
+  const seedId = schedulerSeed(progress);
   const factor = fuzzFactor(seedId + BigInt(progress.totalReviews ?? 0));
   const state = nextStates({ ...current, elapsedDays: Math.max(0, current.interval + today - dueDay) }, current.options, factor)[GRADES.indexOf(grade)];
   if (!state) throw new Error("Invalid review grade");

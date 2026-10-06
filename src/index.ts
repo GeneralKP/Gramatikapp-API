@@ -11,6 +11,7 @@ import { User } from "./features/auth/auth.types.js";
 import dotenv from "dotenv";
 import { ObjectId } from "mongodb";
 import { translateWritingWord } from "./features/writing/writing.service.js";
+import { syncStudy } from "./features/progress/studySync.js";
 
 dotenv.config();
 
@@ -42,6 +43,13 @@ async function startServer() {
   app.use(cors({ origin: allowedOrigins?.length ? allowedOrigins : true }));
   app.use(express.json({ limit: "2mb" }));
   app.get("/health", (_req, res) => { res.json({ status: "ok" }); });
+  app.post("/api/study/sync", async (req, res) => {
+    try {
+      const user = await getUserFromToken((req.headers.authorization || "").replace(/^Bearer /, ""));
+      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+      res.json(await syncStudy(user._id, req.body?.operations));
+    } catch (error) { res.status(400).json({ error: (error as Error).message }); }
+  });
   app.post("/api/translate", async (req, res) => {
     try {
       const user = await getUserFromToken((req.headers.authorization || "").replace(/^Bearer /, ""));

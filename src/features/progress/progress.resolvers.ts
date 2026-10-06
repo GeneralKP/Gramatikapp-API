@@ -7,10 +7,11 @@ import { randomUUID } from "node:crypto";
 import { saveReview, undoReview, withScheduler, dailyCounts, ReviewConflict } from "./reviews.js";
 import { effectiveDueDate, studyReviewOptions, type StudyGrade } from "./studyScheduling.js";
 import { categoryRelations, categoryProgressFilter } from "./categories.js";
-import { DEFAULT_OPTIONS, initialScheduler, studyDay, Grade } from "./scheduler.js";
+import { DEFAULT_OPTIONS, initialScheduler, studyDay, Grade, schedulerSeed } from "./scheduler.js";
 import { selectStudyQueue } from "./studyQueue.js";
 import { isNewCard, newCardGroups } from "./newWordOrder.js";
 import { nativeWordPair, ensureNativeWordPairs } from "./nativeWordPairs.js";
+import { dailyNewLimit, introducedToday, applyDailyLimit } from "./dailyLimit.js";
 
 function requireOwner(context: { user: User | null }, userId: string) {
   if (!context?.user || context.user._id.toString() !== userId) throw new Error("Unauthorized");
@@ -28,6 +29,10 @@ function toGraphQL(progress: UserProgress | null) {
     failureIndex: progress.failureIndex ?? 0,
     totalReviews: progress.totalReviews ?? 0,
     scheduleVersion: progress.scheduleVersion ?? 0,
+    studyState: JSON.stringify({ itemId: String(progress.itemId), itemType: progress.itemType, ease: progress.ease, interval: progress.interval, repetitions: progress.repetitions,
+      nextDueDate: progress.nextDueDate, temporaryDueDate: progress.temporaryDueDate, lastReviewed: progress.lastReviewed, createdAt: progress.createdAt,
+      scheduler: progress.scheduler ?? initialScheduler(progress), totalReviews: progress.totalReviews ?? 0, lapses: progress.lapses ?? 0, isNew: progress.isNew, suspended: progress.suspended, buriedUntil: progress.buriedUntil,
+      fuzzSeed: schedulerSeed(progress).toString(), card: progress.card ? { sourceCardId: progress.card.sourceCardId, sourceNoteGuid: progress.card.sourceNoteGuid, direction: progress.card.direction } : undefined }),
     schedulerPhase: (progress.scheduler ?? initialScheduler(progress)).phase,
     learningQueue: (progress.scheduler ?? initialScheduler(progress)).queue,
     learnAheadSeconds: (progress.scheduler ?? initialScheduler(progress)).options.learnAheadSeconds,
@@ -204,7 +209,8 @@ export const progressResolvers = {
         const relations=await db.relationsPhrasesEsDe.find(categoryIds===null?{}:{_id:{$in:categoryIds}}).project({_id:1}).toArray();
         candidates.push(...relations.filter(r=>!seen.has(String(r._id))).map(r=>makeNew(r._id,"PHRASE")));
       }
-      const newCards = selectStudyQueue(candidates, counts, now, 0, 10000).filter(p=>p.scheduler.phase === "NEW").length;
+      const limit = await dailyNewLimit(id);
+      const newCards = selectStudyQueue(applyDailyLimit(candidates, limit), counts, now, 0, Math.max(0, limit - introducedToday(counts))).filter(p=>p.scheduler.phase === "NEW").length;
       const catalogIds: ObjectId[] = [];
       for (const type of ["WORD","PHRASE"]) if (!itemType || itemType === type) {
         const collection=type === "WORD" ? db.relationsWordsEsDe : db.relationsPhrasesEsDe;
@@ -220,9 +226,10 @@ export const progressResolvers = {
       {
         userId,
         dueLimit = 50,
-        newLimit = 10,
+        newLimit = 1000,
         itemType, context: category,
-      }: { userId: string; dueLimit?: number; newLimit?: number; itemType?: string; context?: string },
+        includeLearningAhead = false,
+      }: { userId: string; dueLimit?: number; newLimit?: number; itemType?: string; context?: string; includeLearningAhead?: boolean },
       context: { user: User | null },
     ) => {
       requireOwner(context, userId);
@@ -231,10 +238,12 @@ export const progressResolvers = {
       const userObjectId = new ObjectId(userId);
 
       if (itemType && !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid card type");
-      dueLimit = Math.max(0, Math.min(500, dueLimit));
-      newLimit = Math.max(0, Math.min(100, newLimit));
-      if (!dueLimit && !newLimit) return [];
+      dueLimit = Math.max(0, Math.min(5000, dueLimit));
+      const limit = await dailyNewLimit(userObjectId);
       const profile = await db.schedulerProfiles.findOne({ _id: userObjectId });
+      const counts = await dailyCounts(userObjectId, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile);
+      newLimit = Math.max(0, Math.min(1000, newLimit, limit - introducedToday(counts)));
+      if (!dueLimit && !newLimit) return [];
       const query: any = { ...categoryProgressFilter(await categoryRelations(category, itemType)), userId: userObjectId, suspended: { $ne: true }, supersededByAnki: { $ne: true },
          $or: [{ temporaryDueDate: { $lte: now } }, { temporaryDueDate: null, nextDueDate: { $lte: new Date(now.getTime() + 1200000) } }, { isNew: true }] };
       if (itemType) query.itemType = itemType;
@@ -245,8 +254,10 @@ export const progressResolvers = {
         docs.push(...fresh.filter(p => !seen.has(p.itemId.toString())));
       }
       docs = await Promise.all((await withNewWordSiblings(db, userObjectId, await ensureNativeWordPairs(docs))).map(p => withScheduler(p, profile)));
-      const counts = await dailyCounts(userObjectId, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile);
-      return selectStudyQueue(docs, counts, now, dueLimit, newLimit).map(toGraphQL);
+      const selected = selectStudyQueue(applyDailyLimit(docs, limit), counts, now, dueLimit, newLimit);
+      const selectedIds = new Set(selected.map(p=>String(p.itemId)));
+      const ahead = includeLearningAhead ? docs.filter(p=>!selectedIds.has(String(p.itemId)) && !p.suspended && (!p.buriedUntil || p.buriedUntil<=now) && p.scheduler.queue === "MINUTE" && p.nextDueDate>now && p.nextDueDate.getTime()<=now.getTime()+p.scheduler.options.learnAheadSeconds*1000) : [];
+      return [...selected,...ahead].map(toGraphQL);
     },
 
     studyMoreItems: async (
@@ -284,15 +295,16 @@ export const progressResolvers = {
         .limit(futureDueLimit)
         .toArray();
 
-      // 2) Fill remaining with new unseen items
+      // Extra practice never bypasses the account's daily new-card allowance.
       const remaining = limit - futureDocs.length;
       let newDocs: UserProgress[] = [];
-      if (remaining > 0) {
-        newDocs = await fetchNewItems(db, userObjectId, remaining, itemType, category);
-      }
-
       const profile = await db.schedulerProfiles.findOne({ _id: userObjectId });
-      return (await Promise.all([...futureDocs, ...newDocs].map(p => withScheduler(p, profile)))).map(p => ({ ...toGraphQL(p), extraPractice: true }));
+      const limitNew = await dailyNewLimit(userObjectId);
+      const counts = await dailyCounts(userObjectId, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile);
+      const available = Math.max(0, Math.min(remaining, limitNew - introducedToday(counts)));
+      if (available > 0) newDocs = await fetchNewItems(db, userObjectId, available, itemType, category);
+      const newCards = await Promise.all((await withNewWordSiblings(db, userObjectId, newDocs)).map(p => withScheduler(p, profile)));
+      return [...(await Promise.all(futureDocs.map(p => withScheduler(p, profile)))).map(p => ({ ...toGraphQL(p), extraPractice: true })), ...selectStudyQueue(applyDailyLimit(newCards, limitNew), counts, now, 0, available).map(toGraphQL)];
     },
 
     userProgress: async (

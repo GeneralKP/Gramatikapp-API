@@ -39,7 +39,11 @@
     "test:levels": "tsx scripts/testLevels.ts",
     "test:study-controls": "tsx scripts/testStudyControls.ts",
     "audit:categories": "tsx scripts/auditStudyCategories.ts",
-    "test:study-scheduling": "tsx scripts/testStudyScheduling.ts"
+    "test:study-scheduling": "tsx scripts/testStudyScheduling.ts",
+    "test:study-sync": "tsx scripts/testStudySync.ts",
+    "test:study-sync-browser": "tsx scripts/testStudySyncBrowser.ts",
+    "test:study-sync-validation": "tsx scripts/testStudySyncValidation.ts",
+    "generate:browser-scheduler": "node scripts/generateBrowserScheduler.mjs"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

@@ -21,6 +21,7 @@ type UserProgress {
   temporaryDueDate: String
   lastReviewed: String
   scheduleVersion: Int!
+  studyState: String!
   schedulerPhase: String!
   learningQueue: String!
   learnAheadSeconds: Int!
@@ -87,7 +88,7 @@ type LearningNode {
 extend type Query {
   studyQueueCounts(userId: ID!, itemType: String, context: String): StudyQueueCounts!
   mostFailedWords(userId: ID!, limit: Int, minFailures: Int): [FailedWord!]!
-  dueItems(userId: ID!, dueLimit: Int, newLimit: Int, itemType: String, context: String): [UserProgress!]!
+  dueItems(userId: ID!, dueLimit: Int, newLimit: Int, itemType: String, context: String, includeLearningAhead: Boolean = false): [UserProgress!]!
   studyMoreItems(userId: ID!, limit: Int, itemType: String, context: String): [UserProgress!]!
   userProgress(userId: ID!, itemId: ID!): UserProgress
   allProgress(userId: ID!, itemType: String): [UserProgress!]!

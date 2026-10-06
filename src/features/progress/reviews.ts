@@ -1,9 +1,10 @@
-import { ObjectId } from "mongodb";
+import { ObjectId, type ClientSession } from "mongodb";
 import { getDb, getDatabaseClient } from "../../lib/database.js";
 import type { UserProgress } from "./progress.types.js";
 import { DEFAULT_OPTIONS, DeckOptions, Grade, GRADES, initialScheduler, scheduleReview, studyDay, dateForStudyDay } from "./scheduler.js";
 import { scheduleStudyReview, type StudyGrade } from "./studyScheduling.js";
 import { isIntroductionFollowup, isNewCard } from "./newWordOrder.js";
+import { introducedToday } from "./dailyLimit.js";
 
 export interface SchedulerProfile {
   _id: ObjectId; timeZone: string; rollover: number; defaultOptions: DeckOptions;
@@ -19,6 +20,8 @@ export interface ReviewEvent {
   before: Snapshot; after: Snapshot; version: number;
   deck: string; day: number; newCount: number; reviewCount: number;
   siblings: { id: ObjectId; previous: Date | null; applied: Date }[];
+  studySessionId?: string;
+  syncedAt?: Date;
 }
 export class ReviewConflict extends Error {
   constructor(message: string, public progress: UserProgress, public code: string) { super(message); }
@@ -35,7 +38,7 @@ const commandId = (value: string) => {
 export const deckName = (progress: UserProgress) => progress.card?.deck || "App";
 export const deckAncestors = (deck: string) => deck.split("::").map((_, i, parts) => parts.slice(0, i + 1).join("::"));
 
-export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: string, grade: StudyGrade, reviewId: string, expectedVersion?: number, earlyReview = false, failureAttemptId?: string) {
+export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: string, grade: StudyGrade, reviewId: string, expectedVersion?: number, earlyReview = false, failureAttemptId?: string, timing?: { reviewedAt: Date; studySessionId: string }) {
   commandId(reviewId);
   if (!([...GRADES, "REVISIT"] as string[]).includes(grade) || !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid review");
   const db = getDb(), session = getDatabaseClient().startSession();
@@ -59,7 +62,18 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
           throw new ReviewConflict("Read the German → Spanish card before typing this new word.", stored, "INTRODUCTION_REQUIRED");
         }
       }
-      const now = new Date();
+      const now = timing?.reviewedAt ?? new Date();
+      if (current.scheduler.phase === "NEW") {
+        // A write to the shared account serializes competing devices' quota
+        // checks inside MongoDB's retryable transaction (avoids write skew).
+        const account = await db.users.findOne({ _id: userId }, { session });
+        if (account) {
+          await db.users.updateOne({ _id: userId }, { $inc: { studySyncVersion: 1 } }, { session });
+          const limit = account.settings?.dailyNewCards ?? profile?.defaultOptions.newPerDay ?? DEFAULT_OPTIONS.newPerDay;
+          const counts = await dailyCounts(userId, studyDay(now, current.scheduler.timeZone, current.scheduler.rollover), profile, session);
+          if (introducedToday(counts) >= limit) throw new ReviewConflict("The daily new-card limit has been reached on another session. Your mistakes are retained; this new card can be introduced on the next study day.", stored, "DAILY_NEW_LIMIT");
+        }
+      }
       let next: ReturnType<typeof scheduleStudyReview>;
       try { next = scheduleStudyReview(current, grade, now, earlyReview); }
       catch (error) {
@@ -91,14 +105,15 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
         before: snapshot(current), after: snapshot(after), version: after.scheduleVersion,
         deck: deckName(current), day: studyDay(now, current.scheduler.timeZone, current.scheduler.rollover),
         newCount: !isExtraReview && current.scheduler.phase === "NEW" ? 1 : 0,
-        reviewCount: !isExtraReview && (current.scheduler.phase === "REVIEW" || current.scheduler.queue === "DAY" && current.scheduler.phase !== "NEW") ? 1 : 0, siblings };
+        reviewCount: !isExtraReview && (current.scheduler.phase === "REVIEW" || current.scheduler.queue === "DAY" && current.scheduler.phase !== "NEW") ? 1 : 0, siblings,
+        ...(timing ? { studySessionId: timing.studySessionId, syncedAt: new Date() } : {}) };
       await db.reviewEvents.insertOne(event, { session });
       const unset = Object.fromEntries(schedulingFields.filter(key => after[key] === undefined).map(key => [key, "" as const]));
       await db.progress.updateOne({ _id: stored._id }, { $set: { ...snapshot(after), scheduleVersion: after.scheduleVersion, updatedAt: now }, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session });
       if (grade === "REVISIT") {
         // Revisit is a separate mistake from Check. The review command itself
         // deduplicates retries, including responses lost after the commit.
-        const attemptId = reviewId;
+        const attemptId = timing ? `revisit_${reviewId}` : reviewId;
         commandId(attemptId);
         await db.progress.updateOne({ _id: stored._id, failureAttemptIds: { $ne: attemptId } }, { $inc: { failureIndex: 1 }, $addToSet: { failureAttemptIds: attemptId }, $set: { lastFailedAt: now } }, { session });
       }
@@ -130,13 +145,13 @@ export async function undoReview(userId: ObjectId, reviewId: string) {
   } finally { await session.endSession(); }
 }
 
-export async function dailyCounts(userId: ObjectId, day: number, profile?: SchedulerProfile | null) {
+export async function dailyCounts(userId: ObjectId, day: number, profile?: SchedulerProfile | null, session?: ClientSession) {
   const counts = new Map<string, { new: number; review: number }>();
   for (const entry of profile?.baselines ?? []) if (entry.day === day) counts.set(entry.deck, { new: entry.new, review: entry.review });
   const events = await getDb().reviewEvents.aggregate<{ _id: string; new: number; review: number }>([
     { $match: { userId, day, reversedAt: null } },
     { $group: { _id: "$deck", new: { $sum: "$newCount" }, review: { $sum: "$reviewCount" } } },
-  ]).toArray();
+  ], { session }).toArray();
   for (const event of events) for (const deck of deckAncestors(event._id)) {
     const prior = counts.get(deck) ?? { new: 0, review: 0 };
     counts.set(deck, { new: prior.new + event.new, review: prior.review + event.review });

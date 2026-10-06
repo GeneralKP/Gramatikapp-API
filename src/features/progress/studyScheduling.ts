@@ -8,8 +8,8 @@ export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, n
     if (progress.itemType !== 'WORD' || progress.scheduler.phase !== 'REVIEW') throw new Error('Revisit is available for established word cards.');
     // A future card keeps its schedule. A due card receives its ordinary Good
     // review first, so completing the extra review cannot restore a past due date.
-    const regular = progress.nextDueDate > now ? {} : scheduleReview(progress, 'GOOD', now, earlyReview);
-    const regularDue = 'nextDueDate' in regular ? regular.nextDueDate : progress.nextDueDate;
+    const regular: Partial<ReturnType<typeof scheduleReview>> = progress.nextDueDate > now ? {} : scheduleReview(progress, 'GOOD', now, earlyReview);
+    const regularDue = regular.nextDueDate ?? progress.nextDueDate;
     if (regularDue <= temporaryDueDate) throw new Error('The regular review is already due sooner than tomorrow. Choose an ordinary rating.');
     return { ...progress, ...regular, temporaryDueDate, totalReviews: (progress.totalReviews ?? 0) + 1, delaySeconds: 86400 };
   }

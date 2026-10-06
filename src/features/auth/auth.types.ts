@@ -9,6 +9,7 @@ export interface UserSettings {
   errorSound: boolean;
   popSound: boolean;
   darkMode: boolean;
+  dailyNewCards?: number;
 }
 
 export interface User {
@@ -19,6 +20,7 @@ export interface User {
   settings: UserSettings;
   createdAt: Date;
   updatedAt?: Date;
+  studySyncVersion?: number;
 }
 
 /** Default settings for new users */

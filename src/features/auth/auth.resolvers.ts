@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { User, UserSettings } from "./auth.types.js";
+import { dailyNewLimit } from "../progress/dailyLimit.js";
 import {
   registerWithEmail,
   loginWithEmail,
@@ -96,6 +97,7 @@ export const authResolvers = {
 
       const user = await db.users.findOne({ _id: new ObjectId(userId) });
       if (!user) throw new Error("User not found");
+      if (newSettings.dailyNewCards !== undefined && (!Number.isInteger(newSettings.dailyNewCards) || newSettings.dailyNewCards < 0 || newSettings.dailyNewCards > 1000)) throw new Error("Choose a daily new-card limit from 0 to 1000.");
 
       // Merge settings correctly
       const updatedSettings: UserSettings = {
@@ -113,5 +115,11 @@ export const authResolvers = {
       const updatedUser = await db.users.findOne({ _id: new ObjectId(userId) });
       return toGraphQL(updatedUser);
     },
+  },
+  UserSettings: {
+    dailyNewCards: (settings: UserSettings) => settings.dailyNewCards ?? 20,
+  },
+  User: {
+    settings: async (user: any) => ({ ...DEFAULT_SETTINGS, ...user.settings, dailyNewCards: await dailyNewLimit(new ObjectId(user.id ?? user._id)) }),
   },
 };
