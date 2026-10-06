@@ -172,3 +172,24 @@ Before release, a populated-category guarded comparison caught a real queue-orde
 
 
 After the conservative fallback, guarded exact queue/order/content/state and three-counter comparisons passed for populated `debate` sessions in Words/Phrases/Mixed with positive new allowance, and `university` / `general_vocabulary` in all three modes with `newLimit:0`. A positive-new university audit required catalog allocation and stopped at the write guard before any mutation; native allocation remains covered by mocked contracts. The differing category plans were owner+relation for the original scoped query versus owner+due-date for the union. Category sessions keep the original plan/query behavior rather than depend on new sort/hint semantics.
+
+### Deployed combined complete responses, 6 October 2026
+
+API `8546ad6` passed its complete CI/deployment workflow and public health reported the exact running commit. Web `6579f43` was published by Cloudflare's Git build; its entry asset `index-CONGXPI8.js` was byte-identical to the tested local Cloudflare build (218,655 bytes, SHA-256 `50b2485dc5009a4bdcdcc5e12f65bf9ccb3284d8a57617f3a907e254a19ac235`). The signed-in browser also loaded that entry asset. Each normal Words/Phrases/Mixed entry sent `includeCounts:true`, omitted `cardLimit`, and made exactly one queue request, without standalone count or background-card requests.
+
+Direct complete HTTP samples after the backend restart were Words 1,834 / 957 / 988 ms, Phrases 478 / 445 / 437 ms and Mixed 1,163 / 1,100 / 1,041 ms. The first restart sample remains included. Responses contained 747 / 57 / 775 cards and 795,780 / 53,948 / 821,303 decoded JSON bytes respectively, zero manifest rows, exact three-counter envelopes and complete checking/feedback fields. Account totals changed during this task, so payload comparisons are approximate rather than a frozen-dataset benchmark.
+
+The actual browser trial cleared HTTP and derivative study caches before each Dashboard hard reload and disabled HTTP caching. Primary commands, authentication and preferences were preserved. Every observed response was HTTP 200; assets transferred from the network, without disk-cache or service-worker hits. No production answers or ratings were submitted.
+
+| View / measured boundary | Trials | Fastest | Median | Slowest | API request median |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Dashboard, reload → loaded layout | 9 | 1,129 ms | 1,260 ms | 1,487 ms | 895 ms |
+| Words, click → playable card | 3 | 1,398 ms | 1,435 ms | 1,532 ms | 1,371 ms |
+| Phrases, click → playable card | 3 | 680 ms | 690 ms | 799 ms | 573 ms |
+| Mixed, click → playable card | 3 | 1,389 ms | 1,420 ms | 1,520 ms | 1,313 ms |
+
+Compared with the original cold UI medians, Words improved by approximately 66%, Mixed 67%, Phrases 38% and Dashboard 19%. Complete lean delivery is feasible; normal entry retains the entire selected session and does not require batches to preserve features. Phrases meets the one-second entry goal. Dashboard API reads are mostly below one second, but whole-page startup and Words/Mixed entry still exceed it. These measurements do not justify claiming all flows are subsecond or reporting only warm direct-request results. Words/Mixed response headers consume almost the whole request; final browser mapping takes roughly 64–157 ms. One inspected Mixed request used an existing HTTP/2 connection, a 19-ms CORS preflight and 1,256-ms response-header wait, so frontend caching/preflight changes alone would not remove the remaining backend cost.
+
+The requested GPT-6.1 Sol / Ultra subagent also probed a conditional counter projection on MongoDB 8.0.34. It kept the original filters/indexes/cursor order, reconstructed legacy fields and matched all five counters across Words/Phrases/Mixed in three scopes. It reduced BSON by 16–22% but repeated warm query timings showed no reliable gain (Words 165 → 174 ms, Mixed 169 → 177 ms, Phrases 123 → 123 ms). That experiment was read-only and was not deployed. No index changes or physical data rearrangement were justified by these results.
+
+A separate interleaved full-versus-24-card production HTTP experiment preserved exact first-card packet contents and all three counters in every comparison. Word full responses took 1,613 / 1,229 / 1,134 ms versus starters 1,188 / 1,465 / 917 ms. Mixed full responses took 1,845 / 2,195 / 2,384 ms versus starters 1,396 / 2,644 / 1,606 ms. Mixed downloads varied substantially during this extra probe; these are direct HTTP experiments, not substitutes for the cold UI table. Starter envelopes still needed 531,281 bytes Words / 552,980 bytes Mixed to preserve full-session scheduling/order metadata, versus 795,780 / 821,303 for full content. Batching therefore did not consistently meet one second or remove the underlying selection cost. The full lean response stays the default, consistent with the requested preference.
