@@ -93,17 +93,20 @@ async function languagePairs(progress: UserProgress[], db: Database): Promise<Ma
 async function playableItems(progress: UserProgress[], pairs: Map<string, LanguagePair>, db: Database) {
   const ids = progress.map(p => p.itemId);
   const cardsRequest = ids.length ? db.progress.find({ userId: progress[0].userId, itemId: { $in: ids } })
-    .project<{ itemId: ObjectId; card?: StudyCard }>({ _id: 0, itemId: 1, card: 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : Promise.resolve([]);
+    .project<{ itemId: ObjectId; card?: StudyCard }>({ _id: 0, itemId: 1,
+      "card.sourceNoteGuid": 1, "card.direction": 1, "card.prompt": 1, "card.answer": 1,
+      "card.acceptedAnswers": 1, "card.notes": 1, "card.examples": 1,
+    }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : Promise.resolve([]);
   const words = progress.filter(p => p.itemType === "WORD").map(p => ({ p, pair: pairs.get(`WORD:${p.relationId || p.itemId}`) })).filter(row => row.pair);
   const phrases = progress.filter(p => p.itemType === "PHRASE").map(p => pairs.get(`PHRASE:${p.relationId || p.itemId}`)).filter(Boolean);
   const germanIds = [...new Map(words.map(({ pair }) => [String(pair.translated._id), pair.translated._id])).values()];
   const legacyWords = words.filter(({ p }) => !p.card);
   const [cards, grammar, legacyMain, legacyTranslated, phraseMeta] = await Promise.all([
     cardsRequest,
-    germanIds.length ? db.wordsDE.find({ _id: { $in: germanIds } }).project<Word>({ _id: 1, gramaticalCategories: 1, "forms.gender": 1, "forms.past": 1, "forms.perfect": 1, "forms.imperativ": 1 }).toArray() : [] as Word[],
-    legacyWords.length ? db.wordsES.find({ _id: { $in: legacyWords.map(({ pair }) => pair.main._id) } }).project<Word>({ _id: 1, examples: 1 }).toArray() : [] as Word[],
-    legacyWords.length ? db.wordsDE.find({ _id: { $in: legacyWords.map(({ pair }) => pair.translated._id) } }).project<Word>({ _id: 1, notes: 1, examples: 1 }).toArray() : [] as Word[],
-    phrases.length ? db.phrasesDE.find({ _id: { $in: phrases.map(pair => pair.translated._id) } }).project<Phrase>({ _id: 1, synonyms: 1 }).toArray() : [] as Phrase[],
+    germanIds.length ? db.wordsDE.find({ _id: { $in: germanIds } }).project<Word>({ _id: 1, gramaticalCategories: 1, "forms.gender": 1, "forms.past": 1, "forms.perfect": 1, "forms.imperativ": 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as Word[],
+    legacyWords.length ? db.wordsES.find({ _id: { $in: legacyWords.map(({ pair }) => pair.main._id) } }).project<Word>({ _id: 1, examples: 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as Word[],
+    legacyWords.length ? db.wordsDE.find({ _id: { $in: legacyWords.map(({ pair }) => pair.translated._id) } }).project<Word>({ _id: 1, notes: 1, examples: 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as Word[],
+    phrases.length ? db.phrasesDE.find({ _id: { $in: phrases.map(pair => pair.translated._id) } }).project<Phrase>({ _id: 1, synonyms: 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as Phrase[],
   ]);
   return { cards: new Map(cards.map(row => [String(row.itemId), row.card] as const)), grammar: new Map(grammar.map(row => [String(row._id), row] as const)),
     legacyMain: new Map(legacyMain.map(row => [String(row._id), row] as const)), legacyTranslated: new Map(legacyTranslated.map(row => [String(row._id), row] as const)),
@@ -132,7 +135,7 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
       spanish: pair ? (p.itemType === "WORD" ? (pair.main as Word).word : (pair.main as Phrase).phrase) : "", contexts: pair?.main.contexts ?? [], failureIndex: p.failureIndex ?? 0,
       card: p.card ? { sourceNoteGuid: p.card.sourceNoteGuid, direction: p.card.direction } : null,
       schedule: { version: p.scheduleVersion ?? 0, profile, state: {
-        itemId: String(p.itemId) as any, itemType: p.itemType, ease: p.ease, interval: p.interval, repetitions: p.repetitions,
+        ease: p.ease, interval: p.interval, repetitions: p.repetitions,
         nextDueDate: p.nextDueDate, temporaryDueDate: p.temporaryDueDate, lastReviewed: p.lastReviewed, createdAt: p.createdAt,
         scheduler, totalReviews: p.totalReviews ?? 0, lapses: p.lapses ?? 0, isNew: p.isNew, suspended: p.suspended, buriedUntil: p.buriedUntil,
         fuzzSeed: schedulerSeed(p).toString(),
@@ -150,7 +153,9 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
         examples: playable.legacyTranslated.get(String(pair.translated._id))?.examples ?? [], spanishExamples: playable.legacyMain.get(String(pair.main._id))?.examples ?? [] } : {}),
     };
   });
-  return { version: 1, profiles, items, manifest: includeManifest ? manifest : [], remaining: manifest.length - items.length, complete: manifest.length === items.length };
+  // Complete queues already carry every shell field in items. Only a partial
+  // starter needs a second manifest for pending content, siblings and ordering.
+  return { version: 1, profiles, items, manifest: includeManifest && items.length < manifest.length ? manifest : [], remaining: manifest.length - items.length, complete: manifest.length === items.length };
 }
 
 export async function loadCompactStudyQueue(user: User, input: any = {}): Promise<CompactStudyEnvelope> {

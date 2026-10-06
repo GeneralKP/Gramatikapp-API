@@ -112,3 +112,23 @@ Guarded local API timing, startup-equivalent static warming, `newLimit: 0`, no a
 Background batches took 199–517 ms. Mixed varied across runs (earlier interleaved samples were 674–933 ms); these local measurements alone do not demonstrate subsecond production startup. Deployed measurements follow after release verification.
 
 API `test:loading` retains original complete GraphQL golden fixtures and adds compact HTTP/semantic contracts: owner validation, shape/content, legacy and CLOZE, missing relations, all grading outcomes, custom options/time zones, native pair ordering/allocation/idempotence and extra practice. `test:catalog-cache` covers expiry, database isolation, immutable copies, single-flight failures, invalidation during refresh and partial failed writes. Web `test:study-previews` compares 24 local preview/grade cases against saved authoritative server results across grades, phases, time zones and DST. `test:progressive-study` holds background responses, verifies zero Reveal requests and complete offline Notes/Examples, preserves typing, checks starter exhaustion without false completion and protects newer schedules/burial from stale hydration. Loading/authentication, full learning, Undo/outbox and completion regressions remain in CI.
+
+
+### Full-response feasibility follow-up
+
+The user prefers one complete lean response when it is fast enough. An initial production compact comparison exposed duplicate `items` and `manifest`: full Words was 1,395,495 bytes/2,271 ms (751 cards), while the 24-card starter was 577,225 bytes/1,399 ms. Phrases full was already 103,060 bytes/663 ms (57 cards); Mixed full was 1,444,699 bytes/1,492 ms (779 cards). These are individual response-header/body completion samples, not ready-to-play medians.
+
+Full envelopes now omit that duplicate manifest. Partial responses keep it; the browser already supports both. Duplicate per-state item ID/type fields are reconstructed from the outer card identity. Complete card reads project only the seven grading/feedback fields, including all Notes and Examples. Grammar, legacy examples and phrase synonyms use full-result cursor batches of 1,000 to eliminate hidden default-101 `getMore` round trips. Scheduler timestamps and both nested/top-level scheduling values are retained to preserve meaningful differences and Undo snapshots. The normal full queue request omits `cardLimit`, because due/new/learning-ahead totals can exceed the due-only 5,000 limit. These transport cuts do not change selected cards, ordering, scheduling or stored data.
+
+Browser mocks now cover one complete response with no manifest and no background fetches, as well as the optional partial-delivery path. Offline feedback, next-card transitions and reconstructed identity are asserted. Production comparison after deploying this follow-up is required to decide the default delivery strategy.
+
+
+Guarded local follow-up, full lean response, prewarmed static catalogs, `newLimit:0`, all writes/index changes blocked:
+
+| Full response | Three samples | JSON / selected items |
+| --- | --- | --- |
+| Words | 964 / 787 / 566 ms | 763,886 bytes / 722 |
+| Phrases | 299 / 320 / 302 ms | 26,089 bytes / 28 |
+| Mixed | 574 / 586 / 581 ms | 789,409 bytes / 750 |
+
+All full envelopes have zero manifest rows. Words/Phrases/Mixed use 8/5/9 database commands with no `getMore`. Mocked complete queue order, checking/feedback fields and every scheduling transition stay equivalent to the compatible GraphQL response. The later pending-word read is intentionally retained: another device can create or Undo-restore a NEW card after initial selection, so reusing an earlier snapshot would weaken current concurrency behavior.

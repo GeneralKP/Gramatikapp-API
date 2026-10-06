@@ -375,7 +375,14 @@ try {
  assert.equal(compact.items.length,2);assert.equal(compact.remaining,compact.manifest.length-2);assert.equal(compact.complete,false);
  assert.ok(progressQueries.some(read=>read.projection?.scheduler && read.projection?.['card.direction'] && !read.projection.card && !read.projection.failureAttemptIds),'selection excludes rich cards and history');
  const remainder=JSON.parse(JSON.stringify(await loadCompactStudyCards(user as any,{itemIds:compact.manifest.slice(2).map((row:any)=>row.id)})));
- const expanded=(row:any,profiles:any[])=>({...row.schedule.state,scheduler:{...row.schedule.state.scheduler,options:profiles[row.schedule.profile]}});
+ const expanded=(row:any,profiles:any[])=>({itemId:row.id,itemType:row.type,...row.schedule.state,scheduler:{...row.schedule.state.scheduler,options:profiles[row.schedule.profile]}});
+ const fullCompact=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,compactArgs)));
+ assert.deepEqual(fullCompact.manifest,[],'a complete response does not send duplicate manifest state/content');
+ assert.deepEqual(fullCompact.items.map((row:any)=>row.id),compact.manifest.map((row:any)=>row.id));
+ assert.equal(fullCompact.complete,true);assert.equal(fullCompact.remaining,0);
+ for(const row of fullCompact.items){assert.equal(row.schedule.state.itemId,undefined);assert.equal(row.schedule.state.itemType,undefined);}
+ const emptyCompact=await loadCompactStudyQueue(user as any,{dueLimit:0,newLimit:0});
+ assert.deepEqual(emptyCompact.items,[]);assert.deepEqual(emptyCompact.manifest,[]);assert.equal(emptyCompact.complete,true);
  const hydrated=[...compact.items.map((row:any)=>({row,profiles:compact.profiles})),...remainder.items.map((row:any)=>({row,profiles:remainder.profiles}))];
  for(const {row,profiles} of hydrated){
   const original=oldRaw.find((p:any)=>p.itemId===row.id),state=expanded(row,profiles),oldState=JSON.parse(original.studyState);
@@ -407,7 +414,7 @@ try {
  const oldNative=await resolvers.Query.dueItems(null,{userId:String(owner),dueLimit:5000,newLimit:2,itemType:'WORD',includeLearningAhead:true},{user} as any);
  fixture.userprogresses=[freshNative()];
  const compactNative=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1});
- assert.deepEqual(compactNative.manifest.map(row=>row.id),oldNative.map((row:any)=>row.itemId));
+ assert.deepEqual((compactNative.manifest.length?compactNative.manifest:compactNative.items).map(row=>row.id),oldNative.map((row:any)=>row.itemId));
  assert.equal(compactNative.items.length,2,'starter boundary includes the complete new directional pair');
  assert.deepEqual(compactNative.items.map(row=>row.card?.direction),['DE_ES','ES_DE']);
  assert.ok(compactNative.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='Haus example (casa example)'));
