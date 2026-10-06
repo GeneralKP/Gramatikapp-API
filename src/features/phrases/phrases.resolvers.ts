@@ -108,7 +108,7 @@ export const phrasesResolvers = {
   PhraseRelation: {
     main: async (parent: any) => {
       let phrase = parent.mainDoc;
-      if (!phrase) {
+      if (!("mainDoc" in parent)) {
         const db = getDb();
         phrase = await db.phrasesES.findOne({
           _id: new ObjectId(parent.main),
@@ -131,7 +131,7 @@ export const phrasesResolvers = {
     },
     translated: async (parent: any) => {
       let phrase = parent.translatedDoc;
-      if (!phrase) {
+      if (!("translatedDoc" in parent)) {
         const db = getDb();
         phrase = await db.phrasesDE.findOne({
           _id: new ObjectId(parent.translated),

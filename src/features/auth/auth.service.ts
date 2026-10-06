@@ -39,12 +39,15 @@ export function generateToken(user: User): string {
     email: user.email,
   };
   const expiresInSeconds = 7 * 24 * 60 * 60; // 7 days
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: expiresInSeconds });
+  return jwt.sign(payload, JWT_SECRET, { algorithm: "HS256", expiresIn: expiresInSeconds });
 }
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
+    if (typeof payload !== "object" || typeof payload.userId !== "string" || !ObjectId.isValid(payload.userId)
+      || typeof payload.email !== "string" || !payload.email) return null;
+    return { userId: payload.userId, email: payload.email };
   } catch {
     return null;
   }
@@ -117,5 +120,5 @@ export async function getUserFromToken(token: string): Promise<User | null> {
   if (!payload || !ObjectId.isValid(payload.userId)) return null;
 
   const db = getDb();
-  return db.users.findOne({ _id: new ObjectId(payload.userId) });
+  return db.users.findOne({ _id: new ObjectId(payload.userId) }, { projection: { _id: 1, email: 1, authProvider: 1, settings: 1, createdAt: 1, updatedAt: 1 } });
 }

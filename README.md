@@ -55,3 +55,7 @@ The GraphQL Playground will be available at http://localhost:4000
 - `translate(text, targetLang)` - Translate text via DeepL
 - `syncSettings(userId, settings)` - Update user settings
 - `createUser(email)` - Create new user
+
+## Loading regression checks
+
+Run `npm run test:loading` for deterministic dashboard/word/phrase/mixed response contracts, bounded query counts and idempotent batched new-card allocation. Run `npm run test:auth` for JWT, login, ownership and authentication-query regressions. Run `npm run audit:loading` for guarded read-only database timings. See [the loading audit](docs/loading-audit.md) for measurements, response-fixture provenance and limitations.

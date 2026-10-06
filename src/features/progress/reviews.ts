@@ -28,7 +28,7 @@ export class ReviewConflict extends Error {
 }
 export async function withScheduler(progress: UserProgress, profile?: SchedulerProfile | null): Promise<UserProgress> {
   if (progress.scheduler) return progress;
-  profile ??= await getDb().schedulerProfiles.findOne({ _id: progress.userId });
+  if (profile === undefined) profile = await getDb().schedulerProfiles.findOne({ _id: progress.userId });
   return { ...progress, scheduler: initialScheduler(progress, profile?.defaultOptions ?? DEFAULT_OPTIONS, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4) };
 }
 const snapshot = (progress: UserProgress): Snapshot => Object.fromEntries(schedulingFields.filter(key => progress[key] !== undefined).map(key => [key, progress[key]]));

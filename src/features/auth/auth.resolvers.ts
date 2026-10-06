@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { User, UserSettings } from "./auth.types.js";
-import { dailyNewLimit } from "../progress/dailyLimit.js";
+import { studyMetadata } from "../progress/studyLoading.js";
 import {
   registerWithEmail,
   loginWithEmail,
@@ -45,16 +45,12 @@ export const authResolvers = {
 
     user: async (_: unknown, { id }: { id: string }, context: GraphQLContext) => {
       if (!context.user || context.user._id.toString() !== id) throw new Error("Unauthorized");
-      const db = getDb();
-      const user = await db.users.findOne({ _id: new ObjectId(id) });
-      return toGraphQL(user);
+      return toGraphQL(context.user);
     },
 
     userByEmail: async (_: unknown, { email }: { email: string }, context: GraphQLContext) => {
       if (!context.user || context.user.email.toLowerCase() !== email.toLowerCase()) throw new Error("Unauthorized");
-      const db = getDb();
-      const user = await db.users.findOne({ email: email.toLowerCase() });
-      return toGraphQL(user);
+      return toGraphQL(context.user);
     },
   },
 
@@ -120,6 +116,7 @@ export const authResolvers = {
     dailyNewCards: (settings: UserSettings) => settings.dailyNewCards ?? 20,
   },
   User: {
-    settings: async (user: any) => ({ ...DEFAULT_SETTINGS, ...user.settings, dailyNewCards: await dailyNewLimit(new ObjectId(user.id ?? user._id)) }),
+    settings: async (user: any, _: unknown, context: GraphQLContext) => ({ ...DEFAULT_SETTINGS, ...user.settings,
+      dailyNewCards: user.settings?.dailyNewCards ?? (await studyMetadata(context, new ObjectId(user.id ?? user._id), user)).limit }),
   },
 };

@@ -46,7 +46,10 @@
     "test:study-sync": "tsx scripts/testStudySync.ts",
     "test:study-sync-browser": "tsx scripts/testStudySyncBrowser.ts",
     "test:study-sync-validation": "tsx scripts/testStudySyncValidation.ts",
-    "generate:browser-scheduler": "node scripts/generateBrowserScheduler.mjs"
+    "generate:browser-scheduler": "node scripts/generateBrowserScheduler.mjs",
+    "test:loading": "tsx scripts/testLoading.ts",
+    "audit:loading": "tsx scripts/auditLoading.ts",
+    "test:auth": "tsx scripts/testAuthentication.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

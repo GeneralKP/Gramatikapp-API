@@ -1,0 +1,1049 @@
+{
+  "dashboard": {
+    "data": {
+      "studyQueueCounts": {
+        "new": 0,
+        "learning": 0,
+        "review": 4,
+        "total": 2,
+        "learned": 2
+      },
+      "learningPath": [
+        {
+          "id": "university",
+          "name": "University",
+          "level": "A1",
+          "isUnlocked": true,
+          "wordsTotal": 2,
+          "wordsLearned": 2,
+          "phrasesTotal": 1,
+          "phrasesLearned": 1
+        }
+      ]
+    }
+  },
+  "due": {
+    "data": {
+      "dueItems": [
+        {
+          "id": "000000000000000000000065",
+          "itemId": "0000000000000000000000c9",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": {
+            "source": "ANKI",
+            "sourceCardId": "1",
+            "sourceNoteGuid": "house",
+            "direction": "ES_DE",
+            "prompt": "casa",
+            "answer": "das Haus",
+            "acceptedAnswers": [
+              "das Haus"
+            ],
+            "notes": "note",
+            "examples": [
+              "Das Haus ist groß."
+            ],
+            "deck": "App",
+            "tags": [
+              "NOUN"
+            ]
+          },
+          "wordRelation": {
+            "id": "000000000000000000000014",
+            "main": {
+              "id": "00000000000000000000000a",
+              "word": "casa",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "casa example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": null
+              }
+            },
+            "translated": {
+              "id": "00000000000000000000000b",
+              "word": "Haus",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "Haus example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": "das",
+                "plural": "plural",
+                "past": null,
+                "perfect": null,
+                "imperativ": null,
+                "irregularConjugations": null,
+                "gramaticalCase": null
+              }
+            }
+          },
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000c9\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"1\",\"card\":{\"sourceCardId\":\"1\",\"sourceNoteGuid\":\"house\",\"direction\":\"ES_DE\"}}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:10:18.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 2851200,
+              "nextDueDate": "2026-11-08T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 6134400,
+              "nextDueDate": "2026-12-16T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 8208000,
+              "nextDueDate": "2027-01-09T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        },
+        {
+          "id": "000000000000000000000066",
+          "itemId": "0000000000000000000000ca",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": {
+            "source": "ANKI",
+            "sourceCardId": "2",
+            "sourceNoteGuid": "house",
+            "direction": "DE_ES",
+            "prompt": "das Haus",
+            "answer": "casa",
+            "acceptedAnswers": [
+              "casa"
+            ],
+            "notes": "note",
+            "examples": [
+              "Das Haus ist groß."
+            ],
+            "deck": "App",
+            "tags": [
+              "NOUN"
+            ]
+          },
+          "wordRelation": {
+            "id": "000000000000000000000014",
+            "main": {
+              "id": "00000000000000000000000a",
+              "word": "casa",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "casa example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": null
+              }
+            },
+            "translated": {
+              "id": "00000000000000000000000b",
+              "word": "Haus",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "Haus example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": "das",
+                "plural": "plural",
+                "past": null,
+                "perfect": null,
+                "imperativ": null,
+                "irregularConjugations": null,
+                "gramaticalCase": null
+              }
+            }
+          },
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000ca\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"2\",\"card\":{\"sourceCardId\":\"2\",\"sourceNoteGuid\":\"house\",\"direction\":\"DE_ES\"}}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:11:02.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 3024000,
+              "nextDueDate": "2026-11-10T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 6480000,
+              "nextDueDate": "2026-12-20T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 8640000,
+              "nextDueDate": "2027-01-14T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        },
+        {
+          "id": "000000000000000000000067",
+          "itemId": "0000000000000000000000cb",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": null,
+          "wordRelation": null,
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000cb\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"805102475976156698\"}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:12:27.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 3456000,
+              "nextDueDate": "2026-11-15T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 7084800,
+              "nextDueDate": "2026-12-27T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 9331200,
+              "nextDueDate": "2027-01-22T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        },
+        {
+          "id": "000000000000000000000068",
+          "itemId": "0000000000000000000000cc",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": null,
+          "wordRelation": null,
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000cc\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"1056176529436635092\"}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:11:28.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 3196800,
+              "nextDueDate": "2026-11-12T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 6652800,
+              "nextDueDate": "2026-12-22T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 8812800,
+              "nextDueDate": "2027-01-16T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        },
+        {
+          "id": "000000000000000000000069",
+          "itemId": "0000000000000000000000cd",
+          "itemType": "PHRASE",
+          "failureIndex": 2,
+          "card": null,
+          "wordRelation": null,
+          "phraseRelation": {
+            "id": "000000000000000000000028",
+            "main": {
+              "id": "00000000000000000000001e",
+              "phrase": "Hoy aprendo alemán.",
+              "synonyms": [
+                "alternative"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "contexts": [
+                "university"
+              ]
+            },
+            "translated": {
+              "id": "00000000000000000000001f",
+              "phrase": "Ich lerne heute Deutsch.",
+              "synonyms": [
+                "alternative"
+              ]
+            }
+          },
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000cd\",\"itemType\":\"PHRASE\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"726530791250080537\"}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 604800,
+              "nextDueDate": "2026-10-13T02:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 2592000,
+              "nextDueDate": "2026-11-05T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 15552000,
+              "nextDueDate": "2027-04-04T02:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 31536000,
+              "nextDueDate": "2027-10-06T02:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        }
+      ]
+    },
+    "errors": [
+      {
+        "message": "Cannot return null for non-nullable field WordRelation.translated.",
+        "path": [
+          "dueItems",
+          3,
+          "wordRelation",
+          "translated"
+        ],
+        "locations": [
+          {
+            "line": 24,
+            "column": 9
+          }
+        ]
+      }
+    ]
+  },
+  "more": {
+    "data": {
+      "studyMoreItems": [
+        {
+          "id": "00000000000000000000006a",
+          "itemId": "0000000000000000000000ce",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": null,
+          "wordRelation": {
+            "id": "000000000000000000000014",
+            "main": {
+              "id": "00000000000000000000000a",
+              "word": "casa",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "casa example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": null
+              }
+            },
+            "translated": {
+              "id": "00000000000000000000000b",
+              "word": "Haus",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "Haus example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": "das",
+                "plural": "plural",
+                "past": null,
+                "perfect": null,
+                "imperativ": null,
+                "irregularConjugations": null,
+                "gramaticalCase": null
+              }
+            }
+          },
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-09T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000ce\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-09T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"208557728434775942\"}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:10:47.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 2764800,
+              "nextDueDate": "2026-11-07T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 5875200,
+              "nextDueDate": "2026-12-13T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 6739200,
+              "nextDueDate": "2026-12-23T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "category": {
+    "data": {
+      "dueItems": [
+        {
+          "id": "000000000000000000000065",
+          "itemId": "0000000000000000000000c9",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": {
+            "source": "ANKI",
+            "sourceCardId": "1",
+            "sourceNoteGuid": "house",
+            "direction": "ES_DE",
+            "prompt": "casa",
+            "answer": "das Haus",
+            "acceptedAnswers": [
+              "das Haus"
+            ],
+            "notes": "note",
+            "examples": [
+              "Das Haus ist groß."
+            ],
+            "deck": "App",
+            "tags": [
+              "NOUN"
+            ]
+          },
+          "wordRelation": {
+            "id": "000000000000000000000014",
+            "main": {
+              "id": "00000000000000000000000a",
+              "word": "casa",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "casa example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": null
+              }
+            },
+            "translated": {
+              "id": "00000000000000000000000b",
+              "word": "Haus",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "Haus example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": "das",
+                "plural": "plural",
+                "past": null,
+                "perfect": null,
+                "imperativ": null,
+                "irregularConjugations": null,
+                "gramaticalCase": null
+              }
+            }
+          },
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000c9\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"1\",\"card\":{\"sourceCardId\":\"1\",\"sourceNoteGuid\":\"house\",\"direction\":\"ES_DE\"}}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:10:18.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 2851200,
+              "nextDueDate": "2026-11-08T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 6134400,
+              "nextDueDate": "2026-12-16T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 8208000,
+              "nextDueDate": "2027-01-09T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        },
+        {
+          "id": "000000000000000000000066",
+          "itemId": "0000000000000000000000ca",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": {
+            "source": "ANKI",
+            "sourceCardId": "2",
+            "sourceNoteGuid": "house",
+            "direction": "DE_ES",
+            "prompt": "das Haus",
+            "answer": "casa",
+            "acceptedAnswers": [
+              "casa"
+            ],
+            "notes": "note",
+            "examples": [
+              "Das Haus ist groß."
+            ],
+            "deck": "App",
+            "tags": [
+              "NOUN"
+            ]
+          },
+          "wordRelation": {
+            "id": "000000000000000000000014",
+            "main": {
+              "id": "00000000000000000000000a",
+              "word": "casa",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "casa example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": null
+              }
+            },
+            "translated": {
+              "id": "00000000000000000000000b",
+              "word": "Haus",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "Haus example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": "das",
+                "plural": "plural",
+                "past": null,
+                "perfect": null,
+                "imperativ": null,
+                "irregularConjugations": null,
+                "gramaticalCase": null
+              }
+            }
+          },
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000ca\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"2\",\"card\":{\"sourceCardId\":\"2\",\"sourceNoteGuid\":\"house\",\"direction\":\"DE_ES\"}}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:11:02.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 3024000,
+              "nextDueDate": "2026-11-10T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 6480000,
+              "nextDueDate": "2026-12-20T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 8640000,
+              "nextDueDate": "2027-01-14T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        },
+        {
+          "id": "000000000000000000000068",
+          "itemId": "0000000000000000000000cc",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": null,
+          "wordRelation": null,
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000cc\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":20,\"reviewsPerDay\":1000,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"1056176529436635092\"}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:11:28.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 3196800,
+              "nextDueDate": "2026-11-12T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 6652800,
+              "nextDueDate": "2026-12-22T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 8812800,
+              "nextDueDate": "2027-01-16T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        }
+      ]
+    },
+    "errors": [
+      {
+        "message": "Cannot return null for non-nullable field WordRelation.translated.",
+        "path": [
+          "dueItems",
+          2,
+          "wordRelation",
+          "translated"
+        ],
+        "locations": [
+          {
+            "line": 24,
+            "column": 9
+          }
+        ]
+      }
+    ]
+  },
+  "legacy-category-counts": {
+    "data": {
+      "studyQueueCounts": {
+        "new": 0,
+        "learning": 0,
+        "review": 1,
+        "total": 2,
+        "learned": 2
+      }
+    }
+  },
+  "native-new-count": {
+    "data": {
+      "studyQueueCounts": {
+        "new": 1,
+        "learning": 0,
+        "review": 0,
+        "total": 2,
+        "learned": 0
+      },
+      "learningPath": [
+        {
+          "id": "university",
+          "name": "University",
+          "level": "A1",
+          "isUnlocked": true,
+          "wordsTotal": 2,
+          "wordsLearned": 0,
+          "phrasesTotal": 1,
+          "phrasesLearned": 0
+        }
+      ]
+    }
+  },
+  "buried-prerequisite": {
+    "data": {
+      "studyQueueCounts": {
+        "new": 0,
+        "learning": 0,
+        "review": 0,
+        "total": 2,
+        "learned": 0
+      },
+      "learningPath": [
+        {
+          "id": "university",
+          "name": "University",
+          "level": "A1",
+          "isUnlocked": true,
+          "wordsTotal": 2,
+          "wordsLearned": 0,
+          "phrasesTotal": 1,
+          "phrasesLearned": 0
+        }
+      ]
+    }
+  },
+  "legacy-scheduler": {
+    "data": {
+      "studyQueueCounts": {
+        "new": 0,
+        "learning": 0,
+        "review": 1,
+        "total": 2,
+        "learned": 1
+      },
+      "learningPath": [
+        {
+          "id": "university",
+          "name": "University",
+          "level": "A1",
+          "isUnlocked": true,
+          "wordsTotal": 2,
+          "wordsLearned": 1,
+          "phrasesTotal": 1,
+          "phrasesLearned": 0
+        }
+      ]
+    }
+  },
+  "profile-absent": {
+    "data": {
+      "studyQueueCounts": {
+        "new": 0,
+        "learning": 0,
+        "review": 1,
+        "total": 2,
+        "learned": 1
+      },
+      "learningPath": [
+        {
+          "id": "university",
+          "name": "University",
+          "level": "A1",
+          "isUnlocked": true,
+          "wordsTotal": 2,
+          "wordsLearned": 1,
+          "phrasesTotal": 1,
+          "phrasesLearned": 0
+        }
+      ]
+    }
+  },
+  "profile-absent-cards": {
+    "data": {
+      "dueItems": [
+        {
+          "id": "00000000000000000000006f",
+          "itemId": "0000000000000000000000d3",
+          "itemType": "WORD",
+          "failureIndex": 2,
+          "card": null,
+          "wordRelation": {
+            "id": "000000000000000000000014",
+            "main": {
+              "id": "00000000000000000000000a",
+              "word": "casa",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "casa example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": null
+              }
+            },
+            "translated": {
+              "id": "00000000000000000000000b",
+              "word": "Haus",
+              "gramaticalCategories": [
+                "NOUN"
+              ],
+              "examples": [
+                "Haus example"
+              ],
+              "contexts": [
+                "university"
+              ],
+              "level": "A1",
+              "cefrLevel": "A1.2",
+              "notes": "note",
+              "forms": {
+                "gender": "das",
+                "plural": "plural",
+                "past": null,
+                "perfect": null,
+                "imperativ": null,
+                "irregularConjugations": null,
+                "gramaticalCase": null
+              }
+            }
+          },
+          "phraseRelation": null,
+          "ease": 2.5,
+          "interval": 30,
+          "repetitions": 4,
+          "nextDueDate": "2026-10-05T10:00:00.000Z",
+          "studyState": "{\"itemId\":\"0000000000000000000000d3\",\"itemType\":\"WORD\",\"ease\":2.5,\"interval\":30,\"repetitions\":4,\"nextDueDate\":\"2026-10-05T10:00:00.000Z\",\"lastReviewed\":\"2026-09-05T10:00:00.000Z\",\"createdAt\":\"2026-08-01T10:00:00.000Z\",\"scheduler\":{\"version\":1,\"phase\":\"REVIEW\",\"remainingSteps\":0,\"scheduledSeconds\":600,\"interval\":30,\"ease\":2.5,\"lapses\":1,\"queue\":\"DAY\",\"options\":{\"learningSteps\":[1,10],\"relearningSteps\":[10],\"graduatingGood\":1,\"graduatingEasy\":4,\"initialEase\":2.5,\"hardMultiplier\":1.2,\"easyMultiplier\":1.3,\"intervalMultiplier\":1,\"lapseMultiplier\":0,\"minimumLapseInterval\":1,\"maximumInterval\":36500,\"newPerDay\":1,\"reviewsPerDay\":200,\"learnAheadSeconds\":1200,\"buryNew\":false,\"buryReviews\":false,\"buryInterday\":false,\"newMix\":0,\"interdayMix\":0,\"reviewOrder\":0,\"newOrder\":0,\"leechThreshold\":8,\"leechSuspend\":false},\"timeZone\":\"Europe/Berlin\",\"rollover\":4},\"totalReviews\":5,\"lapses\":1,\"isNew\":false,\"fuzzSeed\":\"363041771866086085\"}",
+          "scheduleVersion": 3,
+          "schedulerPhase": "REVIEW",
+          "learningQueue": "DAY",
+          "learnAheadSeconds": 1200,
+          "reviewOptions": [
+            {
+              "grade": "AGAIN",
+              "delaySeconds": 600,
+              "nextDueDate": "2026-10-06T10:11:07.000Z",
+              "phase": "RELEARNING"
+            },
+            {
+              "grade": "HARD",
+              "delaySeconds": 3110400,
+              "nextDueDate": "2026-11-11T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "GOOD",
+              "delaySeconds": 6480000,
+              "nextDueDate": "2026-12-20T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "EASY",
+              "delaySeconds": 8640000,
+              "nextDueDate": "2027-01-14T03:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "REVISIT",
+              "delaySeconds": 86400,
+              "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

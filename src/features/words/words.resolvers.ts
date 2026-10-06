@@ -155,13 +155,13 @@ export const wordsResolvers = {
   },
   WordRelation: {
     main: async (parent: any) => {
-      if (parent.mainDoc) return toGraphQL(parent.mainDoc);
+      if ("mainDoc" in parent) return toGraphQL(parent.mainDoc);
       const db = getDb();
       const word = await db.wordsES.findOne({ _id: new ObjectId(parent.main) });
       return toGraphQL(word);
     },
     translated: async (parent: any) => {
-      if (parent.translatedDoc) return toGraphQL(parent.translatedDoc);
+      if ("translatedDoc" in parent) return toGraphQL(parent.translatedDoc);
       const db = getDb();
       const word = await db.wordsDE.findOne({
         _id: new ObjectId(parent.translated),
