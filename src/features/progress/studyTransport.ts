@@ -2,10 +2,11 @@ import { ObjectId } from "mongodb";
 import { getDb, type Database } from "../../lib/database.js";
 import type { User } from "../auth/auth.types.js";
 import type { UserProgress, StudyCard } from "./progress.types.js";
-import { loadDueStudyProgress, loadMoreStudyProgress } from "./progress.resolvers.js";
+import { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } from "./progress.resolvers.js";
+import { combinedStudyCandidates, isCountStudyCandidate } from "./studyCandidates.js";
 import { withScheduler } from "./reviews.js";
 import { schedulerSeed, type DeckOptions } from "./scheduler.js";
-import { studyMetadata, studyCatalog, STUDY_CONTENT_BATCH_SIZE } from "./studyLoading.js";
+import { studyMetadata, studyCatalog, studyCountSnapshot, STUDY_CONTENT_BATCH_SIZE } from "./studyLoading.js";
 import type { Word } from "../words/words.types.js";
 import type { Phrase } from "../phrases/phrases.types.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
@@ -51,6 +52,7 @@ export interface CompactStudyEnvelope {
   manifest: CompactStudyShell[];
   remaining: number;
   complete: boolean;
+  counts?: { new: number; learning: number; review: number };
 }
 
 function requestScope(user: User, input: any) {
@@ -161,7 +163,24 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
 export async function loadCompactStudyQueue(user: User, input: any = {}): Promise<CompactStudyEnvelope> {
   const scope = requestScope(user, input);
   const cardLimit = bounded(input.cardLimit, Number.MAX_SAFE_INTEGER, 5000, "cardLimit");
-  const progress = await loadDueStudyProgress({ ...scope, dueLimit: bounded(input.dueLimit, 5000, 5000, "dueLimit"), newLimit: bounded(input.newLimit, 20, 1000, "newLimit"), includeLearningAhead: true }, { user }, COMPACT_STUDY_SELECTION);
+  if (input.includeCounts !== undefined && typeof input.includeCounts !== "boolean") throw new Error("Invalid includeCounts");
+  const args = { ...scope, dueLimit: bounded(input.dueLimit, 5000, 5000, "dueLimit"), newLimit: bounded(input.newLimit, 20, 1000, "newLimit"), includeLearningAhead: true };
+  const context = { user };
+  if (input.includeCounts) {
+    const now = new Date();
+    // Category-specific queries can use a different index and cursor order.
+    // Keep their original due/counter reads while sharing this request's account
+    // and allowance data. The unscoped route can share one candidate superset.
+    const candidates = scope.context ? undefined : combinedStudyCandidates(user._id, scope.itemType, now, COMPACT_STUDY_SELECTION);
+    const countProgress = candidates
+      ? candidates.then(rows => rows.filter(p => isCountStudyCandidate(p, now)))
+      : studyCountSnapshot(context, user._id, now, scope.itemType).then(snapshot => snapshot.progress);
+    const counts = loadStudyQueueCounts(scope, context, { now, progress: countProgress, countersOnly: true });
+    const packet = loadDueStudyProgress(args, context, COMPACT_STUDY_SELECTION, { now, candidates, beforeNewItems: counts }).then(progress => envelope(progress, cardLimit));
+    const [result, counters] = await Promise.all([packet, counts]);
+    return { ...result, counts: { new: counters.new, learning: counters.learning, review: counters.review } };
+  }
+  const progress = await loadDueStudyProgress(args, context, COMPACT_STUDY_SELECTION);
   return envelope(progress, cardLimit);
 }
 export async function loadCompactStudyMore(user: User, input: any = {}): Promise<CompactStudyEnvelope> {

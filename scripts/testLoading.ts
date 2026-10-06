@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import express from 'express';
 import { MongoClient, ObjectId } from 'mongodb';
+import { isCountStudyCandidate, isDueStudyCandidate } from '../src/features/progress/studyCandidates.js';
 import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { connectDatabase, closeDatabase, getDb } from '../src/lib/database.js';
@@ -449,6 +450,110 @@ try {
   }finally{holdRead=undefined;}
  }
  console.log('PASS covered pending shortcut, pair/odd/blocked/duplicate ordering, concurrent pending arrivals and fresh late recognition');
+ // Combined entry counters use the original complete counter view, independent
+ // of due/new limits and the playable subset. Compare both original contracts.
+ const summary=(counts:any)=>({new:counts.new,learning:counts.learning,review:counts.review});
+ const combinedCase=async(label:string,rows:any[],args:any={})=>{
+  fixture.userprogresses=rows;invalidateStudyCatalog();
+  const scope={userId:String(owner),itemType:args.itemType,context:args.context};
+  const expectedCounts=summary(await resolvers.Query.studyQueueCounts(null,scope,{user} as any));
+  const plain=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:0,...args})));
+  reads={};progressQueries=[];
+  const combined=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:0,...args,includeCounts:true})));
+  const {counts,...packet}=combined;
+  assert.deepEqual(packet,plain,`${label}: queue order/content/state is unchanged`);
+  assert.deepEqual(counts,expectedCounts,`${label}: exact three GraphQL counters`);
+  assert.equal(reads['schedulerprofiles.findOne'],1,`${label}: one fresh profile read`);
+  assert.equal(reads['reviewevents.aggregate'],1,`${label}: one daily allowance read`);
+  const unionReads=progressQueries.filter(read=>read.query.$or?.some((branch:any)=>branch.$or?.some((clause:any)=>clause['scheduler.phase'])));
+  assert.equal(unionReads.length,args.context?0:1,`${label}: unscoped entry shares candidates; categorized entry retains its original query order`);
+  if(unionReads.length){assert.equal(unionReads[0].batchSize,5000);assert.ok(unionReads[0].projection.scheduler,'the shared snapshot retains complete local scheduling state');}
+  assert.equal(progressQueries.filter(read=>read.query.$or?.some((clause:any)=>clause['scheduler.phase'])).length,args.context?1:0,'categorized counts retain their original scoped projection while unscoped entry avoids a duplicate snapshot');
+  if(args.context)assert.ok(progressQueries.some(read=>read.query.$and && read.query.$or?.some((clause:any)=>clause.temporaryDueDate)),'categorized queues retain the original Mongo category filter');
+  return combined;
+ };
+ fixture.schedulerprofiles=[profile];user.settings.dailyNewCards=20;
+ const longAhead=progress(120,'PHRASE',40,{nextDueDate:new Date(now.getTime()+7200000)});
+ longAhead.scheduler={...longAhead.scheduler,phase:'LEARNING',queue:'MINUTE',remainingSteps:1,timeZone:'America/New_York',rollover:2,options:{...longAhead.scheduler.options,learnAheadSeconds:7200}};
+ const futureLegacy=progress(121,'PHRASE',40,{isNew:false,interval:0,repetitions:0,totalReviews:0,lastReviewed:null,anki:{type:0,queue:0,left:0,reps:0,due:1},nextDueDate:new Date(now.getTime()+86400000)});delete futureLegacy.scheduler;
+ const unionCases=[...pendingPair,progress(122,'WORD',20),longAhead,{...longAhead,_id:id(923),itemId:id(1023),nextDueDate:new Date(now.getTime()+7200001)},futureLegacy,
+  {...futureLegacy,_id:id(924),itemId:id(1024),scheduler:null},
+  progress(125,'PHRASE',40,{nextDueDate:new Date(now.getTime()+86400000),temporaryDueDate:new Date(now.getTime()-1000)}),
+  progress(126,'WORD',20,{nextDueDate:new Date(now.getTime()+300000),temporaryDueDate:null}),
+  {...pendingPair[0],_id:id(927),itemId:id(1027),card:{...pendingPair[0].card,sourceNoteGuid:'blocked'},suspended:true},
+  {...pendingPair[1],_id:id(928),itemId:id(1028),card:{...pendingPair[1].card,sourceNoteGuid:'blocked'}},
+  progress(129,'WORD',20,{suspended:true}),progress(130,'WORD',20,{supersededByAnki:true}),progress(131,'WORD',20,{userId:otherOwner}),
+ ];
+ for(const itemType of ['WORD','PHRASE',undefined]){
+  await combinedCase(`full ${itemType??'mixed'}`,unionCases,{itemType});
+  await combinedCase(`category ${itemType??'mixed'}`,unionCases,{itemType,context:'University',cardLimit:1});
+ }
+ const onlyAhead=await combinedCase('future count-only learning',[longAhead],{itemType:'PHRASE'});
+ assert.deepEqual(onlyAhead.items,[],'a two-hour counter candidate never leaks into the fixed twenty-minute due snapshot');
+ assert.equal(onlyAhead.counts.learning,1);
+ await combinedCase('one millisecond past custom learn-ahead',[{...longAhead,nextDueDate:new Date(now.getTime()+7200001)}],{itemType:'PHRASE'});
+ await combinedCase('future legacy absent scheduler',[futureLegacy],{itemType:'PHRASE'});
+ await combinedCase('future legacy null scheduler',[{...futureLegacy,scheduler:null}],{itemType:'PHRASE'});
+ for(const relationId of [id(20),null,undefined])await combinedCase(`category relation ${String(relationId)}`,[progress(132,'WORD',20,{itemId:id(20),relationId})],{itemType:'WORD',context:'university'});
+ const lowCeiling=Array.from({length:30},(_,index)=>{const p=progress(140+index,'WORD',20,{card:{...pendingPair[0].card,sourceNoteGuid:`review-${index}`}});p.scheduler.options={...p.scheduler.options,reviewsPerDay:10};return p;});
+ const capped=await combinedCase('review count independent of queue ceiling',lowCeiling,{itemType:'WORD'});
+ assert.equal(capped.items.length,10);assert.equal(capped.counts.review,30);
+ await combinedCase('partial starter with positive new allowance',pendingPair,{itemType:'WORD',newLimit:2,cardLimit:1});
+ for(const rows of [[suspendedReading,reviewedReading,pendingPair[1]],[reviewedReading,suspendedReading,pendingPair[1]]])await combinedCase('duplicate recognition before shared filtering',rows,{itemType:'WORD',newLimit:1});
+ fixture.schedulerprofiles=[];
+ await combinedCase('absent account profile',[progress(180,'WORD',20)],{itemType:'WORD'});
+ fixture.schedulerprofiles=[profile];
+ // Combined counters are captured before native/catalog allocation can change
+ // the identities used to synthesize unseen cards. Hold that read explicitly.
+ fixture.userprogresses=[];user.settings.dailyNewCards=2;batches=[];
+ let releaseIdentities!:()=>void, identitiesStarted!:()=>void;
+ const identityGate=new Promise<void>(resolve=>{releaseIdentities=resolve;});
+ const identityStart=new Promise<void>(resolve=>{identitiesStarted=resolve;});
+ holdRead=async(name,method,query)=>{if(name==='userprogresses' && method==='find' && query.$or?.some((clause:any)=>clause.relationId?.$in)){identitiesStarted();await identityGate;}};
+ const allocatedCombined=loadCompactStudyQueue(user as any,{itemType:'PHRASE',dueLimit:5000,newLimit:2,includeCounts:true});
+ try{
+  await identityStart;await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(batches.length,0,'queue allocation waits for the count identity snapshot');
+  releaseIdentities();const packet=await allocatedCombined;
+  assert.equal(packet.counts.new,2);assert.equal(packet.items.length,2);assert.equal(batches.length,1);
+ }finally{releaseIdentities();holdRead=undefined;}
+ user.settings.dailyNewCards=20;fixture.userprogresses=pendingPair;reads={};progressQueries=[];
+ const freshCombined=await loadCompactStudyQueue(user as any,{...pendingArgs,includeCounts:true});
+ assert.equal(freshCombined.counts.new,2);
+ assert.ok(!progressQueries.some(read=>read.projection?.repetitions && !read.projection.scheduler),'pending introductions do not need an all-seen/mastery identity read');
+ fixture.userprogresses=pendingPair.map(p=>({...p,suspended:true}));user.settings.dailyNewCards=0;
+ const changedCombined=await loadCompactStudyQueue(user as any,{...pendingArgs,includeCounts:true});
+ assert.deepEqual(changedCombined.counts,{new:0,learning:0,review:0},'a later request observes changed account settings and progress');
+ user.settings.dailyNewCards=20;
+ await assert.rejects(loadCompactStudyQueue(user as any,{includeCounts:'true'}),/includeCounts/);
+ const candidateBase=progress(185,'PHRASE',40,{nextDueDate:new Date(now.getTime()+300000)});
+ const categorySet=new Set([String(id(40))]);
+ for(const [change,due,count] of [
+  [{},true,false],[{temporaryDueDate:null},true,false],
+  [{temporaryDueDate:new Date(now.getTime()+1)},false,false],
+  [{temporaryDueDate:new Date(now.getTime()-1)},true,true],
+  [{nextDueDate:new Date(now.getTime()+1200000)},true,false],
+  [{nextDueDate:new Date(now.getTime()+1200001)},false,false],
+  [{nextDueDate:null},false,false],[{nextDueDate:undefined},false,false],
+  [{nextDueDate:now.getTime()-1},false,false],
+  [{isNew:true,nextDueDate:new Date(now.getTime()+86400000)},true,false],
+  [{scheduler:null,nextDueDate:new Date(now.getTime()+86400000)},false,true],
+  [{scheduler:undefined,nextDueDate:new Date(now.getTime()+86400000)},false,true],
+ ] as const){
+  const p={...candidateBase,...change} as any;
+  assert.equal(!!isDueStudyCandidate(p,now,categorySet),due,'date/nullable due predicate preserves BSON date ranges');
+  assert.equal(!!isCountStudyCandidate(p,now),count,'count-only phases/legacy and due ranges remain independent');
+ }
+ for(const relationId of [null,String(id(40))])assert.equal(isDueStudyCandidate({...candidateBase,relationId} as any,now,categorySet),false,'explicit null and string relation IDs cannot match Mongo ObjectId categories');
+ assert.equal(isDueStudyCandidate({...candidateBase,itemId:id(40),relationId:undefined},now,categorySet),true,'only an absent relation uses the typed item ID category fallback');
+ fixture.userprogresses=[...pendingPair];progressQueries=[];let combinedPendingInserted=false;
+ holdRead=async(name,method,query)=>{if(!combinedPendingInserted && name==='userprogresses' && method==='find' && query.$or?.some((branch:any)=>branch.$or?.some((clause:any)=>clause['scheduler.phase']))){combinedPendingInserted=true;fixture.userprogresses.push(pendingCard(186,'combined-arrival','DE_ES'),pendingCard(187,'combined-arrival','ES_DE'));}};
+ try{
+  const packet=await loadCompactStudyQueue(user as any,{...pendingArgs,newLimit:4,includeCounts:true});
+  assert.deepEqual(packet.items.map(row=>row.id),[61,62,186,187].map(n=>String(id(200+n))),'combined entries still pick up a pending pair arriving after the shared snapshot');
+  assert.deepEqual(packet.counts,{new:2,learning:0,review:0},'counter snapshot remains exact even when later fresh pending checks add a concurrent pair');
+ }finally{holdRead=undefined;}
+ console.log('PASS combined exact queue/counters, one fresh snapshot/profile/day, limits, legacy/custom ahead, category nullability and allocation snapshot isolation');
  // The compact transport must retain the real queue and every local transition,
  // while hydration can be restricted to a prefix independently of dueLimit.
  const ankiCard={source:'ANKI',sourceCardId:'901',sourceNoteGuid:'compact-pair',direction:'DE_ES',prompt:'das Haus',answer:'casa',acceptedAnswers:['casa'],notes:'reveal note',examples:['reveal example'],deck:'App',tags:['NOUN']};
@@ -512,9 +617,10 @@ try {
  fixture.userprogresses=[freshNative()];
  const oldNative=await resolvers.Query.dueItems(null,{userId:String(owner),dueLimit:5000,newLimit:2,itemType:'WORD',includeLearningAhead:true},{user} as any);
  fixture.userprogresses=[freshNative()];
- const compactNative=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1});
+ const compactNative=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1,includeCounts:true});
  assert.deepEqual((compactNative.manifest.length?compactNative.manifest:compactNative.items).map(row=>row.id),oldNative.map((row:any)=>row.itemId));
  assert.equal(compactNative.items.length,2,'starter boundary includes the complete new directional pair');
+ assert.deepEqual(compactNative.counts,{new:2,learning:0,review:0},'native paired introductions retain exact counters before allocation');
  assert.deepEqual(compactNative.items.map(row=>row.card?.direction),['DE_ES','ES_DE']);
  assert.ok(compactNative.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='Haus example (casa example)'));
  assert.equal(fixture.userprogresses.length,2,'one native pair is allocated');
@@ -530,8 +636,9 @@ try {
   const post=(path:string,body:any,token='mock-owner')=>fetch(`http://127.0.0.1:${port}/api/study/${path}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(body)});
   const unauthorized=await post('queue',{},'not-owner');assert.equal(unauthorized.status,401);assert.equal(unauthorized.headers.get('cache-control'),'no-store');
   const foreign=await post('cards',{itemIds:[String(progress(90).itemId)]});assert.equal(foreign.status,400);
-  const response=await post('queue',{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1});assert.equal(response.status,200);assert.equal((await response.json()).items.length,2);
+  const response=await post('queue',{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1,includeCounts:true});assert.equal(response.status,200);const httpPacket=await response.json();assert.equal(httpPacket.items.length,2);assert.deepEqual(httpPacket.counts,{new:2,learning:0,review:0});
   const invalid=await post('queue',{newLimit:'40'});assert.equal(invalid.status,400);
+  const invalidCounts=await post('queue',{includeCounts:'true'});assert.equal(invalidCounts.status,400);
  }finally{await new Promise<void>((resolve,reject)=>transportServer.close(error=>error?reject(error):resolve()));}
  console.log('PASS compact ordered starter/background transport, custom profiles/timezones, local schedule transitions, reveal content, legacy/cloze/missing links and ownership');
 }finally{await closeDatabase();(globalThis as any).Date=RealDate;}

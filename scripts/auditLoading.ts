@@ -11,6 +11,7 @@ import { typeDefs, resolvers } from '../src/graphql/schema.js';
 import { loadCompactStudyQueue, loadCompactStudyCards, COMPACT_STUDY_SELECTION } from '../src/features/progress/studyTransport.js';
 import { warmStudyCatalog } from '../src/features/progress/studyLoading.js';
 import { isNewCard } from '../src/features/progress/newWordOrder.js';
+import { combinedStudyCandidateFilter } from '../src/features/progress/studyCandidates.js';
 const prototype = Collection.prototype as any;
 for (const name of ['createIndex', 'dropIndex']) prototype[name] = async () => undefined;
 for (const name of ['insertOne', 'insertMany', 'updateOne', 'updateMany', 'replaceOne', 'deleteOne', 'deleteMany', 'bulkWrite', 'findOneAndUpdate', 'findOneAndDelete', 'findOneAndReplace', 'drop', 'createIndexes', 'dropIndexes']) {
@@ -21,6 +22,7 @@ let commands: { name: string; collection?: string; stage?: string; elapsedMs: nu
 const commandCollections = new Map<number, { collection: string; stage?: string }>();
 const cursorStages = new Map<string, { collection: string; stage?: string }>();
 function progressStage(filter: any, projection: any): string {
+  if (filter?.$or?.some((branch: any) => branch.$or?.some((clause: any) => clause['scheduler.phase']))) return 'queue-and-counter-candidates';
   if (filter?.['card.sourceNoteGuid']) return 'new-word-siblings';
   if (filter?.isNew === true) return 'pending-new';
   if (filter?.$or?.some((clause: any) => clause.temporaryDueDate || clause.isNew)) return 'due-candidates';
@@ -80,9 +82,17 @@ try {
         reads={};commands=[];const started=performance.now(),cpuStarted=process.cpuUsage();
         const newLimit=Number(process.env.AUDIT_NEW_LIMIT??0);
         assert.ok(Number.isInteger(newLimit) && newLimit>=0 && newLimit<=1000, 'AUDIT_NEW_LIMIT must be an integer from 0 to 1000');
-        const result=await loadCompactStudyQueue(user,{itemType,...(cardLimit===undefined?{}:{cardLimit}),dueLimit:5000,newLimit});
-        const cpu=process.cpuUsage(cpuStarted);
-        console.log(JSON.stringify({name:`${operation}-${run+1}`,elapsedMs:Math.round(performance.now()-started),cpuMs:Math.round((cpu.user+cpu.system)/1000),accountCards:largest.cards,returnedCards:result.items.length,manifestCards:result.manifest.length,responseBytes:Buffer.byteLength(JSON.stringify(result)),reads,databaseCommands:commands.length,getMoreCommands:commands.filter(command=>command.name==='getMore').length,...(process.env.AUDIT_DETAILS?{commands}:{})}));
+        const input={itemType,...(cardLimit===undefined?{}:{cardLimit}),dueLimit:5000,newLimit,...(process.env.AUDIT_INCLUDE_COUNTS?{includeCounts:true}:{})};
+        const result=await loadCompactStudyQueue(user,input);
+        const cpu=process.cpuUsage(cpuStarted),elapsedMs=Math.round(performance.now()-started),operationReads={...reads},operationCommands=[...commands];
+        if(process.env.AUDIT_VERIFY_COMBINED && input.includeCounts){
+          const plain=await loadCompactStudyQueue(user,{...input,includeCounts:false});
+          const {counts,...packet}=result;
+          assert.ok(JSON.stringify(packet)===JSON.stringify(plain),'combined queue order/content/state must match the original compact queue');
+          const separate=await (resolvers.Query.studyQueueCounts as any)(null,{userId:String(user._id),itemType},{user});
+          assert.deepEqual(counts,{new:separate.new,learning:separate.learning,review:separate.review},'combined counters must match the original GraphQL calculation');
+        }
+        console.log(JSON.stringify({name:`${operation}-${run+1}`,elapsedMs,cpuMs:Math.round((cpu.user+cpu.system)/1000),accountCards:largest.cards,returnedCards:result.items.length,manifestCards:result.manifest.length,responseBytes:Buffer.byteLength(JSON.stringify(result)),reads:operationReads,databaseCommands:operationCommands.length,getMoreCommands:operationCommands.filter(command=>command.name==='getMore').length,...(process.env.AUDIT_VERIFY_COMBINED && input.includeCounts?{combinedVerified:true}:{}),...(process.env.AUDIT_DETAILS?{commands:operationCommands}:{})}));
         if(operation.endsWith('starter') && run===0 && result.remaining){
           reads={};commands=[];const chunkStarted=performance.now();
           const chunk=await loadCompactStudyCards(user,{itemIds:result.manifest.slice(result.items.length,result.items.length+100).map(row=>row.id)});
@@ -130,6 +140,9 @@ try {
     ['words-query-plan',db.progress,{...dueFilter,itemType:'WORD'}],
     ['phrases-query-plan',db.progress,{...dueFilter,itemType:'PHRASE'}],
     ['mixed-query-plan',db.progress,dueFilter],
+    ['word-combined-query-plan',db.progress,combinedStudyCandidateFilter(user._id,'WORD',now),COMPACT_STUDY_SELECTION],
+    ['phrase-combined-query-plan',db.progress,combinedStudyCandidateFilter(user._id,'PHRASE',now),COMPACT_STUDY_SELECTION],
+    ['mixed-combined-query-plan',db.progress,combinedStudyCandidateFilter(user._id,undefined,now),COMPACT_STUDY_SELECTION],
     ['word-sibling-full-query-plan',db.progress,siblingFilter,COMPACT_STUDY_SELECTION],
     ['word-sibling-missing-query-plan',db.progress,{...siblingFilter,itemId:{$nin:siblingInput.filter(row=>row.card && siblingGuids.has(row.card.sourceNoteGuid)).map(row=>row.itemId)}},COMPACT_STUDY_SELECTION,2],
     ['word-counter-query-plan',db.progress,{...counterFilter,itemType:'WORD'}],
