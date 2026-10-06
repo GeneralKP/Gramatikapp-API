@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import express from 'express';
 import { MongoClient, ObjectId } from 'mongodb';
 import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -8,6 +9,10 @@ import { typeDefs, resolvers } from '../src/graphql/schema.js';
 import { DEFAULT_OPTIONS, initialScheduler } from '../src/features/progress/scheduler.js';
 import { withScheduler } from '../src/features/progress/reviews.js';
 import { insertNewProgress } from '../src/features/progress/studyLoading.js';
+import { invalidateStudyCatalog } from '../src/features/progress/catalogSummaryCache.js';
+import { loadCompactStudyQueue, loadCompactStudyCards, loadCompactStudyMore } from '../src/features/progress/studyTransport.js';
+import { studyTransportRouter } from '../src/features/progress/studyTransport.http.js';
+import { scheduleStudyReview } from '../src/features/progress/studyScheduling.js';
 
 // This suite never opens a network connection. It runs the real GraphQL schema,
 // queue selection and nested resolvers against deterministic MongoDB responses.
@@ -37,6 +42,7 @@ const fixture:any={
 };
 let reads:Record<string,number>={};
 let progressQueries: { query: any; projection?: any; batchSize?: number }[] = [];
+let counterCatalogQueries: { name: string; trace: { query: any; projection?: any; batchSize?: number } }[] = [];
 let batches:any[]=[];
 let holdRead: ((name: string, method: string, query: any) => Promise<void>) | undefined;
 const valueAt=(doc:any,key:string)=>key.split('.').reduce((value,part)=>value?.[part],doc);
@@ -74,7 +80,8 @@ function collection(name:string):any {
  const count=(method:string)=>{reads[`${name}.${method}`]=(reads[`${name}.${method}`]??0)+1;};
  const result={
   async createIndex(){},async dropIndex(){},
-  find(query:any={}){count('find');const traced={query,projection:undefined as any,batchSize:undefined as number|undefined};if(name==='userprogresses')progressQueries.push(traced);let rows=(fixture[name]??[]).filter((doc:any)=>matches(doc,query));return {
+  async insertOne(doc:any){fixture[name]??=[];fixture[name].push(doc);return {insertedId:doc._id};},
+  find(query:any={}){count('find');const traced={query,projection:undefined as any,batchSize:undefined as number|undefined};if(name==='userprogresses')progressQueries.push(traced);if(['WORDS_ES','WORDS_DE'].includes(name))counterCatalogQueries.push({name,trace:traced});let rows=(fixture[name]??[]).filter((doc:any)=>matches(doc,query));return {
    project(fields:any){traced.projection=fields;rows=rows.map((row:any)=>project(row,fields));return this;},
    batchSize(size:number){traced.batchSize=size;return this;},
    sort(fields:any){const [key,direction]=Object.entries(fields)[0] as [string,number];rows.sort((a:any,b:any)=>(valueAt(a,key)>valueAt(b,key)?1:valueAt(a,key)<valueAt(b,key)?-1:0)*direction);return this;},
@@ -89,12 +96,18 @@ function collection(name:string):any {
     if(!fixture[name].some((doc:any)=>matches(doc,updateOne.filter)))fixture[name].push(updateOne.update.$setOnInsert);
    }
   },
+  async updateOne(query:any,update:any,options:any={}){
+   assert.equal(name,'userprogresses');let row=fixture[name].find((doc:any)=>matches(doc,query));
+   if(!row && options.upsert){row={...query,...update.$setOnInsert};fixture[name].push(row);}
+   if(row && update.$set)Object.assign(row,update.$set);
+  },
   aggregate(){count('aggregate');assert.equal(name,'reviewevents');return {async toArray(){return [];}};},
  };
  collections.set(name,result);return result;
 }
 MongoClient.prototype.connect=async function(){return this;};
 MongoClient.prototype.db=function(){return {collection} as any;};
+MongoClient.prototype.startSession=function(){return {async withTransaction(work:any){return work();},async endSession(){}} as any;};
 await connectDatabase();
 // Versioned client operations keep this API-only CI suite independent of the web checkout.
 const queries=JSON.parse(readFileSync(new URL('./fixtures/loading-queries.json',import.meta.url),'utf8'));
@@ -104,7 +117,8 @@ try {
  const schema=makeExecutableSchema({typeDefs,resolvers});
  const responses:any={};
  const execute=async(name:string,source:string,variables:any={})=>{
-  reads={};
+  invalidateStudyCatalog();
+  reads={};counterCatalogQueries=[];
   const result=await graphql({schema,source,variableValues:{userId:String(owner),...variables},contextValue:{user}});
   if (result.errors) assert.ok(result.errors.every(error=>error.message==='Cannot return null for non-nullable field WordRelation.translated.'),result.errors.map(error=>error.message).join(';'));
   responses[name]=JSON.parse(JSON.stringify({data:result.data,...(result.errors?{errors:result.errors.map(error=>({message:error.message,path:error.path,locations:error.locations}))}:{})}));
@@ -126,6 +140,49 @@ try {
   }
  };
  await execute('dashboard',dashboard);
+ // Cross-request catalog reuse must never reuse private account state. The
+ // entire dashboard contract is checked again after changing live progress.
+ reads={};
+ const warmDashboard=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
+ assert.equal(warmDashboard.errors,undefined);
+ assert.deepEqual(JSON.parse(JSON.stringify(warmDashboard.data)),responses.dashboard.data);
+ for(const name of ['WORDS_ES_DE','PHRASES_ES_DE','WORDS_ES','PHRASES_ES'])assert.equal(reads[`${name}.find`]??0,0,'warm dashboards reuse immutable catalog summaries');
+ assert.equal(reads['userprogresses.find'],2,'progress is fresh on every dashboard request');
+ assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['reviewevents.aggregate'],1);
+ const savedProgress=fixture.userprogresses;
+ fixture.userprogresses=savedProgress.map((p:any)=>({...p,repetitions:0}));
+ const freshDashboard=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
+ assert.equal(freshDashboard.errors,undefined);
+ const expectedFresh=JSON.parse(JSON.stringify(responses.dashboard.data));
+ expectedFresh.studyQueueCounts.learned=0;
+ for(const node of expectedFresh.learningPath){node.wordsLearned=0;node.phrasesLearned=0;}
+ assert.deepEqual(JSON.parse(JSON.stringify(freshDashboard.data)),expectedFresh,'catalog caching never makes learned/mastery counters stale');
+ fixture.userprogresses=savedProgress;
+ const otherDashboard=await graphql({schema,source:dashboard,variableValues:{userId:String(otherOwner)},contextValue:{user:{...user,_id:otherOwner}}});
+ assert.equal(otherDashboard.errors,undefined);
+ const expectedOther=JSON.parse(JSON.stringify(responses.dashboard.data));
+ expectedOther.studyQueueCounts={new:0,learning:0,review:1,total:2,learned:1};
+ for(const node of expectedOther.learningPath){node.wordsLearned=1;node.phrasesLearned=0;}
+ assert.deepEqual(JSON.parse(JSON.stringify(otherDashboard.data)),expectedOther,'shared catalogs never share progress or mastery between accounts');
+ const relationCount=fixture.WORDS_ES_DE.length;
+ const added=await graphql({schema,source:'mutation($main:ID!,$translated:ID!){addWordRelation(mainId:$main,translatedId:$translated){id}}',variableValues:{main:String(id(10)),translated:String(id(11))},contextValue:{user}});
+ assert.equal(added.errors,undefined);reads={};
+ const afterCatalogWrite=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
+ assert.equal(afterCatalogWrite.errors,undefined);
+ assert.equal((afterCatalogWrite.data?.studyQueueCounts as any).total,relationCount+1,'own catalog mutations become visible immediately');
+ assert.equal(reads['WORDS_ES_DE.find'],1,'catalog mutation invalidates the cached summary');
+ const relationCollection=getDb().relationsWordsEsDe, insert=relationCollection.insertOne;
+ relationCollection.insertOne=async function(doc:any){await insert.call(this,doc);throw new Error('fixture acknowledgement lost');};
+ try {
+  const uncertainWrite=await graphql({schema,source:'mutation($main:ID!,$translated:ID!){addWordRelation(mainId:$main,translatedId:$translated){id}}',variableValues:{main:String(id(10)),translated:String(id(11))},contextValue:{user}});
+  assert.equal(uncertainWrite.errors?.[0]?.message,'fixture acknowledgement lost');reads={};
+  const afterUncertainWrite=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
+  assert.equal(afterUncertainWrite.errors,undefined);
+  assert.equal((afterUncertainWrite.data?.studyQueueCounts as any).total,relationCount+2,'committed writes invalidate even when acknowledgement is lost');
+  assert.equal(reads['WORDS_ES_DE.find'],1);
+ } finally {relationCollection.insertOne=insert;}
+ fixture.WORDS_ES_DE.splice(relationCount);invalidateStudyCatalog();
+ console.log('PASS warm dashboard full contract, fresh account counters and immediate catalog-write invalidation');
  await execute('due',query('DUE_ITEMS_QUERY'),{dueLimit:5000,newLimit:0});
  await execute('more',query('STUDY_MORE_QUERY'),{limit:3,newLimit:0,itemType:'WORD'});
  await execute('category',query('DUE_ITEMS_QUERY'),{dueLimit:5000,newLimit:0,itemType:'WORD',context:'university'});
@@ -147,7 +204,7 @@ try {
  assert.deepEqual(JSON.parse(JSON.stringify(scopedCounts.data)),practiceResponses['phrases-counts'].data);
  assert.ok(progressQueries.some(read=>read.query.itemType==='PHRASE'),'phrase counter scheduling reads must exclude unrelated word cards');
  assert.ok(progressQueries.some(read=>!read.query.itemType && !read.projection?.scheduler && !read.projection?.anki),'cross-type seen/mastery inputs use only compact identities');
- reads={};
+ invalidateStudyCatalog();reads={};
  const aliases=await graphql({schema,source:'query($userId:ID!){first:studyQueueCounts(userId:$userId,itemType:"PHRASE",context:"University"){new learning review total learned} second:studyQueueCounts(userId:$userId,itemType:"PHRASE",context:"university"){new learning review total learned}}',variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(aliases.errors,undefined);
  const phraseCounts=practiceResponses['phrases-counts'].data.studyQueueCounts;
@@ -168,6 +225,11 @@ try {
  // Unseen native pairs and a single-place daily limit must stay read-only in counts.
  fixture.userprogresses=[];user.settings.dailyNewCards=1;
  await execute('native-new-count',dashboard);
+ assert.equal(counterCatalogQueries.length,2);
+ for(const {name,trace} of counterCatalogQueries){
+  assert.deepEqual(trace.projection,name==='WORDS_ES'?{_id:1,word:1,contexts:1,level:1}:{_id:1,word:1,'forms.gender':1},'counter-only native pairs never download full notes/examples');
+  assert.equal(trace.batchSize,5000,'complete native counter reads avoid extra cursor batches');
+ }
  // A buried recognition sibling must block introduction of its typing card.
  const recognition=progress(8,'WORD',20,{isNew:true,interval:0,repetitions:0,lastReviewed:null,buriedUntil:new Date('2026-10-07T10:00:00Z'),card:{source:'ANKI',sourceCardId:'8',sourceNoteGuid:'paired',direction:'DE_ES',prompt:'Haus',answer:'casa',deck:'App'}});
  const production=progress(9,'WORD',20,{isNew:true,interval:0,repetitions:0,lastReviewed:null,card:{...recognition.card,sourceCardId:'9',direction:'ES_DE'}});
@@ -193,6 +255,7 @@ try {
  // including cards whose ordinary review date is in the future.
  fixture.schedulerprofiles=[profile];user.settings.dailyNewCards=20;
  const counter=async(itemType='WORD')=>{
+  invalidateStudyCatalog();
   const result=await graphql({schema,source:'query($userId:ID!,$itemType:String){studyQueueCounts(userId:$userId,itemType:$itemType){new learning review}}',variableValues:{userId:String(owner),itemType},contextValue:{user}});
   assert.equal(result.errors,undefined);
   return JSON.parse(JSON.stringify(result.data)).studyQueueCounts;
@@ -287,4 +350,82 @@ try {
   await assert.rejects(insertNewProgress(fixture.userprogresses,failingDb(error)),actual=>actual===error,'only concurrent duplicate-key conflicts may be ignored');
  }
  console.log('PASS exact new-phrase responses, repeat allocation, scoped/reused categories, pending-queue short circuit, batched idempotent upserts and error propagation');
+ // The compact transport must retain the real queue and every local transition,
+ // while hydration can be restricted to a prefix independently of dueLimit.
+ const ankiCard={source:'ANKI',sourceCardId:'901',sourceNoteGuid:'compact-pair',direction:'DE_ES',prompt:'das Haus',answer:'casa',acceptedAnswers:['casa'],notes:'reveal note',examples:['reveal example'],deck:'App',tags:['NOUN']};
+ const compactCases=[
+  progress(81,'WORD',20,{card:ankiCard}),
+  progress(82,'WORD',20,{card:{...ankiCard,source:'APP',sourceCardId:'902',direction:'ES_DE',prompt:'casa',answer:'das Haus',acceptedAnswers:['das Haus']}}),
+  progress(83,'WORD',20),
+  progress(84,'PHRASE',40,{card:{...ankiCard,sourceNoteGuid:'cloze',direction:'CLOZE',prompt:'Ich […] heute Deutsch.',answer:'lerne',acceptedAnswers:['lerne']}}),
+  progress(85,'PHRASE',40),
+  progress(86,'WORD',90),
+  progress(87,'WORD',21),
+  progress(88,'PHRASE',40,{nextDueDate:new Date(now.getTime()+300_000)}),
+  progress(89,'WORD',20,{nextDueDate:new Date('2026-10-09T10:00:00Z'),temporaryDueDate:new Date(now.getTime()-1000)}),
+ ];
+ compactCases[7].scheduler={...compactCases[7].scheduler,phase:'LEARNING',queue:'MINUTE',remainingSteps:1,options:{...DEFAULT_OPTIONS,learnAheadSeconds:7200},timeZone:'America/New_York',rollover:2};
+ compactCases[2].scheduler.options={...compactCases[2].scheduler.options,relearningSteps:[3,17],buryReviews:true,leechThreshold:4};
+ fixture.userprogresses=[...compactCases,progress(90,'WORD',20,{userId:otherOwner})];
+ const compactArgs={dueLimit:5000,newLimit:0,includeLearningAhead:true};
+ const oldRaw=await resolvers.Query.dueItems(null,{userId:String(owner),...compactArgs},{user} as any);
+ progressQueries=[];
+ const compact=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...compactArgs,cardLimit:2})));
+ assert.deepEqual(compact.manifest.map((row:any)=>row.id),oldRaw.map((row:any)=>row.itemId),'starter hydration must preserve the full due/new/ahead order');
+ assert.equal(compact.items.length,2);assert.equal(compact.remaining,compact.manifest.length-2);assert.equal(compact.complete,false);
+ assert.ok(progressQueries.some(read=>read.projection?.scheduler && read.projection?.['card.direction'] && !read.projection.card && !read.projection.failureAttemptIds),'selection excludes rich cards and history');
+ const remainder=JSON.parse(JSON.stringify(await loadCompactStudyCards(user as any,{itemIds:compact.manifest.slice(2).map((row:any)=>row.id)})));
+ const expanded=(row:any,profiles:any[])=>({...row.schedule.state,scheduler:{...row.schedule.state.scheduler,options:profiles[row.schedule.profile]}});
+ const hydrated=[...compact.items.map((row:any)=>({row,profiles:compact.profiles})),...remainder.items.map((row:any)=>({row,profiles:remainder.profiles}))];
+ for(const {row,profiles} of hydrated){
+  const original=oldRaw.find((p:any)=>p.itemId===row.id),state=expanded(row,profiles),oldState=JSON.parse(original.studyState);
+  delete oldState.card;
+  assert.deepEqual(state,oldState,`complete local scheduling state for ${row.id}`);
+  const redate=(value:any)=>{value=structuredClone(value);for(const key of ['nextDueDate','temporaryDueDate','lastReviewed','createdAt'])if(value[key])value[key]=new RealDate(value[key]);return value;};
+  for(const grade of ['AGAIN','HARD','GOOD','EASY'] as const)assert.deepEqual(scheduleStudyReview(redate(state),grade,now),scheduleStudyReview(redate(oldState),grade,now),'all compact local transitions match the old state');
+  assert.equal(row.contexts[0],original.loadedWordRelation?.mainDoc && original.loadedWordRelation?.translatedDoc ? original.loadedWordRelation.mainDoc.contexts?.[0] : original.loadedPhraseRelation?.mainDoc && original.loadedPhraseRelation?.translatedDoc ? original.loadedPhraseRelation.mainDoc.contexts?.[0] : undefined);
+  if(original.card){assert.equal(row.card.notes,original.card.notes);assert.deepEqual(row.card.examples,original.card.examples);assert.deepEqual(row.card.acceptedAnswers,original.card.acceptedAnswers);}
+ }
+ const legacyWord=hydrated.find(({row}:any)=>row.id===String(compactCases[2].itemId))!.row;
+ assert.equal(legacyWord.wordNotes,'note');assert.equal(legacyWord.forms.article,'das');assert.deepEqual(legacyWord.examples,['Haus example']);
+ const legacyPhrase=hydrated.find(({row}:any)=>row.id===String(compactCases[4].itemId))!.row;
+ assert.deepEqual(legacyPhrase.synonyms,['alternative']);
+ const missing=hydrated.find(({row}:any)=>row.id===String(compactCases[6].itemId))!.row;
+ assert.equal(missing.german,'');assert.equal(missing.spanish,'');assert.deepEqual(missing.contexts,[]);
+ assert.equal(hydrated.find(({row}:any)=>row.id===String(compactCases[0].itemId))!.row.examples,undefined,'explicit-card reveal details are not duplicated from relations');
+ await assert.rejects(loadCompactStudyCards(user as any,{itemIds:[String(progress(90).itemId)]}),/unavailable/i,'another owner cannot be hydrated');
+ await assert.rejects(loadCompactStudyQueue(user as any,{userId:String(otherOwner)} as any),/owner/i);
+ await assert.rejects(loadCompactStudyCards(user as any,{itemIds:['invalid']}),/itemIds/i);
+ // Extra practice preserves future-first selection and its early-review flag.
+ const oldMore=await resolvers.Query.studyMoreItems(null,{userId:String(owner),limit:2,itemType:'WORD'},{user} as any);
+ const compactMore=await loadCompactStudyMore(user as any,{limit:2,itemType:'WORD'});
+ assert.deepEqual(compactMore.items.map(row=>row.id),oldMore.map((row:any)=>row.itemId));
+ assert.deepEqual(compactMore.items.map(row=>!!row.extraPractice),oldMore.map((row:any)=>!!row.extraPractice));
+ // Actual new native-word allocation is exercised only against this mock store.
+ const freshNative=()=>progress(91,'WORD',20,{isNew:true,interval:0,repetitions:0,totalReviews:0,lapses:0,lastReviewed:null});
+ fixture.userprogresses=[freshNative()];
+ const oldNative=await resolvers.Query.dueItems(null,{userId:String(owner),dueLimit:5000,newLimit:2,itemType:'WORD',includeLearningAhead:true},{user} as any);
+ fixture.userprogresses=[freshNative()];
+ const compactNative=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1});
+ assert.deepEqual(compactNative.manifest.map(row=>row.id),oldNative.map((row:any)=>row.itemId));
+ assert.equal(compactNative.items.length,2,'starter boundary includes the complete new directional pair');
+ assert.deepEqual(compactNative.items.map(row=>row.card?.direction),['DE_ES','ES_DE']);
+ assert.ok(compactNative.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='Haus example (casa example)'));
+ assert.equal(fixture.userprogresses.length,2,'one native pair is allocated');
+ await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1});
+ assert.equal(fixture.userprogresses.length,2,'repeat startup is idempotent');
+ await assert.rejects(loadCompactStudyQueue(user as any,{cardLimit:-1}),/cardLimit/);
+ assert.equal(fixture.userprogresses.length,2,'invalid requests are rejected before allocation');
+ const transportApp=express();transportApp.use(express.json());transportApp.use(studyTransportRouter({authenticate:async token=>token==='mock-owner'?user as any:null}));
+ const transportServer=transportApp.listen(0,'127.0.0.1');
+ try{
+  await new Promise<void>(resolve=>transportServer.once('listening',()=>resolve()));
+  const port=(transportServer.address() as any).port;
+  const post=(path:string,body:any,token='mock-owner')=>fetch(`http://127.0.0.1:${port}/api/study/${path}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(body)});
+  const unauthorized=await post('queue',{},'not-owner');assert.equal(unauthorized.status,401);assert.equal(unauthorized.headers.get('cache-control'),'no-store');
+  const foreign=await post('cards',{itemIds:[String(progress(90).itemId)]});assert.equal(foreign.status,400);
+  const response=await post('queue',{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1});assert.equal(response.status,200);assert.equal((await response.json()).items.length,2);
+  const invalid=await post('queue',{newLimit:'40'});assert.equal(invalid.status,400);
+ }finally{await new Promise<void>((resolve,reject)=>transportServer.close(error=>error?reject(error):resolve()));}
+ console.log('PASS compact ordered starter/background transport, custom profiles/timezones, local schedule transitions, reveal content, legacy/cloze/missing links and ownership');
 }finally{await closeDatabase();(globalThis as any).Date=RealDate;}

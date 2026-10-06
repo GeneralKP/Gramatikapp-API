@@ -8,6 +8,8 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { connectDatabase, closeDatabase } from '../src/lib/database.js';
 import { generateToken, getUserFromToken } from '../src/features/auth/auth.service.js';
 import { typeDefs, resolvers } from '../src/graphql/schema.js';
+import { loadCompactStudyQueue, loadCompactStudyCards } from '../src/features/progress/studyTransport.js';
+import { warmStudyCatalog } from '../src/features/progress/studyLoading.js';
 const prototype = Collection.prototype as any;
 for (const name of ['createIndex', 'dropIndex']) prototype[name] = async () => undefined;
 for (const name of ['insertOne', 'insertMany', 'updateOne', 'updateMany', 'replaceOne', 'deleteOne', 'deleteMany', 'bulkWrite', 'findOneAndUpdate', 'findOneAndDelete', 'findOneAndReplace', 'drop', 'createIndexes', 'dropIndexes']) {
@@ -52,6 +54,27 @@ try {
   const schema = makeExecutableSchema({ typeDefs, resolvers });
   const due = JSON.parse(readFileSync(new URL('./fixtures/loading-queries.json', import.meta.url), 'utf8')).DUE_ITEMS_QUERY;
   const dashboard = 'query AuditDashboard($userId:ID!){studyQueueCounts(userId:$userId,itemType:"WORD"){new learning review total learned} learningPath(userId:$userId){id name level isUnlocked wordsTotal wordsLearned phrasesTotal phrasesLearned}}';
+  if(process.env.AUDIT_COMPACT){
+    await warmStudyCatalog(); // Match the production startup's static catalog warm-up.
+    for(const [operation,itemType,cardLimit] of [
+      ['compact-words-full','WORD',5000],['compact-words-starter','WORD',24],
+      ['compact-phrases-full','PHRASE',5000],['compact-phrases-starter','PHRASE',24],
+      ['compact-mixed-full',undefined,5000],['compact-mixed-starter',undefined,24],
+    ] as const){
+      if(process.env.AUDIT_FILTER && !operation.includes(process.env.AUDIT_FILTER))continue;
+      for(let run=0;run<Math.max(1,Number(process.env.AUDIT_REPEAT??1));run++){
+        reads={};commands=[];const started=performance.now(),cpuStarted=process.cpuUsage();
+        const result=await loadCompactStudyQueue(user,{itemType,cardLimit,dueLimit:5000,newLimit:0});
+        const cpu=process.cpuUsage(cpuStarted);
+        console.log(JSON.stringify({name:`${operation}-${run+1}`,elapsedMs:Math.round(performance.now()-started),cpuMs:Math.round((cpu.user+cpu.system)/1000),accountCards:largest.cards,returnedCards:result.items.length,manifestCards:result.manifest.length,responseBytes:Buffer.byteLength(JSON.stringify(result)),reads,databaseCommands:commands.length,getMoreCommands:commands.filter(command=>command.name==='getMore').length,...(process.env.AUDIT_DETAILS?{commands}:{})}));
+        if(operation.endsWith('starter') && run===0 && result.remaining){
+          reads={};commands=[];const chunkStarted=performance.now();
+          const chunk=await loadCompactStudyCards(user,{itemIds:result.manifest.slice(result.items.length,result.items.length+100).map(row=>row.id)});
+          console.log(JSON.stringify({name:`${operation}-background100`,elapsedMs:Math.round(performance.now()-chunkStarted),returnedCards:chunk.items.length,responseBytes:Buffer.byteLength(JSON.stringify(chunk)),databaseCommands:commands.length,...(process.env.AUDIT_DETAILS?{commands}:{})}));
+        }
+      }
+    }
+  }
   for (const [operation, source, variables] of [
     ['dashboard-cold', dashboard, {}], ['dashboard-warm', dashboard, {}],
     ['words-50', due, { itemType: 'WORD', dueLimit: 50, newLimit: 0 }],
@@ -64,7 +87,7 @@ try {
     ['mixed-category', due, { context: 'general_vocabulary', dueLimit: 5000, newLimit: 0 }],
     ['authentication-me', 'query {me{id email authProvider createdAt settings{soundEnabled selectSound successSound errorSound popSound darkMode dailyNewCards}}}', {}],
   ] as const) {
-    if (process.env.AUDIT_FILTER && !operation.includes(process.env.AUDIT_FILTER)) continue;
+    if (process.env.AUDIT_COMPACT || process.env.AUDIT_FILTER && !operation.includes(process.env.AUDIT_FILTER)) continue;
     for (let run = 0; run < Math.max(1, Number(process.env.AUDIT_REPEAT ?? 1)); run++) {
     const name = process.env.AUDIT_REPEAT ? `${operation}-${run + 1}` : operation;
     reads = {};

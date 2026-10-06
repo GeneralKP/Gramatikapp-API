@@ -6,11 +6,13 @@ import type { Phrase, PhraseRelation } from "../phrases/phrases.types.js";
 import { DEFAULT_OPTIONS, studyDay } from "./scheduler.js";
 import type { User } from "../auth/auth.types.js";
 import { dailyCounts, type SchedulerProfile } from "./reviews.js";
+import { catalogSummaryCache, type CatalogPart } from "./catalogSummaryCache.js";
+import { studySpanishWords, studySpanishPhrases, studyTextCatalog } from "./studyTextCatalog.js";
 
 // These reads already consume every result; larger batches remove the default
 // 101-document first-batch round trip without imposing a result limit.
 export const STUDY_CONTENT_BATCH_SIZE = 1000;
-const SUMMARY_BATCH_SIZE = 5000;
+export const STUDY_SUMMARY_BATCH_SIZE = 5000;
 
 const metadata = new WeakMap<object, Map<string, Promise<{ profile: SchedulerProfile | null; limit: number }>>>();
 export function studyMetadata(context: object, userId: ObjectId, knownUser?: Pick<User, "settings">) {
@@ -51,9 +53,11 @@ async function loadCountSnapshot(context: object, userId: ObjectId, now: Date, i
       "scheduler.options.initialEase": 1, "scheduler.options.learningSteps": 1, "scheduler.options.relearningSteps": 1,
       nextDueDate: 1, temporaryDueDate: 1, lastReviewed: 1,
       ease: 1, interval: 1, repetitions: 1, totalReviews: 1, lapses: 1, createdAt: 1, updatedAt: 1,
-      anki: 1, "card.direction": 1, "card.sourceNoteGuid": 1,
+      "anki.type": 1, "anki.queue": 1, "anki.left": 1, "anki.reps": 1,
+      "anki.did": 1, "anki.odid": 1, "anki.due": 1,
+      "card.direction": 1, "card.sourceNoteGuid": 1,
       "card.sourceCardId": 1, "card.deck": 1,
-    }).batchSize(SUMMARY_BATCH_SIZE).toArray(),
+    }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray(),
   ]);
   return { ...account, progress };
 }
@@ -82,7 +86,7 @@ export function studyIdentities(context: object, userId: ObjectId, phraseRelatio
   ] } : {};
   if (!result) requests.set(key, result = getDb().progress.find({ userId, ...scope })
     .project<StudyIdentity>({ _id: 0, itemId: 1, relationId: 1, itemType: 1, repetitions: 1 })
-    .batchSize(SUMMARY_BATCH_SIZE).toArray());
+    .batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray());
   return result;
 }
 
@@ -105,7 +109,7 @@ interface StudyCatalog {
   wordMeta: Pick<Word, "_id" | "contexts" | "level">[];
   phraseMeta: Pick<Phrase, "_id" | "contexts" | "level">[];
 }
-export async function studyCatalog(context: object, itemType?: string, includeMetadata = true): Promise<StudyCatalog> {
+export async function studyCatalog(context: object, itemType?: string, includeMetadata = true, refresh = false): Promise<StudyCatalog> {
   let parts = catalogs.get(context);
   if (!parts) catalogs.set(context, parts = new Map());
   const read = <T>(key: string, load: () => Promise<T[]>): Promise<T[]> => {
@@ -114,13 +118,36 @@ export async function studyCatalog(context: object, itemType?: string, includeMe
     return result as Promise<T[]>;
   };
   const db = getDb();
+  const shared = <T>(part: CatalogPart, load: () => Promise<T[]>) => catalogSummaryCache[refresh ? "refresh" : "read"](db, part, load);
   const [words, phrases, wordMeta, phraseMeta] = await Promise.all([
-    itemType !== "PHRASE" ? read("words", () => db.relationsWordsEsDe.find({}).project<WordRelation>({ _id: 1, main: 1, translated: 1 }).batchSize(SUMMARY_BATCH_SIZE).toArray()) : [] as WordRelation[],
-    itemType !== "WORD" ? read("phrases", () => db.relationsPhrasesEsDe.find({}).project<PhraseRelation>({ _id: 1, main: 1, translated: 1 }).batchSize(SUMMARY_BATCH_SIZE).toArray()) : [] as PhraseRelation[],
-    includeMetadata ? read("wordMeta", () => db.wordsES.find({}).project<Pick<Word, "_id" | "contexts" | "level">>({ _id: 1, contexts: 1, level: 1 }).batchSize(SUMMARY_BATCH_SIZE).toArray()) : [] as StudyCatalog["wordMeta"],
-    includeMetadata ? read("phraseMeta", () => db.phrasesES.find({}).project<Pick<Phrase, "_id" | "contexts" | "level">>({ _id: 1, contexts: 1, level: 1 }).batchSize(SUMMARY_BATCH_SIZE).toArray()) : [] as StudyCatalog["phraseMeta"],
+    itemType !== "PHRASE" ? read("words", () => shared("words", () => db.relationsWordsEsDe.find({}).project<WordRelation>({ _id: 1, main: 1, translated: 1 }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray())) : [] as WordRelation[],
+    itemType !== "WORD" ? read("phrases", () => shared("phrases", () => db.relationsPhrasesEsDe.find({}).project<PhraseRelation>({ _id: 1, main: 1, translated: 1 }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray())) : [] as PhraseRelation[],
+    includeMetadata ? read("wordMeta", () => studySpanishWords(db, refresh)) : [] as StudyCatalog["wordMeta"],
+    includeMetadata ? read("phraseMeta", () => studySpanishPhrases(db, refresh)) : [] as StudyCatalog["phraseMeta"],
   ]);
   return { words, phrases, wordMeta, phraseMeta };
+}
+
+/** Prepare immutable summaries before accepting the first browser request. */
+export async function warmStudyCatalog() { await Promise.all([studyCatalog({}), studyTextCatalog()]); }
+
+export const CATALOG_SUMMARY_REFRESH_MS = 15_000;
+let catalogRefreshTimer: ReturnType<typeof setInterval> | undefined;
+async function refreshStudyCatalog() {
+  await Promise.all([studyCatalog({}, undefined, true, true), studyTextCatalog(undefined, getDb(), true)]);
+}
+export function startStudyCatalogRefresh() {
+  if (catalogRefreshTimer) return;
+  catalogRefreshTimer = setInterval(() => {
+    void refreshStudyCatalog().catch(() => {
+      console.warn("Catalog summary refresh failed; expired summaries will retry on demand.");
+    });
+  }, CATALOG_SUMMARY_REFRESH_MS);
+  catalogRefreshTimer.unref();
+}
+export function stopStudyCatalogRefresh() {
+  if (catalogRefreshTimer) clearInterval(catalogRefreshTimer);
+  catalogRefreshTimer = undefined;
 }
 
 /** Unique-key upserts are idempotent; a concurrent duplicate is re-read by the caller. */

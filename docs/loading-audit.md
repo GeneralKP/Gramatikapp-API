@@ -41,7 +41,7 @@ Dashboard counts and the learning path now share one projected progress read and
 
 The browser previously waited for `Me` before mounting the dashboard. A saved signed-in account now starts dashboard data loading while the API validates its token. Reading metadata, refresh listeners and polling run only on Reading routes. API authentication and ownership checks remain in force.
 
-No card prefetch was added. `dueItems` can create new progress and directional pairs, so speculative dashboard requests would introduce write behavior. Bulk loading removes the dominant delay while preserving the full 5,000-card request limit and existing local session behavior. The remaining large response is about 2.3 MB; transfer time on a slow connection still contributes to entry latency.
+At that stage, no card prefetch was added. `dueItems` can create new progress and directional pairs, so speculative dashboard requests would introduce write behavior. Bulk loading removes the dominant delay while preserving the full 5,000-card request limit and existing local session behavior. The remaining large response is about 2.3 MB; transfer time on a slow connection still contributes to entry latency.
 
 ## Further dashboard and initial phrase entry optimization
 
@@ -89,3 +89,26 @@ Existing learning, exercise-entry, study-sync and session-completion suites prot
 The canonical standalone database diagram records these changes. Its collection inventory and original inventory audit date are unchanged. These measurements come from a local read-only audit; no deployment or production data mutation is part of the measurements.
 
 Both production builds and TypeScript checks passed. Web lint passed with generated `.wrangler/**` files excluded; the default lint command has an existing `no-empty` error in a generated Wrangler temporary worker. No generated file or unrelated lint configuration was changed.
+
+
+## Progressive transport and static catalog cache, 6 October 2026
+
+The signed-in Cloudflare production audit before this implementation cleared the HTTP and derivative study caches for every sample and bypassed the HTTP cache during hard reload. Dashboard took 1.18–2.09 s (nine samples, median 1.553 s), Phrases 1.036–1.142 s (three, median 1.115 s), Words 4.171–4.232 s (three, median 4.198 s), and Mixed 4.240–4.329 s (three, median 4.308 s). These measure reload-to-dashboard-ready and click-to-first-playable-card respectively. Words sent 751 complete cards and 2,655,682 bytes of JSON; Mixed sent 779 and 2,732,421 bytes. A separate three-run production A/B omitting server rating previews retained the same 751 cards and reduced the request median from 3,267 to 2,681 ms. Small query-plan execution times did not explain the full transfer/preparation cost.
+
+The implementation introduces authenticated, no-store REST queue/cards/more responses alongside the compatible original GraphQL operations. Full canonical selection happens before slicing 24 complete starter cards (extending the boundary for new siblings). The initial manifest retains every selected schedule, sibling identity and German/Spanish text for ordering, counters, local burial and phrase distractors. Repeated deck options are shared and the authoritative fuzz seed is retained. Complete background batches of 100 contain all answers, Notes, Examples and required grammar before becoming playable. Reveal and Check never initiate a fetch. Route/account cancellation and version-aware merging protect the active answer and locally reviewed schedules. Local previews use the generated server scheduler only for the revealed card. Outbox projection/parsing happens once per batch and derivative cache writes are deferred until after rendering.
+
+Six immutable static relation/context/text parts now warm before API startup and refresh atomically every 15 seconds, with strict 30-second expiry and invalidation on catalog writes/partial failure. There is no cross-request cache of accounts, authentication, progress, profiles, quotas or counts. This adds six static database reads (roughly 1 MB uncompressed BSON total) per refresh per API process; external catalog changes are visible within 30 seconds. Native counting loads short text/forms rather than full content. Cursor batching reduces extra round trips without truncating queues. No schema, indexes or physical data order changed. A MongoDB compression probe was removed: the configured deployment negotiated no compression and showed no benefit.
+
+Guarded local API timing, startup-equivalent static warming, `newLimit: 0`, no allocations/writes:
+
+| Operation | Repeated samples | Initial JSON |
+| --- | --- | --- |
+| Dashboard, existing account | 206–670 ms | 4,780 bytes, unchanged |
+| Dashboard, empty account | 264–351 ms | Counts/shape preserved |
+| Words, starter 24 | 932 / 828 / 772 ms | 555,836 bytes; 722 manifest cards |
+| Phrases, starter 24 | 299 / 307 / 304 ms | 45,527 bytes; 28 manifest cards |
+| Mixed, starter 24 | 1,076 / 962 / 1,034 ms | 579,329 bytes; 750 manifest cards |
+
+Background batches took 199–517 ms. Mixed varied across runs (earlier interleaved samples were 674–933 ms); these local measurements alone do not demonstrate subsecond production startup. Deployed measurements follow after release verification.
+
+API `test:loading` retains original complete GraphQL golden fixtures and adds compact HTTP/semantic contracts: owner validation, shape/content, legacy and CLOZE, missing relations, all grading outcomes, custom options/time zones, native pair ordering/allocation/idempotence and extra practice. `test:catalog-cache` covers expiry, database isolation, immutable copies, single-flight failures, invalidation during refresh and partial failed writes. Web `test:study-previews` compares 24 local preview/grade cases against saved authoritative server results across grades, phases, time zones and DST. `test:progressive-study` holds background responses, verifies zero Reveal requests and complete offline Notes/Examples, preserves typing, checks starter exhaustion without false completion and protects newer schedules/burial from stale hydration. Loading/authentication, full learning, Undo/outbox and completion regressions remain in CI.

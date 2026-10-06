@@ -2,6 +2,7 @@ import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { Word, WordRelation } from "./words.types.js";
+import { invalidateStudyCatalog } from "../progress/catalogSummaryCache.js";
 
 function toGraphQL(doc: any) {
   if (!doc) return null;
@@ -183,8 +184,13 @@ export const wordsResolvers = {
         translated: new ObjectId(translatedId),
         createdAt: new Date(),
       };
-      await db.relationsWordsEsDe.insertOne(newRelation);
-      return toGraphQL(newRelation);
+      try {
+        await db.relationsWordsEsDe.insertOne(newRelation);
+        return toGraphQL(newRelation);
+      } finally {
+        // A network error can follow a committed insert.
+        invalidateStudyCatalog(db);
+      }
     },
   },
 };

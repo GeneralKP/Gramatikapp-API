@@ -49,7 +49,8 @@
     "generate:browser-scheduler": "node scripts/generateBrowserScheduler.mjs",
     "test:loading": "tsx scripts/testLoading.ts",
     "audit:loading": "tsx scripts/auditLoading.ts",
-    "test:auth": "tsx scripts/testAuthentication.ts"
+    "test:auth": "tsx scripts/testAuthentication.ts",
+    "test:catalog-cache": "tsx scripts/testCatalogCache.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

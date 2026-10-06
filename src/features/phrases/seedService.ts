@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { Database } from "../../lib/database.js";
 import { Word } from "../words/words.types.js";
 import { Phrase } from "./phrases.types.js";
+import { invalidateStudyCatalog } from "../progress/catalogSummaryCache.js";
 
 // ─── Input JSON shape ────────────────────────────────────────────────
 export interface SeedWordInput {
@@ -77,6 +78,17 @@ export async function processSeedData(
   db: Database,
   data: SeedDataInput,
 ): Promise<ImportResult> {
+  invalidateStudyCatalog(db);
+  try {
+    return await insertSeedData(db, data);
+  } finally {
+    // Failed imports can have committed earlier inserts; never retain their
+    // previous summary after either successful or partially failed imports.
+    invalidateStudyCatalog(db);
+  }
+}
+
+async function insertSeedData(db: Database, data: SeedDataInput): Promise<ImportResult> {
   const result: ImportResult = {
     wordsCreated: 0,
     wordsSkipped: 0,

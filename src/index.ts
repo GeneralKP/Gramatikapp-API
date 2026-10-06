@@ -14,6 +14,8 @@ import { ObjectId } from "mongodb";
 import { translateWritingWord } from "./features/writing/writing.service.js";
 import { syncStudy } from "./features/progress/studySync.js";
 import { wordTranslationRouter } from "./features/translations/translations.http.js";
+import { studyTransportRouter } from "./features/progress/studyTransport.http.js";
+import { warmStudyCatalog, startStudyCatalogRefresh, stopStudyCatalogRefresh } from "./features/progress/studyLoading.js";
 
 dotenv.config();
 
@@ -33,6 +35,8 @@ export interface GraphQLContext {
 async function startServer() {
   // Connect to MongoDB
   await connectDatabase();
+  await warmStudyCatalog();
+  startStudyCatalogRefresh();
 
   // Create Express app and HTTP server
   const app = express();
@@ -70,6 +74,7 @@ async function startServer() {
     catch (error) { res.status(400).json({ error: (error as Error).message }); }
   });
   app.use(wordTranslationRouter());
+  app.use(studyTransportRouter());
 
   // Apply GraphQL endpoint
   app.use(
@@ -99,6 +104,7 @@ async function startServer() {
   const shutdown = async () => {
     if (shuttingDown) return;
     shuttingDown = true;
+    stopStudyCatalogRefresh();
     try {
       // Drain active HTTP requests before closing transaction connections.
       await server.stop();

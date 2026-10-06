@@ -17,6 +17,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run test:loading
+      - run: npm run test:catalog-cache
       - run: npm run test:auth
       - run: npm run test:anki
       - run: npm run test:scheduler
