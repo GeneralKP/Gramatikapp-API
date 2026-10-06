@@ -92,7 +92,9 @@ failures retain the running version; making the repository private will pause
 this mechanism until separately scoped authentication is configured.
 
 Archives are bounded and reject path traversal, links, special files, duplicate
-entries, secrets and unexpected paths before extraction by gramatik-build.
+entries, secrets and unexpected paths before extraction by gramatik-build in a
+separate bounded transient service started by systemd. The root controller keeps
+its UID-switch restrictions; it does not invoke a setuid helper.
 Dependency installation ignores lifecycle scripts and has its own time/resource
 limits. A shared lock prevents manual/automatic deployments racing. Only
 gramatik-api is restarted. Its uncached /health response includes the validated

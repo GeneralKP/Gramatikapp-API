@@ -23,7 +23,15 @@ else
   staging="$base/releases/.build-$release_id-$$"
   install -d -m 0755 -o gramatik-build -g gramatik-build "$staging"
   trap 'rm -rf -- "$staging"' EXIT
-  runuser -u gramatik-build -- tar -xzf - --no-same-owner -C "$staging" < "$archive"
+  # PID 1 starts the separate unprivileged extraction service. The controller
+  # keeps its own UID-switch restrictions; no setuid helper runs inside it.
+  systemd-run --quiet --wait --pipe --collect --unit="gramatik-extract-${release_id:0:12}" \
+    -p User=gramatik-build -p Group=gramatik-build -p NoNewPrivileges=yes \
+    -p PrivateTmp=yes -p ProtectSystem=strict -p ProtectHome=yes \
+    -p "ReadWritePaths=$staging" \
+    -p 'InaccessiblePaths=-/etc/hope-and-heart -/opt/hope-and-heart -/etc/gramatik-api -/etc/cloudflared -/etc/caddy' \
+    -p MemoryMax=128M -p CPUQuota=50% -p TasksMax=32 -p RuntimeMaxSec=30 \
+    /usr/bin/tar -xzf - --no-same-owner -C "$staging" < "$archive"
   systemd-run --quiet --wait --collect --unit="gramatik-build-${release_id:0:12}" \
   -p User=gramatik-build -p Group=gramatik-build -p WorkingDirectory="$staging" \
   -p 'Environment=HOME=/var/cache/gramatik-build' \
