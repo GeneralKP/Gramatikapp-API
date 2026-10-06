@@ -61,6 +61,7 @@ async function fetchNewItems(
   needed: number,
   itemType?: string,
   category?: string,
+  allowPartialIntroduction = false,
 ): Promise<UserProgress[]> {
   const categoryIds = await categoryRelations(category, itemType);
   const reviewedQuery: any = { userId: userObjectId };
@@ -83,14 +84,17 @@ async function fetchNewItems(
   const candidates = await ensureNativeWordPairs(await db.progress.find(pendingQuery).sort({ "anki.due": 1 }).toArray());
   const complete = await withNewWordSiblings(db, userObjectId, candidates);
   const pending: UserProgress[] = [];
-  for (const group of newCardGroups(complete, candidates)) if (pending.length + group.length <= needed) pending.push(...group);
+  for (const original of newCardGroups(complete, candidates)) {
+    const group = allowPartialIntroduction && needed - pending.length === 1 && original.length === 2 && original[0].card?.direction === "DE_ES" ? original.slice(0,1) : original;
+    if (pending.length + group.length <= needed) pending.push(...group);
+  }
   if (candidates.length >= needed) return pending;
   needed -= pending.length;
   if (needed <= 0) return pending;
   const newProgressDocs: UserProgress[] = [];
 
   if (!itemType || itemType === "WORD") {
-    const neededWords = Math.floor((itemType === "WORD" ? needed : Math.ceil(needed / 2)) / 2);
+    const neededWords = (allowPartialIntroduction ? Math.ceil : Math.floor)((itemType === "WORD" ? needed : Math.ceil(needed / 2)) / 2);
     const newWords = neededWords ? await db.relationsWordsEsDe
       .find(excludeFilter)
       .limit(neededWords)
@@ -116,7 +120,7 @@ async function fetchNewItems(
 
   if (!itemType || itemType === "PHRASE") {
     const neededPhrases =
-      itemType === "PHRASE" ? needed : needed - newProgressDocs.length * 2;
+      itemType === "PHRASE" ? needed : Math.max(0, needed - newProgressDocs.length * 2);
     const newPhrases = neededPhrases ? await db.relationsPhrasesEsDe
       .find(excludeFilter)
       .limit(neededPhrases)
@@ -210,7 +214,7 @@ export const progressResolvers = {
         candidates.push(...relations.filter(r=>!seen.has(String(r._id))).map(r=>makeNew(r._id,"PHRASE")));
       }
       const limit = await dailyNewLimit(id);
-      const newCards = selectStudyQueue(applyDailyLimit(candidates, limit), counts, now, 0, Math.max(0, limit - introducedToday(counts))).filter(p=>p.scheduler.phase === "NEW").length;
+      const newCards = selectStudyQueue(applyDailyLimit(candidates, limit), counts, now, 0, Math.max(0, limit - introducedToday(counts)), true).filter(p=>p.scheduler.phase === "NEW").length;
       const catalogIds: ObjectId[] = [];
       for (const type of ["WORD","PHRASE"]) if (!itemType || itemType === type) {
         const collection=type === "WORD" ? db.relationsWordsEsDe : db.relationsPhrasesEsDe;
@@ -249,12 +253,12 @@ export const progressResolvers = {
       if (itemType) query.itemType = itemType;
       let docs = await db.progress.find(query).toArray();
       if (newLimit > 0) {
-        const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType, category);
+        const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType, category, newLimit >= limit - introducedToday(counts));
         const seen = new Set(docs.map(p => p.itemId.toString()));
         docs.push(...fresh.filter(p => !seen.has(p.itemId.toString())));
       }
       docs = await Promise.all((await withNewWordSiblings(db, userObjectId, await ensureNativeWordPairs(docs))).map(p => withScheduler(p, profile)));
-      const selected = selectStudyQueue(applyDailyLimit(docs, limit), counts, now, dueLimit, newLimit);
+      const selected = selectStudyQueue(applyDailyLimit(docs, limit), counts, now, dueLimit, newLimit, newLimit >= limit - introducedToday(counts));
       const selectedIds = new Set(selected.map(p=>String(p.itemId)));
       const ahead = includeLearningAhead ? docs.filter(p=>!selectedIds.has(String(p.itemId)) && !p.suspended && (!p.buriedUntil || p.buriedUntil<=now) && p.scheduler.queue === "MINUTE" && p.nextDueDate>now && p.nextDueDate.getTime()<=now.getTime()+p.scheduler.options.learnAheadSeconds*1000) : [];
       return [...selected,...ahead].map(toGraphQL);
@@ -302,9 +306,9 @@ export const progressResolvers = {
       const limitNew = await dailyNewLimit(userObjectId);
       const counts = await dailyCounts(userObjectId, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile);
       const available = Math.max(0, Math.min(remaining, limitNew - introducedToday(counts)));
-      if (available > 0) newDocs = await fetchNewItems(db, userObjectId, available, itemType, category);
+      if (available > 0) newDocs = await fetchNewItems(db, userObjectId, available, itemType, category, available >= limitNew - introducedToday(counts));
       const newCards = await Promise.all((await withNewWordSiblings(db, userObjectId, newDocs)).map(p => withScheduler(p, profile)));
-      return [...(await Promise.all(futureDocs.map(p => withScheduler(p, profile)))).map(p => ({ ...toGraphQL(p), extraPractice: true })), ...selectStudyQueue(applyDailyLimit(newCards, limitNew), counts, now, 0, available).map(toGraphQL)];
+      return [...(await Promise.all(futureDocs.map(p => withScheduler(p, profile)))).map(p => ({ ...toGraphQL(p), extraPractice: true })), ...selectStudyQueue(applyDailyLimit(newCards, limitNew), counts, now, 0, available, available >= limitNew - introducedToday(counts)).map(toGraphQL)];
     },
 
     userProgress: async (

@@ -13,7 +13,7 @@ const mix = <T>(first: T[], second: T[]) => {
   return result;
 };
 
-export function selectStudyQueue(progress: UserProgress[], counts: Map<string, { new: number; review: number }>, now: Date, dueLimit: number, newLimit: number) {
+export function selectStudyQueue(progress: UserProgress[], counts: Map<string, { new: number; review: number }>, now: Date, dueLimit: number, newLimit: number, allowPartialIntroduction = false) {
   const available = progress.filter(p => !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= now));
   const temporary = available.filter(p => p.temporaryDueDate && p.temporaryDueDate <= now).sort((a,b) => effectiveDueDate(a).getTime() - effectiveDueDate(b).getTime());
   const minute = available.filter(p => p.scheduler.queue === "MINUTE" && p.nextDueDate <= now).sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
@@ -33,7 +33,10 @@ export function selectStudyQueue(progress: UserProgress[], counts: Map<string, {
   for (const p of due) if (selectedDue.length + minute.length + temporary.length < dueLimit && fits(p, false)) { reserve(p, false); selectedDue.push(p); }
   const selectedNew: UserProgress[][] = [];
   let newCount = 0;
-  for (const group of newCardGroups(progress, available)) {
+  for (const original of newCardGroups(progress, available)) {
+    // Individual-card allowances can end after recognition. Its unseen reverse
+    // stays new until another daily place is available; it can never come first.
+    const group = allowPartialIntroduction && newLimit - newCount === 1 && original.length === 2 && original[0].card?.direction === "DE_ES" ? original.slice(0,1) : original;
     if (newCount + group.length > newLimit) continue;
     const budget = new Map(reserved);
     if (!group.every(p => { if (!fits(p, true, budget)) return false; reserve(p, true, budget); return true; })) continue;

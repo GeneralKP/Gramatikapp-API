@@ -42,6 +42,19 @@ try {
   const zero=await call('query($userId:ID!){dueItems(userId:$userId,newLimit:1000,dueLimit:5000){schedulerPhase}studyQueueCounts(userId:$userId){new learning}}');assert.equal((zero.data as any).studyQueueCounts.new,0);assert.ok((zero.data as any).studyQueueCounts.learning>=2);
   assert.ok((await call('mutation($userId:ID!){syncSettings(userId:$userId,settings:{dailyNewCards:-1}){id}}')).errors);
   assert.ok((await call('mutation($userId:ID!){syncSettings(userId:$userId,settings:{dailyNewCards:1001}){id}}')).errors);
+  await call('mutation($userId:ID!){syncSettings(userId:$userId,settings:{dailyNewCards:5}){id}}');
+  const lastPlace=await call('query($userId:ID!){dueItems(userId:$userId,itemType:"WORD",dueLimit:0,newLimit:1000){itemId card{direction}}studyQueueCounts(userId:$userId,itemType:"WORD"){new}}');
+  assert.equal((lastPlace.data as any).studyQueueCounts.new,1);assert.equal((lastPlace.data as any).dueItems.length,1,'one remaining daily place supplies exactly one card');
+  const lastCard=cards.find(p=>String(p.itemId)===(lastPlace.data as any).dueItems[0].itemId);assert.ok(lastCard);assert.equal((await syncStudy(userId,[op(lastCard)])).results[0].success,true);
+  const exhausted=await call('query($userId:ID!){studyQueueCounts(userId:$userId,itemType:"WORD"){new}}');assert.equal((exhausted.data as any).studyQueueCounts.new,0);
+  await call('mutation($userId:ID!){syncSettings(userId:$userId,settings:{dailyNewCards:6}){id}}');
+  const nextPlace=await call('query($userId:ID!){dueItems(userId:$userId,itemType:"WORD",dueLimit:0,newLimit:1000){card{direction}}}');assert.equal((nextPlace.data as any).dueItems.length,1);
+  await db.users.updateOne({_id:otherId},{$set:{'settings.dailyNewCards':1}});
+  const onePair=cards.slice(0,2).map(card=>({...card,_id:new ObjectId(),itemId:new ObjectId(),userId:otherId,card:{...card.card,sourceNoteGuid:'one-per-day'}}));await db.progress.insertMany(onePair);
+  const otherQueue=()=>graphql({schema,source:'query($userId:ID!){dueItems(userId:$userId,itemType:"WORD",dueLimit:0,newLimit:1000){itemId card{direction}}studyQueueCounts(userId:$userId,itemType:"WORD"){new}}',variableValues:{userId:String(otherId)},contextValue:{user:{_id:otherId}}});
+  const one=await otherQueue();assert.deepEqual((one.data as any).dueItems.map((p:any)=>p.card.direction),['DE_ES']);assert.equal((one.data as any).studyQueueCounts.new,1);
+  const yesterday=new Date(now.getTime()-86400000);assert.equal((await syncStudy(otherId,[op(onePair[0],{occurredAt:yesterday.toISOString()})])).results[0].success,true);
+  const tomorrow=await otherQueue();assert.deepEqual((tomorrow.data as any).dueItems.map((p:any)=>p.card.direction),['ES_DE'],'a one-card daily allowance unlocks typing after the earlier-day introduction');
   console.log('PASS daily card cap, paired Anki order, blue-to-red transition, shared/concurrent quota, pause, and validated settings');
 
   const mature=await make({isNew:false,interval:100,repetitions:8,totalReviews:20,nextDueDate:new Date(now.getTime()-86400000),lastReviewed:new Date(now.getTime()-8640000000)});
@@ -63,4 +76,4 @@ try {
     for(const grade of ['AGAIN','HARD','GOOD','EASY']) assert.deepEqual(browserSchedule(browser,grade as any,new Date(stamp)),scheduleStudyReview(p,grade as any,new Date(stamp)));
   }
   console.log('PASS 100-card batch + exact replay and browser/server scheduler parity across phases, phrases and DST');
-} finally { await db.reviewEvents.deleteMany({userId});await db.progress.deleteMany({userId});await db.users.deleteMany({_id:{$in:[userId,otherId]}});await db.schedulerProfiles.deleteOne({_id:userId});await closeDatabase(); }
+} finally { await db.reviewEvents.deleteMany({userId:{$in:[userId,otherId]}});await db.progress.deleteMany({userId:{$in:[userId,otherId]}});await db.users.deleteMany({_id:{$in:[userId,otherId]}});await db.schedulerProfiles.deleteOne({_id:userId});await closeDatabase(); }
