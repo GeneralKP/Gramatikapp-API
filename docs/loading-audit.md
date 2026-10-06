@@ -206,3 +206,28 @@ Mocks cover a content edit during pending checks: complete queues retain the sel
 A final guarded categorized comparison found an order-only difference when the selection projection was widened in populated general-vocabulary Words/Mixed sessions: normalized content/state and all three counters matched, without duplicate IDs. Repeated explain outputs listed the same index, so this audit does not attribute the difference to a specific planner choice. Categorized requests therefore keep the original narrow projection and later content hydration. The optimization applies only to unfiltered full requests; every category still receives one complete lean HTTP response with exact counters.
 
 The synthetic read-only MongoDB 8.0 projection probe also exposed a mock fidelity gap: dotted projections retain `{}` for empty/metadata-only card objects and omit missing/null parents. The test helper now follows those observed semantics, and the new captured-card path preserves the exact DTO distinction. No production document was written for this probe.
+
+
+### Captured-content release verification and browser variability
+
+API `e6aa97a` passed the full verification/deployment workflow, and public HTTPS health reported that exact release. Complete direct HTTP trials remained HTTP 200 with the same 747 / 57 / 775 cards, 795,780 / 53,948 / 821,303 decoded bytes, all three counters, zero manifests and complete accepted answers/Notes/Examples. Words took 1,895 / 1,237 / 2,162 ms; Phrases 505 / 481 / 962 ms; Mixed 1,244 / 1,395 / 1,274 ms. Words response headers arrived in 1,525 / 909 / 1,078 ms, showing that variable body delivery also affected these samples. This release removes one database command, but those HTTP samples do not establish a consistent production latency gain.
+
+A fresh signed-in Chrome tab loaded the same tested `index-CONGXPI8.js`. Each trial cleared HTTP and derivative study caches, kept HTTP caching disabled and reloaded the Dashboard before entering a session. Authentication, preferences and primary command storage were preserved. These were complete queue responses with `includeCounts:true`, no `cardLimit`, no standalone count request and no background-card request. Observed application responses were HTTP 200 without disk-cache/service-worker hits; CORS preflights were HTTP 204. No answers/ratings were submitted.
+
+| Boundary | UI-ready samples (ms) | Application request samples (ms) |
+| --- | --- | --- |
+| Dashboard hard reload | 1,885 / 3,189 / 1,328 / 1,934 / 1,459 | 860 / 830 / 854 / 867 / 868 |
+| Words click | 4,072 / 2,009 | 1,391 / 1,425 |
+| Phrases click | 2,130 / 4,206 | 691 / 676 |
+| Mixed click | 2,095 | 2,002 |
+
+All completed samples are retained. The initial measurement runner lost its browser attachment; its unfinished run is not counted. Browser measurements subsequently encountered navigation/control timeouts. Local process samples also showed substantial concurrent security scanning and other CPU work. Browser entries attributed long work both to response processing (1,322 ms) and React rendering (1,321 ms, including 478 ms forced style/layout). Host contention may contribute, but these observations do not prove its exact causal share. The later browser timings are therefore reported separately from the earlier stable cold table; they are not substituted with a best-case number. Normal browser caching was restored and the temporary measurement tab closed. The one-second UI target is not guaranteed.
+
+
+### Fresh profile/account overlap at the queue boundary
+
+Default HTTP study-queue requests now verify the JWT locally before starting the fresh scheduler-profile lookup alongside the fresh account lookup. A real authenticated account must resolve before selection, counters, allowances or native allocation begins. The exact owner-matched profile Promise, including an absent profile, seeds the existing request-only metadata map and is reused by both queue and counters. No authorization, account, quota or profile state is cached across requests. Selection/counter timestamps remain captured after account authentication. Injected authentication and `/cards` / `/more` retain their original paths.
+
+The profile is observed earlier within this request. A concurrent profile edit during the account lookup may be reflected on the next request rather than this one; the old account/profile reads were not an atomic snapshot either. Account settings still come from the fresh authenticated account and override profile defaults. This observation change is explicit and mocked, rather than hidden as an unchanged concurrency guarantee.
+
+Build, loading, authentication and immutable-catalog-cache tests pass. HTTP mocks compare the entire complete response and exact counters with the sequential authenticated baseline. Held account reads prove the profile starts independently while every study read/write remains behind successful authentication. Cases include signature/expiry/claim rejection before Mongo reads, deleted accounts (including a concurrent profile failure) returning 401, account/profile failures returning 503 without orphaned rejections, missing profiles read exactly once, account settings changed during auth, profile edits visible freshly on the next request, uppercase ObjectId JWT claims, foreign-owner metadata rejection and unchanged injected/other-endpoint paths. Held-read tests have bounded native timers and always release their gates. An independent source review found no substantive issue. Production verification follows deployment.

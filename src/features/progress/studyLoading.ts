@@ -15,6 +15,19 @@ export const STUDY_CONTENT_BATCH_SIZE = 1000;
 export const STUDY_SUMMARY_BATCH_SIZE = 5000;
 
 const metadata = new WeakMap<object, Map<string, Promise<{ profile: SchedulerProfile | null; limit: number }>>>();
+/** Reuse one fresh HTTP profile read only after its account has authenticated. */
+export function seedStudyMetadata(context: { user: User }, userId: ObjectId, profileRequest: Promise<SchedulerProfile | null>) {
+  if (!context.user._id.equals(userId)) throw new Error("Invalid study owner");
+  let requests = metadata.get(context);
+  if (!requests) metadata.set(context, requests = new Map());
+  const key = String(userId);
+  if (requests.has(key)) return;
+  const result = profileRequest.then(profile => ({ profile, limit: context.user.settings?.dailyNewCards ?? profile?.defaultOptions.newPerDay ?? DEFAULT_OPTIONS.newPerDay }));
+  // Validation or authentication can end the request before metadata is used.
+  // Observing rejection here preserves its later failure without an orphan.
+  void result.catch(() => undefined);
+  requests.set(key, result);
+}
 export function studyMetadata(context: object, userId: ObjectId, knownUser?: Pick<User, "settings">) {
   let requests = metadata.get(context);
   if (!requests) metadata.set(context, requests = new Map());

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { MongoClient, ObjectId } from 'mongodb';
 import { isCountStudyCandidate, isDueStudyCandidate } from '../src/features/progress/studyCandidates.js';
 import { graphql } from 'graphql';
@@ -15,6 +16,7 @@ import { loadCompactStudyQueue, loadCompactStudyCards, loadCompactStudyMore } fr
 import { studyTransportRouter } from '../src/features/progress/studyTransport.http.js';
 import { scheduleStudyReview } from '../src/features/progress/studyScheduling.js';
 import { nativeWordPair } from '../src/features/progress/nativeWordPairs.js';
+import { generateToken } from '../src/features/auth/auth.service.js';
 
 // This suite never opens a network connection. It runs the real GraphQL schema,
 // queue selection and nested resolvers against deterministic MongoDB responses.
@@ -695,6 +697,7 @@ try {
  await assert.rejects(loadCompactStudyQueue(user as any,{cardLimit:-1}),/cardLimit/);
  assert.equal(fixture.userprogresses.length,2,'invalid requests are rejected before allocation');
  const transportApp=express();transportApp.use(express.json());transportApp.use(studyTransportRouter({authenticate:async token=>token==='mock-owner'?user as any:null}));
+ transportApp.use('/default',studyTransportRouter());
  const transportServer=transportApp.listen(0,'127.0.0.1');
  try{
   await new Promise<void>(resolve=>transportServer.once('listening',()=>resolve()));
@@ -705,6 +708,85 @@ try {
   const response=await post('queue',{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1,includeCounts:true});assert.equal(response.status,200);const httpPacket=await response.json();assert.equal(httpPacket.items.length,2);assert.deepEqual(httpPacket.counts,{new:2,learning:0,review:0});
   const invalid=await post('queue',{newLimit:'40'});assert.equal(invalid.status,400);
   const invalidCounts=await post('queue',{includeCounts:'true'});assert.equal(invalidCounts.status,400);
+  const secret=process.env.JWT_SECRET || 'dev-secret-change-in-production';
+  const sign=(payload:any,options:any={})=>jwt.sign(payload,secret,{expiresIn:3600,...options});
+  const token=generateToken(user as any);
+  const postDefault=(body:any,credential=token,path='queue')=>fetch(`http://127.0.0.1:${port}/default/api/study/${path}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${credential}`},body:JSON.stringify(body)});
+  const entry={dueLimit:5000,newLimit:0,itemType:'WORD',includeCounts:true};
+  const resetEntry=()=>{fixture.users=[user];fixture.schedulerprofiles=[profile];fixture.userprogresses=[...pendingPair,progress(192,'WORD',20,{card:ankiCard})];reads={};progressQueries=[];batches=[];};
+  const waitFor=async(promise:Promise<unknown>,label:string)=>{
+   let timeout:ReturnType<typeof setTimeout> | undefined;
+   try{await Promise.race([promise,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error(`Timed out waiting for ${label}`)),3000);})]);}
+   finally{if(timeout)clearTimeout(timeout);}
+  };
+  resetEntry();
+  const sequential=await (await post('queue',entry)).json();
+  resetEntry();
+  const prefetched=await postDefault(entry);assert.equal(prefetched.status,200);
+  assert.deepEqual(await prefetched.json(),sequential,'overlapped auth/profile keeps the complete queue/state/content/counters unchanged');
+  assert.equal(reads['users.findOne'],1);assert.equal(reads['schedulerprofiles.findOne'],1,'the exact prefetched profile is reused once by counts and queue');
+  for(const credential of ['', 'malformed',jwt.sign({userId:String(owner),email:user.email},'wrong-secret'),sign({userId:String(owner),email:user.email},{expiresIn:-1}),sign({userId:'invalid',email:user.email})]){
+   resetEntry();const rejected=await postDefault(entry,credential);assert.equal(rejected.status,401);
+   assert.deepEqual(reads,{},'invalid tokens fail before both account and profile Mongo reads');
+  }
+  // Hold the fresh account read: the independent profile can finish, but no
+  // candidate/counter/allowance/allocation work may start across this gate.
+  resetEntry();let accountStarted!:()=>void,profileStarted!:()=>void,releaseAccount!:()=>void;
+  const accountStart=new Promise<void>(resolve=>{accountStarted=resolve;}),profileStart=new Promise<void>(resolve=>{profileStarted=resolve;}),accountGate=new Promise<void>(resolve=>{releaseAccount=resolve;});
+  holdRead=async(name,method)=>{if(method==='findOne' && name==='users'){accountStarted();await accountGate;}if(method==='findOne' && name==='schedulerprofiles')profileStarted();};
+  const gated=postDefault({...entry,newLimit:2});
+  try{
+   await waitFor(Promise.all([accountStart,profileStart]),'overlapping account/profile reads');await new Promise(resolve=>setImmediate(resolve));
+   assert.equal(reads['users.findOne'],1);assert.equal(reads['schedulerprofiles.findOne'],1);
+   assert.equal(progressQueries.length,0);assert.equal(reads['reviewevents.aggregate']??0,0);assert.equal(batches.length,0,'fresh authentication precedes all study work');
+   // The account is read after this change, so its explicit zero overrides
+   // both the token's original account and the earlier profile defaults.
+   fixture.users=[{...user,settings:{dailyNewCards:0}}];releaseAccount();
+   const result=await gated;assert.equal(result.status,200);const packet=await result.json();
+   assert.equal(packet.counts.new,0);assert.ok(packet.items.every((item:any)=>item.schedule.state.scheduler.phase!=='NEW'));
+   assert.equal(reads['schedulerprofiles.findOne'],1);
+  }finally{releaseAccount();holdRead=undefined;}
+  const unhandled:unknown[]=[];const rejection=(error:unknown)=>{unhandled.push(error);};process.on('unhandledRejection',rejection);
+  try{
+   // Profile failures stay observable even when authentication ends first.
+   for(const failure of ['deleted','deleted-profile-failure','account-failure','profile-failure']){
+    resetEntry();if(failure.startsWith('deleted'))fixture.users=[];
+    holdRead=async(name)=>{if(name==='users' && failure==='account-failure' || name==='schedulerprofiles' && ['deleted-profile-failure','account-failure','profile-failure'].includes(failure))throw new Error('fixture unavailable');};
+    try{const rejected=await postDefault(entry);assert.equal(rejected.status,failure.startsWith('deleted')?401:503);assert.equal(progressQueries.length,failure==='profile-failure'?1:0,'no study work starts before a successful account read');}
+    finally{holdRead=undefined;}
+   }
+   resetEntry();holdRead=async(name)=>{if(name==='schedulerprofiles')throw new Error('fixture unavailable');};
+   try{assert.equal((await postDefault({newLimit:'invalid'})).status,400,'body validation preserves its result even if unused profile prefetch fails');}finally{holdRead=undefined;}
+   await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(unhandled,[],'all unused/rejected profile promises have rejection handlers');
+  }finally{process.removeListener('unhandledRejection',rejection);}
+  resetEntry();fixture.schedulerprofiles=[];
+  assert.equal((await postDefault(entry)).status,200);assert.equal(reads['schedulerprofiles.findOne'],1,'an absent prefetched profile is not re-read');
+  // A profile edit during auth is observed on the following request. There is
+  // one fresh profile snapshot per request, not an atomic account/profile read.
+  resetEntry();const legacy=progress(193,'WORD',20,{card:ankiCard});delete legacy.scheduler;fixture.userprogresses=[legacy];
+  let profileCaptured!:()=>void,releaseEditedAccount!:()=>void;
+  const profileCapture=new Promise<void>(resolve=>{profileCaptured=resolve;}),editedAccountGate=new Promise<void>(resolve=>{releaseEditedAccount=resolve;});
+  holdRead=async(name)=>{if(name==='users')await editedAccountGate;if(name==='schedulerprofiles')profileCaptured();};
+  const editing=postDefault(entry);
+  try{
+   await waitFor(profileCapture,'profile capture before account release');await new Promise(resolve=>setImmediate(resolve));
+   fixture.schedulerprofiles=[{...profile,timeZone:'America/New_York',rollover:2}];releaseEditedAccount();
+   const before=await editing;assert.equal(before.status,200);const beforePacket=await before.json();
+   assert.equal(beforePacket.items[0].schedule.state.scheduler.timeZone,'Europe/Berlin');assert.equal(reads['schedulerprofiles.findOne'],1);
+  }finally{releaseEditedAccount();holdRead=undefined;}
+  reads={};const after=await postDefault(entry);assert.equal(after.status,200);const afterPacket=await after.json();
+  assert.equal(afterPacket.items[0].schedule.state.scheduler.timeZone,'America/New_York');assert.equal(afterPacket.items[0].schedule.state.scheduler.rollover,2);assert.equal(reads['schedulerprofiles.findOne'],1,'the next request always reads the edited profile fresh');
+  // Valid JWT owners can use uppercase ObjectId hex; normalize before seeding.
+  const uppercaseOwner=new ObjectId('abcdef000000000000000001');
+  fixture.users=[{...user,_id:uppercaseOwner}];fixture.schedulerprofiles=[{...profile,_id:uppercaseOwner}];fixture.userprogresses=[];reads={};
+  const uppercase=await postDefault({dueLimit:0,newLimit:0},sign({userId:String(uppercaseOwner).toUpperCase(),email:user.email}));
+  assert.equal(uppercase.status,200);assert.equal(reads['schedulerprofiles.findOne'],1);
+  for(const [path,body,status] of [['more',{limit:0},200],['cards',{itemIds:'invalid'},400]] as const){
+   resetEntry();assert.equal((await postDefault(body,token,path)).status,status);assert.equal(reads['users.findOne'],1);assert.equal(reads['schedulerprofiles.findOne']??0,0,'other endpoints do not speculate on a profile before their existing validation/early return');
+  }
+  resetEntry();assert.equal((await post('queue',{newLimit:'invalid'})).status,400);assert.equal(reads['schedulerprofiles.findOne']??0,0,'injected authentication keeps its original path without speculative profile work');
+  await assert.rejects(loadCompactStudyQueue(user as any,entry,{userId:otherOwner,profile:Promise.resolve(null)}),/owner/,'request metadata cannot be seeded for another owner');
+  console.log('PASS queue-only auth/profile overlap, fresh account gate, invalid/deleted/error paths, absent profiles, concurrent settings/profile edits and request-only ownership');
  }finally{await new Promise<void>((resolve,reject)=>transportServer.close(error=>error?reject(error):resolve()));}
  console.log('PASS compact ordered starter/background transport, custom profiles/timezones, local schedule transitions, reveal content, legacy/cloze/missing links and ownership');
 }finally{await closeDatabase();(globalThis as any).Date=RealDate;}

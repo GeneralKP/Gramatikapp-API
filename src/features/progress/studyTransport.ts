@@ -6,7 +6,8 @@ import { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } fro
 import { combinedStudyCandidates, isCountStudyCandidate } from "./studyCandidates.js";
 import { withScheduler } from "./reviews.js";
 import { schedulerSeed, type DeckOptions } from "./scheduler.js";
-import { studyMetadata, studyCatalog, studyCountSnapshot, STUDY_CONTENT_BATCH_SIZE } from "./studyLoading.js";
+import { studyMetadata, seedStudyMetadata, studyCatalog, studyCountSnapshot, STUDY_CONTENT_BATCH_SIZE } from "./studyLoading.js";
+import type { SchedulerProfile } from "./reviews.js";
 import type { Word } from "../words/words.types.js";
 import type { Phrase } from "../phrases/phrases.types.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
@@ -172,7 +173,7 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
   return { version: 1, profiles, items, manifest: includeManifest && items.length < manifest.length ? manifest : [], remaining: manifest.length - items.length, complete: manifest.length === items.length };
 }
 
-export async function loadCompactStudyQueue(user: User, input: any = {}): Promise<CompactStudyEnvelope> {
+export async function loadCompactStudyQueue(user: User, input: any = {}, prepared?: { userId: ObjectId; profile: Promise<SchedulerProfile | null> }): Promise<CompactStudyEnvelope> {
   const scope = requestScope(user, input);
   const cardLimit = bounded(input.cardLimit, Number.MAX_SAFE_INTEGER, 5000, "cardLimit");
   // Changing a category query's projection can change its unsorted cursor
@@ -182,6 +183,7 @@ export async function loadCompactStudyQueue(user: User, input: any = {}): Promis
   if (input.includeCounts !== undefined && typeof input.includeCounts !== "boolean") throw new Error("Invalid includeCounts");
   const args = { ...scope, dueLimit: bounded(input.dueLimit, 5000, 5000, "dueLimit"), newLimit: bounded(input.newLimit, 20, 1000, "newLimit"), includeLearningAhead: true };
   const context = { user };
+  if (prepared) seedStudyMetadata(context, prepared.userId, prepared.profile);
   if (input.includeCounts) {
     const now = new Date();
     // Category-specific queries can use a different index and cursor order.
