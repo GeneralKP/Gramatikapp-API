@@ -13,7 +13,7 @@ for file in poll-release.py validate_release.py deploy-release.sh gramatik-deplo
 done
 python3 "$staging/audit-isolation.py" save "$staging/before.json"
 if ! command -v git >/dev/null; then
-  # Use Ubuntu's signed packages; list restart recommendations without restarting services.
+  # Use the distribution's signed packages; list restart recommendations without restarting services.
   export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=l
   apt-get update
   apt-get install -y --no-install-recommends git
