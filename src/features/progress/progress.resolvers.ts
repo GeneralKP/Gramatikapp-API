@@ -52,10 +52,35 @@ async function withNewWordSiblings(db: ReturnType<typeof getDb>, userId: ObjectI
   if (!guids.length) return progress;
   // Include recognition even when it is buried or scheduled in the future: it
   // supplies prerequisite state, without making it due or changing its schedule.
-  const read = db.progress.find({ userId, itemType: "WORD", "card.sourceNoteGuid": { $in: guids }, supersededByAnki: { $ne: true } });
-  const siblings = await (projection ? read.project<UserProgress>(projection) : read).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+  const query = { userId, itemType: "WORD" as const, "card.sourceNoteGuid": { $in: guids }, supersededByAnki: { $ne: true } };
+  let siblings: UserProgress[];
+  if (projection) {
+    // The postfilter already discards loaded IDs. Transfer only missing state
+    // when its order is trivial. Two or more missing siblings can include
+    // duplicate directions or learning-ahead cards: retain the original query
+    // in that case so a changed Mongo plan cannot change their first-row order.
+    const selectedGuids = new Set(guids);
+    const loadedIds = progress.filter(p => p.card && selectedGuids.has(p.card.sourceNoteGuid)).map(p => p.itemId);
+    const missing = await db.progress.find({ ...query, itemId: { $nin: loadedIds } })
+      .project<UserProgress>(projection).limit(2).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+    siblings = missing.length < 2 ? missing : await db.progress.find(query).project<UserProgress>(projection).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+  } else {
+    siblings = await db.progress.find(query).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+  }
   const seen = new Set(progress.map(p => p.itemId.toString()));
   return [...progress, ...siblings.filter(p => !seen.has(p.itemId.toString()))];
+}
+
+function coveredPendingCards(candidates: UserProgress[], existing: UserProgress[], needed: number) {
+  if (candidates.length < needed) return false;
+  const byId = new Map(existing.map(p => [String(p.itemId), p]));
+  return candidates.every(p => {
+    const previous = byId.get(String(p.itemId));
+    if (!previous || previous.itemType !== p.itemType || String(previous.relationId) !== String(p.relationId)) return false;
+    // Native legacy words still need their existing transactional pairing path.
+    if (p.itemType === "WORD" && !p.card) return false;
+    return !!previous.card === !!p.card && (["sourceCardId", "sourceNoteGuid", "direction"] as const).every(key => previous.card?.[key] === p.card?.[key]);
+  });
 }
 
 async function fetchNewItems(
@@ -66,17 +91,33 @@ async function fetchNewItems(
   category?: string,
   allowPartialIntroduction = false,
   selectedCategoryIds?: ObjectId[] | null,
-  phraseProgress?: UserProgress[],
+  existingProgress?: UserProgress[],
   projection?: Record<string, number>,
 ): Promise<UserProgress[]> {
   const categoryIds = selectedCategoryIds === undefined ? await categoryRelations(category, itemType) : selectedCategoryIds;
   const pendingQuery: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, isNew: true, suspended: { $ne: true }, supersededByAnki: { $ne: true }, $or: [{ buriedUntil: null }, { buriedUntil: { $lte: new Date() } }] };
   if (itemType) pendingQuery.itemType = itemType;
+  if (projection && existingProgress && itemType !== "PHRASE") {
+    // Re-read identities from the database: another device can introduce a new
+    // pending card after the initial due snapshot. Covered, unchanged native/
+    // Anki cards need no repeated scheduler/options payload. Unknown IDs, changed
+    // card identity and legacy words fall through to the complete fresh read.
+    const identities = await db.progress.find(pendingQuery).project<UserProgress>({
+      _id: 0, itemId: 1, itemType: 1, relationId: 1,
+      "card.sourceCardId": 1, "card.sourceNoteGuid": 1, "card.direction": 1,
+    }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
+    if (coveredPendingCards(identities, existingProgress, needed)) return [];
+  }
   // The phrase due query already includes every pending phrase, including future
   // ones. Reuse it without allocating, dropping or reordering any new-card group.
-  const candidates = itemType === "PHRASE" && phraseProgress
-    ? phraseProgress.filter(p => p.isNew === true && !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= new Date()))
+  const candidates = itemType === "PHRASE" && existingProgress
+    ? existingProgress.filter(p => p.isNew === true && !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= new Date()))
     : await ensureNativeWordPairs(await (projection ? db.progress.find(pendingQuery).project<UserProgress>(projection) : db.progress.find(pendingQuery)).sort({ "anki.due": 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray());
+  // Enough pending candidates prevent allocation even if their eligible groups
+  // are blocked/too large. When all their IDs are already in the outer snapshot,
+  // that caller discards every returned pending ID. Keep its later sibling read
+  // fresh instead of performing an earlier lookup whose result cannot be used.
+  if (projection && existingProgress && itemType !== "PHRASE" && coveredPendingCards(candidates, existingProgress, needed)) return [];
   const complete = await withNewWordSiblings(db, userObjectId, candidates, projection);
   const pending: UserProgress[] = [];
   for (const original of newCardGroups(complete, candidates)) {
@@ -194,7 +235,7 @@ export async function loadDueStudyProgress(
   const categoryIds = dueLimit ? selectedCategoryIds : await categoryRelations(category, itemType, context);
   let docs = existing ?? await readDue(categoryIds);
   if (newLimit > 0) {
-    const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType, category, newLimit >= limit - introducedToday(counts), categoryIds, itemType === "PHRASE" ? docs : undefined, projection);
+    const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType, category, newLimit >= limit - introducedToday(counts), categoryIds, docs, projection);
     const seen = new Set(docs.map(p => p.itemId.toString()));
     docs.push(...fresh.filter(p => !seen.has(p.itemId.toString())));
   }

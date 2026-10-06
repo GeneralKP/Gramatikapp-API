@@ -41,8 +41,8 @@ const fixture:any={
  userprogresses:[progress(1,'WORD',20,{card:{source:'ANKI',sourceCardId:'1',sourceNoteGuid:'house',direction:'ES_DE',prompt:'casa',answer:'das Haus',acceptedAnswers:['das Haus'],notes:'note',examples:['Das Haus ist groß.'],deck:'App',tags:['NOUN']}}),progress(2,'WORD',20,{card:{source:'ANKI',sourceCardId:'2',sourceNoteGuid:'house',direction:'DE_ES',prompt:'das Haus',answer:'casa',acceptedAnswers:['casa'],notes:'note',examples:['Das Haus ist groß.'],deck:'App',tags:['NOUN']}}),progress(3,'WORD',90),progress(4,'WORD',21),progress(5,'PHRASE',40),progress(6,'WORD',20,{nextDueDate:new Date('2026-10-09T10:00:00Z')}),progress(7,'WORD',20,{userId:otherOwner})],
 };
 let reads:Record<string,number>={};
-let progressQueries: { query: any; projection?: any; batchSize?: number }[] = [];
-let counterCatalogQueries: { name: string; trace: { query: any; projection?: any; batchSize?: number } }[] = [];
+let progressQueries: { query: any; projection?: any; batchSize?: number; limit?: number }[] = [];
+let counterCatalogQueries: { name: string; trace: { query: any; projection?: any; batchSize?: number; limit?: number } }[] = [];
 let batches:any[]=[];
 let holdRead: ((name: string, method: string, query: any) => Promise<void>) | undefined;
 const valueAt=(doc:any,key:string)=>key.split('.').reduce((value,part)=>value?.[part],doc);
@@ -81,11 +81,11 @@ function collection(name:string):any {
  const result={
   async createIndex(){},async dropIndex(){},
   async insertOne(doc:any){fixture[name]??=[];fixture[name].push(doc);return {insertedId:doc._id};},
-  find(query:any={}){count('find');const traced={query,projection:undefined as any,batchSize:undefined as number|undefined};if(name==='userprogresses')progressQueries.push(traced);if(['WORDS_ES','WORDS_DE'].includes(name))counterCatalogQueries.push({name,trace:traced});let rows=(fixture[name]??[]).filter((doc:any)=>matches(doc,query));return {
+  find(query:any={}){count('find');const traced={query,projection:undefined as any,batchSize:undefined as number|undefined,limit:undefined as number|undefined};if(name==='userprogresses')progressQueries.push(traced);if(['WORDS_ES','WORDS_DE'].includes(name))counterCatalogQueries.push({name,trace:traced});let rows=(fixture[name]??[]).filter((doc:any)=>matches(doc,query));return {
    project(fields:any){traced.projection=fields;rows=rows.map((row:any)=>project(row,fields));return this;},
    batchSize(size:number){traced.batchSize=size;return this;},
    sort(fields:any){const [key,direction]=Object.entries(fields)[0] as [string,number];rows.sort((a:any,b:any)=>(valueAt(a,key)>valueAt(b,key)?1:valueAt(a,key)<valueAt(b,key)?-1:0)*direction);return this;},
-   limit(size:number){if(size)rows=rows.slice(0,size);return this;},
+   limit(size:number){traced.limit=size;if(size)rows=rows.slice(0,size);return this;},
    async toArray(){await holdRead?.(name,'find',query);return rows;},
   };},
   async findOne(query:any,options:any={}){count('findOne');await holdRead?.(name,'findOne',query);const row=(fixture[name]??[]).find((doc:any)=>matches(doc,query));return row ? options.projection ? project(row,options.projection):row : null;},
@@ -350,6 +350,105 @@ try {
   await assert.rejects(insertNewProgress(fixture.userprogresses,failingDb(error)),actual=>actual===error,'only concurrent duplicate-key conflicts may be ignored');
  }
  console.log('PASS exact new-phrase responses, repeat allocation, scoped/reused categories, pending-queue short circuit, batched idempotent upserts and error propagation');
+ // A fresh pending read remains necessary for concurrent devices, but covered
+ // IDs cannot change the outer queue because its merge discards duplicates.
+ // Keep the later sibling lookup fresh instead of caching its earlier result.
+ const pendingCard=(n:number,guid:string,direction:string,extra:any={})=>progress(n,'WORD',20,{isNew:true,interval:0,repetitions:0,totalReviews:0,lapses:0,lastReviewed:null,
+  card:{source:'ANKI',sourceCardId:String(n),sourceNoteGuid:guid,direction,prompt:'prompt',answer:'answer',acceptedAnswers:['answer'],notes:'note',examples:['example'],deck:'App'},...extra});
+ const pendingPair=[pendingCard(61,'pending-pair','DE_ES'),pendingCard(62,'pending-pair','ES_DE')];
+ const siblingReads=()=>progressQueries.filter(read=>read.query['card.sourceNoteGuid']).length;
+ const pendingArgs={dueLimit:5000,newLimit:2,itemType:'WORD'};
+ for(const [label,rows,newLimit,dailyLimit,expected] of [
+  ['complete pair',pendingPair,2,20,[61,62]],
+  ['whole-pair overflow',pendingPair,1,20,[]],
+  ['last odd allowance',pendingPair,1,1,[61]],
+  ['suspended recognition',[{...pendingPair[0],suspended:true},pendingPair[1]],1,20,[]],
+  ['buried recognition',[{...pendingPair[0],buriedUntil:new Date(now.getTime()+3600000)},pendingPair[1]],1,20,[]],
+  ['future recognition',[{...pendingPair[0],nextDueDate:new Date(now.getTime()+86400000)},pendingPair[1]],2,20,[61,62]],
+  ['duplicate directions',[...pendingPair,pendingCard(63,'pending-pair','DE_ES')],2,20,[61,62]],
+  ['null relations',pendingPair.map(p=>({...p,relationId:null})),2,20,[61,62]],
+  ['absent relations',pendingPair.map(p=>({...p,relationId:undefined})),2,20,[61,62]],
+ ] as const){
+  fixture.userprogresses=rows;user.settings.dailyNewCards=dailyLimit;progressQueries=[];batches=[];
+  const packet=await loadCompactStudyQueue(user as any,{...pendingArgs,newLimit});
+  assert.deepEqual(packet.items.map(row=>row.id),expected.map(n=>String(id(200+n))),label);
+  assert.equal(siblingReads(),1,`${label}: covered pending work must leave one fresh outer sibling lookup`);
+  assert.equal(batches.length,0,`${label}: candidate count, not eligible group count, prevents allocation`);
+  const pendingReads=progressQueries.filter(read=>read.query.isNew===true);
+  assert.equal(pendingReads.length,1,`${label}: covered pending IDs need one identity read`);
+  assert.deepEqual(pendingReads[0].projection,{_id:0,itemId:1,itemType:1,relationId:1,'card.sourceCardId':1,'card.sourceNoteGuid':1,'card.direction':1},'covered reads never transfer scheduler state, options or card content');
+  assert.equal(pendingReads[0].batchSize,5000,'the identity scout remains bounded without limiting the queue');
+  const siblingRead=progressQueries.find(read=>read.query['card.sourceNoteGuid'])!;
+  assert.ok(siblingRead.query.itemId?.$nin?.length,'already loaded sibling IDs are excluded at the database');
+  assert.equal(siblingRead.limit,2,'the prerequisite scout detects ambiguous missing-card order with two rows');
+ }
+ user.settings.dailyNewCards=20;
+ fixture.userprogresses=[...pendingPair];progressQueries=[];
+ let pendingInserted=false;
+ holdRead=async(name,method,query)=>{
+  if(!pendingInserted && name==='userprogresses' && method==='find' && query.$or?.some((clause:any)=>clause.temporaryDueDate)){
+   pendingInserted=true;fixture.userprogresses.push(pendingCard(64,'arrived-pair','DE_ES'),pendingCard(65,'arrived-pair','ES_DE'));
+  }
+ };
+ try{
+  const packet=await loadCompactStudyQueue(user as any,{...pendingArgs,newLimit:4});
+  assert.deepEqual(packet.items.map(row=>row.id),[61,62,64,65].map(n=>String(id(200+n))),'pending IDs arriving after the initial snapshot are retained');
+  assert.equal(siblingReads(),2,'unseen pending IDs keep both original prerequisite reads');
+  const pendingReads=progressQueries.filter(read=>read.query.isNew===true);
+  assert.equal(pendingReads.length,2,'unknown pending IDs require the full fresh fallback');
+  assert.equal(pendingReads[1].projection.scheduler,1,'fallback restores every selection and scheduling input');
+ }finally{holdRead=undefined;}
+ fixture.userprogresses=[pendingPair[1]];progressQueries=[];let recognitionInserted=false;
+ holdRead=async(name,method,query)=>{
+  if(!recognitionInserted && name==='userprogresses' && method==='find' && query.isNew===true){
+   recognitionInserted=true;fixture.userprogresses.push({...pendingPair[0],suspended:true});
+  }
+ };
+ try{
+  const packet=await loadCompactStudyQueue(user as any,{...pendingArgs,newLimit:1});
+  assert.deepEqual(packet.items,[],'a late suspended recognition still blocks its unseen reverse');
+  assert.equal(siblingReads(),1,'the remaining sibling lookup runs after the fresh pending read');
+ }finally{holdRead=undefined;}
+ // An unsorted sibling query can choose the first of duplicate directions.
+ // If multiple missing records exist, retain the original query/order rather
+ // than relying on a changed Mongo query plan to choose the same prerequisite.
+ const suspendedReading={...pendingPair[0],suspended:true};
+ const reviewedReading=pendingCard(66,'pending-pair','DE_ES',{isNew:false,nextDueDate:new Date(now.getTime()+86400000),interval:30,repetitions:4});
+ for(const [rows,expected] of [[ [suspendedReading,reviewedReading,pendingPair[1]],[] ],[ [reviewedReading,suspendedReading,pendingPair[1]],[62] ]] as const){
+  fixture.userprogresses=rows;progressQueries=[];
+  const packet=await loadCompactStudyQueue(user as any,{...pendingArgs,newLimit:1});
+  assert.deepEqual(packet.items.map(row=>row.id),expected.map(n=>String(id(200+n))),'duplicate missing recognition retains the original first-direction rule');
+  const siblingQueries=progressQueries.filter(read=>read.query['card.sourceNoteGuid']);
+  assert.equal(siblingQueries.length,2,'ambiguous missing records use the original fresh full sibling fallback');
+  assert.equal(siblingQueries[0].limit,2);assert.ok(siblingQueries[0].query.itemId?.$nin);
+  assert.equal(siblingQueries[1].query.itemId,undefined);assert.equal(siblingQueries[1].limit,undefined,'fallback must never cap queue completeness');
+ }
+ // The original duplicate-ID postfilter applies across item types, including
+ // collection-local ID collisions; pushing it down must retain that contract.
+ fixture.userprogresses=[progress(61,'PHRASE',40),pendingPair[1],{...pendingPair[0],isNew:false,nextDueDate:new Date(now.getTime()+86400000)}];progressQueries=[];
+ const collidedPending=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:1});
+ assert.deepEqual(collidedPending.items.map(row=>[row.id,row.type]),[[String(id(261)),'PHRASE'],[String(id(262)),'WORD']]);
+ assert.ok(progressQueries.find(read=>read.query['card.sourceNoteGuid'])!.query.itemId.$nin.some((itemId:any)=>String(itemId)===String(id(262))),'only loaded matching-GUID identities need to enlarge the exclusion query; the final seen filter still handles cross-type collisions');
+ const aheadReading=(n:number,guid:string)=>{const p=pendingCard(n,guid,'DE_ES',{isNew:false,nextDueDate:new Date(now.getTime()+2700000),interval:30,repetitions:4});p.scheduler={...p.scheduler,phase:'LEARNING',queue:'MINUTE',remainingSteps:1,options:{...p.scheduler.options,learnAheadSeconds:7200}};return p;};
+ fixture.userprogresses=[aheadReading(67,'ahead-b'),aheadReading(68,'ahead-a'),pendingCard(69,'ahead-a','ES_DE'),pendingCard(70,'ahead-b','ES_DE')];
+ const aheadOriginal=await resolvers.Query.dueItems(null,{userId:String(owner),...pendingArgs,includeLearningAhead:true},{user} as any);
+ const aheadCompact=await loadCompactStudyQueue(user as any,pendingArgs);
+ assert.deepEqual(aheadCompact.items.map(row=>row.id),aheadOriginal.map((row:any)=>row.itemId),'multiple missing learning-ahead siblings retain original order and completeness');
+ for(const changedCard of [{...pendingPair[0].card,sourceCardId:'changed'}, {...pendingPair[0].card,sourceNoteGuid:'changed'}, {...pendingPair[0].card,direction:'ES_DE'},undefined]){
+  fixture.userprogresses=[...pendingPair];progressQueries=[];let metadataChanged=false;
+  holdRead=async(name,method,query)=>{
+   if(!metadataChanged && name==='userprogresses' && method==='find' && query.$or?.some((clause:any)=>clause.temporaryDueDate)){
+    metadataChanged=true;fixture.userprogresses[0]={...pendingPair[0],card:changedCard};
+   }
+  };
+  try{
+   await loadCompactStudyQueue(user as any,pendingArgs);
+   const pendingReads=progressQueries.filter(read=>read.query.isNew===true);
+   assert.equal(pendingReads.length,2,'changed directional identity/card presence disables the scout shortcut');
+   assert.equal(pendingReads[1].projection.scheduler,1);
+  }finally{holdRead=undefined;}
+ }
+ console.log('PASS covered pending shortcut, pair/odd/blocked/duplicate ordering, concurrent pending arrivals and fresh late recognition');
  // The compact transport must retain the real queue and every local transition,
  // while hydration can be restricted to a prefix independently of dueLimit.
  const ankiCard={source:'ANKI',sourceCardId:'901',sourceNoteGuid:'compact-pair',direction:'DE_ES',prompt:'das Haus',answer:'casa',acceptedAnswers:['casa'],notes:'reveal note',examples:['reveal example'],deck:'App',tags:['NOUN']};

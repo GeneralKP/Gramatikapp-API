@@ -8,16 +8,25 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { connectDatabase, closeDatabase } from '../src/lib/database.js';
 import { generateToken, getUserFromToken } from '../src/features/auth/auth.service.js';
 import { typeDefs, resolvers } from '../src/graphql/schema.js';
-import { loadCompactStudyQueue, loadCompactStudyCards } from '../src/features/progress/studyTransport.js';
+import { loadCompactStudyQueue, loadCompactStudyCards, COMPACT_STUDY_SELECTION } from '../src/features/progress/studyTransport.js';
 import { warmStudyCatalog } from '../src/features/progress/studyLoading.js';
+import { isNewCard } from '../src/features/progress/newWordOrder.js';
 const prototype = Collection.prototype as any;
 for (const name of ['createIndex', 'dropIndex']) prototype[name] = async () => undefined;
 for (const name of ['insertOne', 'insertMany', 'updateOne', 'updateMany', 'replaceOne', 'deleteOne', 'deleteMany', 'bulkWrite', 'findOneAndUpdate', 'findOneAndDelete', 'findOneAndReplace', 'drop', 'createIndexes', 'dropIndexes']) {
   prototype[name] = async () => { throw new Error(`Read-only audit blocked ${name}`); };
 }
 let reads: Record<string, number> = {};
-let commands: { name: string; collection?: string; elapsedMs: number; rows?: number; uncompressedBytes: number }[] = [];
-const commandCollections = new Map<number, string>();
+let commands: { name: string; collection?: string; stage?: string; elapsedMs: number; rows?: number; uncompressedBytes: number }[] = [];
+const commandCollections = new Map<number, { collection: string; stage?: string }>();
+const cursorStages = new Map<string, { collection: string; stage?: string }>();
+function progressStage(filter: any, projection: any): string {
+  if (filter?.['card.sourceNoteGuid']) return 'new-word-siblings';
+  if (filter?.isNew === true) return 'pending-new';
+  if (filter?.$or?.some((clause: any) => clause.temporaryDueDate || clause.isNew)) return 'due-candidates';
+  if (projection?.card || projection?.['card.prompt']) return 'selected-card-content';
+  return 'progress-other';
+}
 // Capture only command names, durations and batch lengths, never filters/accounts/content.
 const connect = MongoClient.prototype.connect;
 MongoClient.prototype.connect = async function () {
@@ -25,12 +34,17 @@ MongoClient.prototype.connect = async function () {
   this.on('commandStarted', event => {
     if (!['find', 'getMore', 'aggregate'].includes(event.commandName)) return;
     const collection = event.command.find ?? event.command.aggregate ?? event.command.collection;
-    if (typeof collection === 'string') commandCollections.set(event.requestId, collection);
+    if (typeof collection === 'string') {
+      const info = event.commandName === 'getMore' ? cursorStages.get(String(event.command.getMore)) : undefined;
+      commandCollections.set(event.requestId, info ?? { collection, ...(collection === 'userprogresses' ? { stage: progressStage(event.command.filter, event.command.projection) } : {}) });
+    }
   });
   this.on('commandSucceeded', event => {
     if (!['find', 'getMore', 'aggregate'].includes(event.commandName)) return;
     const batch = event.reply.cursor?.firstBatch ?? event.reply.cursor?.nextBatch;
-    commands.push({ name: event.commandName, collection: commandCollections.get(event.requestId), elapsedMs: Math.round(event.duration), rows: batch?.length, uncompressedBytes: BSON.calculateObjectSize(event.reply) });
+    const info = commandCollections.get(event.requestId);
+    commands.push({ name: event.commandName, ...info, elapsedMs: Math.round(event.duration), rows: batch?.length, uncompressedBytes: BSON.calculateObjectSize(event.reply) });
+    if (info && event.reply.cursor?.id && String(event.reply.cursor.id) !== '0') cursorStages.set(String(event.reply.cursor.id), info);
     commandCollections.delete(event.requestId);
   });
   return connect.call(this);
@@ -57,14 +71,16 @@ try {
   if(process.env.AUDIT_COMPACT){
     await warmStudyCatalog(); // Match the production startup's static catalog warm-up.
     for(const [operation,itemType,cardLimit] of [
-      ['compact-words-full','WORD',5000],['compact-words-starter','WORD',24],
-      ['compact-phrases-full','PHRASE',5000],['compact-phrases-starter','PHRASE',24],
-      ['compact-mixed-full',undefined,5000],['compact-mixed-starter',undefined,24],
+      ['compact-words-full','WORD',undefined],['compact-words-starter','WORD',24],
+      ['compact-phrases-full','PHRASE',undefined],['compact-phrases-starter','PHRASE',24],
+      ['compact-mixed-full',undefined,undefined],['compact-mixed-starter',undefined,24],
     ] as const){
       if(process.env.AUDIT_FILTER && !operation.includes(process.env.AUDIT_FILTER))continue;
       for(let run=0;run<Math.max(1,Number(process.env.AUDIT_REPEAT??1));run++){
         reads={};commands=[];const started=performance.now(),cpuStarted=process.cpuUsage();
-        const result=await loadCompactStudyQueue(user,{itemType,cardLimit,dueLimit:5000,newLimit:0});
+        const newLimit=Number(process.env.AUDIT_NEW_LIMIT??0);
+        assert.ok(Number.isInteger(newLimit) && newLimit>=0 && newLimit<=1000, 'AUDIT_NEW_LIMIT must be an integer from 0 to 1000');
+        const result=await loadCompactStudyQueue(user,{itemType,...(cardLimit===undefined?{}:{cardLimit}),dueLimit:5000,newLimit});
         const cpu=process.cpuUsage(cpuStarted);
         console.log(JSON.stringify({name:`${operation}-${run+1}`,elapsedMs:Math.round(performance.now()-started),cpuMs:Math.round((cpu.user+cpu.system)/1000),accountCards:largest.cards,returnedCards:result.items.length,manifestCards:result.manifest.length,responseBytes:Buffer.byteLength(JSON.stringify(result)),reads,databaseCommands:commands.length,getMoreCommands:commands.filter(command=>command.name==='getMore').length,...(process.env.AUDIT_DETAILS?{commands}:{})}));
         if(operation.endsWith('starter') && run===0 && result.remaining){
@@ -107,10 +123,15 @@ try {
   const dueFilter={userId:user._id,suspended:{$ne:true},supersededByAnki:{$ne:true},$or:[{temporaryDueDate:{$lte:now}},{temporaryDueDate:null,nextDueDate:{$lte:new Date(now.getTime()+1200000)}},{isNew:true}]};
   const counterFilter={userId:user._id,$or:[{nextDueDate:{$lte:now}},{temporaryDueDate:{$lte:now}},{'scheduler.phase':{$in:['NEW','LEARNING','RELEARNING']}},{scheduler:null}]};
   const phraseIds=(await db.relationsPhrasesEsDe.find({}).project({_id:1}).toArray()).map(relation=>relation._id);
-  for(const [name,collection,filter] of [
+  const siblingInput=await db.progress.find({...dueFilter,itemType:'WORD'}).project<any>({itemId:1,isNew:1,'scheduler.phase':1,'card.sourceNoteGuid':1}).batchSize(5000).toArray();
+  const siblingFilter={userId:user._id,itemType:'WORD','card.sourceNoteGuid':{$in:[...new Set(siblingInput.filter(isNewCard).filter(row=>row.card).map(row=>row.card.sourceNoteGuid))]},supersededByAnki:{$ne:true}};
+  const siblingGuids=new Set(siblingFilter['card.sourceNoteGuid'].$in);
+  for(const [name,collection,filter,projection,limit] of [
     ['words-query-plan',db.progress,{...dueFilter,itemType:'WORD'}],
     ['phrases-query-plan',db.progress,{...dueFilter,itemType:'PHRASE'}],
     ['mixed-query-plan',db.progress,dueFilter],
+    ['word-sibling-full-query-plan',db.progress,siblingFilter,COMPACT_STUDY_SELECTION],
+    ['word-sibling-missing-query-plan',db.progress,{...siblingFilter,itemId:{$nin:siblingInput.filter(row=>row.card && siblingGuids.has(row.card.sourceNoteGuid)).map(row=>row.itemId)}},COMPACT_STUDY_SELECTION,2],
     ['word-counter-query-plan',db.progress,{...counterFilter,itemType:'WORD'}],
     ['phrase-counter-query-plan',db.progress,{...counterFilter,itemType:'PHRASE'}],
     ['phrase-identity-query-plan',db.progress,{userId:user._id,$or:[{relationId:{$in:phraseIds}},{relationId:null,itemId:{$in:phraseIds}}]}],
@@ -119,7 +140,8 @@ try {
     ['word-category-query-plan',db.wordsES,{contexts:'general_vocabulary'}],
     ['phrase-category-query-plan',db.phrasesES,{contexts:'general_vocabulary'}],
   ] as const) {
-    const plan=await (collection as Collection).find(filter).project({_id:1}).explain('executionStats');
+    const cursor=(collection as Collection).find(filter).project(projection??{_id:1});
+    const plan=await (limit?cursor.limit(limit):cursor).explain('executionStats');
     const indexes=new Set<string>();
     const visit=(value:any)=>{if(!value||typeof value!=='object')return;if(value.indexName)indexes.add(value.indexName);for(const child of Object.values(value))visit(child);};
     visit(plan.queryPlanner?.winningPlan);
