@@ -65,7 +65,8 @@ try{
  assert.equal(writes.length,0,'102 ratings + wrong Check must make no study write during active practice');assert.equal(queries.length,queryStart,'no polling or per-rating queries during practice');
  assert.equal(await db.reviewEvents.countDocuments({userId}),0);
  assert.equal(await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('german_gramatic_study:')).length),103);
- await page.getByRole('button',{name:'Previous card',exact:true}).click();await page.getByTestId('review-bar').waitFor();assert.equal(writes.length,0);
+ await page.getByRole('button',{name:'Previous card',exact:true}).click();await page.getByRole('button',{name:'Check',exact:true}).waitFor();assert.equal(await page.locator('input[type="text"]').inputValue(),'');assert.equal(await page.getByTestId('review-bar').count(),0);assert.equal(writes.length,0);
+ await page.locator('input[type="text"]').fill('das Haus');await page.keyboard.press('Enter');await page.getByTestId('review-bar').waitFor();
  await page.waitForTimeout(300);await page.keyboard.press('4');await page.getByRole('heading',{name:'casa 102',exact:true}).waitFor();
  mkdirSync('../.local/ui-review',{recursive:true});await page.screenshot({path:'../.local/ui-review/study-local-counters.jpg'});
  console.log('PASS real API/Mongo browser: blue-to-red counters, 102 immediate local reviews, durable Check/Undo and zero per-card requests');
