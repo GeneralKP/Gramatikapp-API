@@ -3,6 +3,7 @@ import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import express from "express";
 import http from "http";
+import { readFileSync } from "node:fs";
 import cors from "cors";
 import { connectDatabase, closeDatabase } from "./lib/database.js";
 import { typeDefs, resolvers } from "./graphql/schema.js";
@@ -18,6 +19,12 @@ dotenv.config();
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 const HOST = process.env.HOST?.trim() || undefined;
+// The privileged deployment helper writes this credential-free commit marker.
+let release: string | null = null;
+try {
+  const marker = readFileSync("RELEASE", "utf8").trim();
+  if (/^[0-9a-f]{40}$/.test(marker)) release = marker;
+} catch { /* Local development and retained Render builds have no marker. */ }
 
 export interface GraphQLContext {
   user: User | null;
@@ -45,7 +52,7 @@ async function startServer() {
   const allowedOrigins = process.env.WEB_ORIGINS?.split(",").map(origin => origin.trim()).filter(Boolean);
   app.use(cors({ origin: allowedOrigins?.length ? allowedOrigins : true }));
   app.use(express.json({ limit: "2mb" }));
-  app.get("/health", (_req, res) => { res.json({ status: "ok" }); });
+  app.get("/health", (_req, res) => { res.set("Cache-Control", "no-store").json({ status: "ok", release }); });
   app.post("/api/study/sync", async (req, res) => {
     try {
       const user = await getUserFromToken((req.headers.authorization || "").replace(/^Bearer /, ""));

@@ -3,8 +3,8 @@
 The production backend is the isolated OVH service described in
 [deploy/ovh/README.md](deploy/ovh/README.md). The Cloudflare frontend connects to
 `https://vps-0f140ad8.vps.ovh.net:8443`; Cloudflare builds and deploys frontend
-commits from `main`. Backend commits currently require the separate OVH release
-command. Render and Netlify remain available during the migration observation
+commits from `main`. Backend commits automatically deploy after the API checks
+pass, through the independent OVH pull-based deployment service. Render and Netlify remain available during the migration observation
 period.
 
 The API runs as a persistent Node 24 service, using `npm ci`, `npm run build`, and `npm start`, or the included Dockerfile. Persistent service hosting is required because reading/writing jobs continue after the initial HTTP response. Do not deploy this process as a short-lived serverless function.

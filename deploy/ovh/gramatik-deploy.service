@@ -1,0 +1,30 @@
+[Unit]
+Description=Pull verified Gramatik main releases
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/sbin/gramatik-poll-api
+StateDirectory=gramatik-deploy
+StateDirectoryMode=0700
+UMask=0077
+TimeoutStartSec=480
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/gramatik-api /var/cache/gramatik-build /run/lock
+InaccessiblePaths=-/etc/hope-and-heart -/opt/hope-and-heart -/etc/cloudflared -/etc/caddy -/etc/gramatik-api -/var/lib/gramatik-proxy -/run/gramatik-proxy
+ProtectProc=invisible
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER CAP_SETUID CAP_SETGID
+MemoryHigh=384M
+MemoryMax=512M
+CPUQuota=50%
+TasksMax=128

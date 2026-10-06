@@ -8,3 +8,5 @@ dist/
 !.env.example
 
 .local/
+__pycache__/
+release.tar.gz

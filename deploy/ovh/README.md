@@ -60,9 +60,8 @@ new application releases; reload only the Gramatik proxy for its route changes.
 The independent root-only command is `/usr/local/sbin/gramatik-deploy-api
 ARCHIVE COMMIT SHA256`; its source is `deploy-release.sh`. It verifies the archive,
 installs locked production dependencies in a bounded build service, switches the
-Gramatik release, and restores the previous one if local readiness fails. Future
-API source pushes still need a Gramatik release deployment; this installation
-does not reuse Hope's automatic deployment tunnel or pipeline.
+Gramatik release, and restores the previous one if local readiness fails. Automatic main releases use the separate pull-based mechanism below; the manual
+command remains available. Neither mechanism reuses Hope's deployment tunnel or pipeline.
 Record release IDs and retain the previous release. Restore its current symlink
 and restart only `gramatik-api` if a new release fails its local health check.
 
@@ -70,3 +69,64 @@ Retain Render during the initial migration observation period. Frontend rollback
 is restoring Cloudflare's API build variable to the previous Render origin and
 publishing a fresh build, using the same Atlas database and JWT secret. This changes routing only;
 it does not restore a database snapshot or erase practice performed since cutover.
+
+## Automatic backend releases from main
+
+The API checks workflow builds/tests on GitHub-hosted runners. Only a successful
+push to main can publish a compiled release. Its separate deploy job has a
+short-lived repository contents-write token; pull-request jobs have read access
+and never publish. It writes only a credential-free archive (dist, package.json,
+package-lock.json) and checksum/commit/run manifest to the dedicated
+ovh-production-releases branch. This generated branch is replaced with one
+snapshot; it is not a source-development branch. Concurrent publishers are
+serialized and skip superseded main commits.
+
+The VPS's gramatik-deploy.timer checks about once a minute using outbound HTTPS.
+The public repository requires no GitHub token or SSH key on the VPS, no public
+SSH listener, webhook, self-hosted runner, or Hope deployment tunnel. Before
+calling the existing root-owned deployment helper, the poller independently
+checks that the manifest names the current main commit, the same repository's
+push workflow, the exact run attempt and its successful verify job. GitHub API
+requests occur only for a new candidate, not on every idle tick. Network/API
+failures retain the running version; making the repository private will pause
+this mechanism until separately scoped authentication is configured.
+
+Archives are bounded and reject path traversal, links, special files, duplicate
+entries, secrets and unexpected paths before extraction by gramatik-build.
+Dependency installation ignores lifecycle scripts and has its own time/resource
+limits. A shared lock prevents manual/automatic deployments racing. Only
+gramatik-api is restarted. Its uncached /health response includes the validated
+RELEASE commit marker; the helper checks that exact commit locally, and GitHub
+checks it over public HTTPS before declaring deployment successful. Local
+readiness failure restores the preceding Gramatik release. A failed candidate
+is held rather than restarted every minute; push a corrected commit or explicitly
+clear /var/lib/gramatik-deploy/failed-commit to retry. Existing completed releases
+can be reused only when their archive checksum matches.
+
+Poller/validator/helper scripts are installed as administrator-owned files.
+Application releases do not replace those privileged scripts or service units;
+changes to deployment infrastructure require an administrator update. The
+deployment service cannot access either application's protected environment or
+Hope's configuration/releases. Atlas, JWT, study IDs and the device outbox are
+unchanged. npm installation/restart means a short service interruption; this
+is not a zero-downtime deployment or a database-migration framework.
+
+Inspect automatic releases:
+
+    systemctl status gramatik-deploy.timer gramatik-deploy.service
+    journalctl -u gramatik-deploy.service -n 60
+    cat /var/lib/gramatik-deploy/status.json
+    curl -fsS https://vps-0f140ad8.vps.ovh.net:8443/health
+
+Pause automatic activation with systemctl disable --now gramatik-deploy.timer.
+Let any active deployment finish before manually changing the current symlink.
+Resume with systemctl enable --now gramatik-deploy.timer. The manual helper is
+still available. Do not delete or reseed database records when reverting code;
+future schema migrations need their own backwards-compatible rollout.
+
+Administrator bootstrap installs poll-release.py as
+/usr/local/sbin/gramatik-poll-api, validate_release.py under
+/usr/local/lib/gramatik-deploy, deploy-release.sh as
+/usr/local/sbin/gramatik-deploy-api and the dedicated timer/service units under
+/etc/systemd/system. Validate the units, reload systemd, then enable only the
+Gramatik timer. No new key or application secret is required.
