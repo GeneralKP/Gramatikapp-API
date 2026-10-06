@@ -19,7 +19,7 @@ try {
   await mkdir(output, { recursive: true });
   for (const [key, field, language] of configs) {
     const collection = db[key], all = await collection.find({}).toArray();
-    const pending = all.filter(p => p.cefrClassification?.version !== CLASSIFICATION_VERSION || !p.cefrLevel);
+    const pending = all.filter(p => p.cefrClassification?.version !== CLASSIFICATION_VERSION || !/^[ABC][12]\.[12]$/.test(p.cefrLevel ?? ""));
     summary[key] = { total: all.length, pending: pending.length, classified: 0, failed: 0 };
     const selected = pending.slice(0, remaining); remaining -= selected.length;
     if (apply && selected.length) await writeFile(resolve(output, `${key}-before-${Date.now()}.ejson`), BSON.EJSON.stringify(selected, { relaxed: false }), { mode: 0o600 });
@@ -43,7 +43,7 @@ try {
           const now = new Date();
           const result = await batch.collection.bulkWrite(entries!.map(entry => {
             const original = batch.docs.find(p => p._id.toString() === entry.id);
-            return { updateOne: { filter: { _id: original._id, [batch.field]: original[batch.field] }, update: { $set: { cefrLevel: entry.level, cefrClassification: { level: entry.level, model: READING_MODEL, version: CLASSIFICATION_VERSION, classifiedAt: now } } } } };
+            return { updateOne: { filter: { _id: original._id, [batch.field]: original[batch.field] }, update: { $set: { level: entry.level.split(".")[0], cefrLevel: entry.level, cefrClassification: { level: entry.level, model: READING_MODEL, version: CLASSIFICATION_VERSION, classifiedAt: now } } } } };
           }));
           summary[batch.key].classified += result.matchedCount;
           console.log(JSON.stringify({ batch: index + 1, batches: batches.length, collection: batch.key, classified: result.matchedCount }));

@@ -1,7 +1,7 @@
 type WritingPractice { configured: Boolean! exercise: WritingExercise }
 type WritingExercise {
-  id: ID! requestId: String! level: String! model: String! status: String! error: String
-  words: [SessionVocabulary!]! sentence: WritingSentence lastAttempt: WritingAttempt createdAt: String!
+  id: ID! requestId: String! level: String! focus: String! reinforced: Boolean! model: String! status: String! error: String
+  words: [SessionVocabulary!]! selectedWordIds: [ID!]! sentence: WritingSentence lastAttempt: WritingAttempt createdAt: String!
 }
 type WritingSentence {
   title: String! spanish: String! german: String mainClause: String subordinateClause: String
@@ -12,13 +12,15 @@ type WritingAttempt { id: ID! requestId: String! translation: String! status: St
 type WritingFeedback { correct: Boolean! score: Int! summary: String! correctedGerman: String! corrections: [WritingCorrection!]! alternatives: [String!]! }
 type WritingCorrection { original: String! corrected: String! explanation: String! category: String! }
 type WritingWordHint { word: String! status: String! german: String explanation: String error: String }
+type DifficultWritingWord { id: ID! german: String! spanish: String! cefrLevel: String! failureIndex: Int! difficultyScore: Float! }
 extend type Query {
+  difficultWritingWords(level: String!, limit: Int = 8): [DifficultWritingWord!]!
   writingPractice: WritingPractice!
   writingExercise(id: ID!): WritingExercise
   writingWordHint(exerciseId: ID!, word: String!): WritingWordHint
 }
 extend type Mutation {
-  generateWritingExercise(level: String!, requestId: String!): WritingExercise!
+  generateWritingExercise(level: String!, requestId: String!, focus: String = "RECENT", wordIds: [ID!] = []): WritingExercise!
   checkWritingTranslation(exerciseId: ID!, translation: String!, requestId: String!): WritingAttempt!
   translateWritingWord(exerciseId: ID!, word: String!): WritingWordHint!
 }

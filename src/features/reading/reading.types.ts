@@ -7,6 +7,8 @@ export interface SessionVocabulary {
   forms: Record<string, string>;
   notes: string;
   failureIndex: number;
+  difficultyScore?: number;
+  cefrLevel?: string;
 }
 export interface StudySession {
   id: string;

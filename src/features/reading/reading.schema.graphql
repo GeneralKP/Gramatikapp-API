@@ -3,6 +3,8 @@ type SessionVocabulary {
   german: String!
   spanish: String!
   failureIndex: Int!
+  difficultyScore: Float
+  cefrLevel: String
 }
 type ReadingStudySession {
   id: ID!

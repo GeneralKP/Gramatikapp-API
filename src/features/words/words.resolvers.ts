@@ -14,6 +14,7 @@ function toGraphQL(doc: any) {
 
 export const wordsResolvers = {
   Word: {
+    level: (parent: any) => parent.cefrLevel?.split(".")[0] ?? parent.level ?? null,
     failureIndex: async (parent: any, _: unknown, context: any) => {
       if (!context.user) return 0;
       const db = getDb();

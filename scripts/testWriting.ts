@@ -11,7 +11,7 @@ import { typeDefs, resolvers } from "../src/graphql/schema.js";
 import { validateSentence, validateWritingFeedback, sentenceWordCount } from "../src/features/writing/validation.js";
 
 const live = process.argv.includes("--live"), requests: any[] = [];
-let invalidSentence = false, invalidFeedback = false;
+let invalidSentence = false, invalidFeedback = false, contradictoryGrade = false;
 const mainClause = "Der erfahrene Bürgermeister übernimmt die Verantwortung für die gemeinsame Entscheidung über die Zukunft unserer Stadt";
 const subordinateClause = "weil das Vertrauen der Bürger in seine ehrlichen Versprechen gelitten hat";
 const german = `${mainClause}, ${subordinateClause}.`;
@@ -24,12 +24,22 @@ const provider = live ? null : http.createServer(async (req, res) => {
   if (request.text.format.name === "writing_sentence") {
     result = { title: "Una decisión responsable", spanish, german, mainClause, subordinateClause, clauseOrder: "MAIN_FIRST", connector: "weil", finiteVerbs: { main: ["übernimmt"], subordinate: ["hat"] }, grammarExplanation: "Weil introduce una causa; el verbo conjugado se coloca al final del Nebensatz.",
       vocabulary: input.vocabulary.map((w: any) => ({ wordId: w.id, surfaceForms: [w.german], example: german })) };
+    if (input.level === "A1") {
+      const main = "Ich kaufe heute frisches Brot und kalte Milch für meine große Familie im kleinen Supermarkt an der Ecke";
+      Object.assign(result, { spanish: "Hoy compro pan fresco y leche fría para mi familia grande en el pequeño supermercado de la esquina.", german: `${main}.`, mainClause: main, subordinateClause: "", connector: "", clauseOrder: "SIMPLE", finiteVerbs: { main: ["kaufe"], subordinate: [] } });
+      result.vocabulary = input.vocabulary.map((w: any) => ({ wordId: w.id, surfaceForms: [w.german], example: result.german }));
+    }
     if (invalidSentence) result.german = "Zu kurz.";
   } else if (request.text.format.name === "writing_feedback") {
     const correct = input.learnerTranslation === input.germanReference;
     result = { correct, score: correct ? 100 : 85, summary: correct ? "La traducción es correcta." : "Revisa la concordancia verbal.", correctedGerman: input.germanReference,
       corrections: correct ? [] : [{ original: invalidFeedback ? "invented words" : "übernehmen", corrected: "übernimmt", explanation: "El sujeto singular requiere la tercera persona singular.", category: "VERB_POSITION" }],
       alternatives: correct ? [{ german: input.germanReference.replace("erfahrene Bürgermeister", "routinierte Bürgermeister"), mainClause: mainClause.replace("erfahrene Bürgermeister", "routinierte Bürgermeister"), subordinateClause, clauseOrder: "MAIN_FIRST", connector: "weil", finiteVerbs: { main: ["übernimmt"], subordinate: ["hat"] } }] : [] };
+    if (correct && input.level === "A1") {
+      const main = input.germanReference.slice(0, -1).replace("kalte Milch", "frische Milch");
+      result.alternatives = [{ german: `${main}.`, mainClause: main, subordinateClause: "", connector: "", clauseOrder: "SIMPLE", finiteVerbs: { main: ["kaufe"], subordinate: [] } }];
+    }
+    if (contradictoryGrade) Object.assign(result, { correct: false, score: 85, alternatives: [], corrections: [{ original: "Vertrauen", corrected: "Zutrauen", explanation: "Una preferencia de estilo.", category: "WORD_CHOICE" }] });
   } else result = { german: "die Verantwortung", explanation: "La responsabilidad asumida por el alcalde." };
   await new Promise(r => setTimeout(r, 50));
   res.writeHead(200, { "Content-Type": "application/json" }); res.end(JSON.stringify({ status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify(result) }] }] }));
@@ -64,7 +74,7 @@ async function waitFor(fetch: () => Promise<any>, checking = false, failed = fal
 try {
   for (const [deWord, esWord] of [["Entscheidung", "decisión"], ["Verantwortung", "responsabilidad"], ["Vertrauen", "confianza"], ["Zukunft", "futuro"]]) {
     const de = new ObjectId(), es = new ObjectId(), relation = new ObjectId(); wordIds.push(de, es); relationIds.push(relation);
-    const data = { gramaticalCategories: [], examples: [], contexts: [], createdAt: new Date() };
+    const data = { gramaticalCategories: [], examples: [], contexts: [], cefrLevel: "B1.1" as const, createdAt: new Date() };
     await db.wordsDE.insertOne({ ...data, _id: de, word: deWord }); await db.wordsES.insertOne({ ...data, _id: es, word: esWord });
     await db.relationsWordsEsDe.insertOne({ _id: relation, main: es, translated: de, createdAt: new Date() });
     await db.progress.insertOne({ _id: new ObjectId(), userId, itemId: relation, itemType: "WORD", failureIndex: 2, interval: 5, ease: 2.5, repetitions: 3, nextDueDate: new Date(), lastReviewed: new Date(), createdAt: new Date() });
@@ -81,16 +91,24 @@ try {
   await generate(requestId); if (!live) assert.equal(requests.length, 1);
   assert.equal(await get(id, { _id: otherId }), null); await assert.rejects(() => get(id, null), /Unauthorized/);
   await assert.rejects(() => generate(requestId, "B2"), /different difficulty/);
-  await assert.rejects(() => generate(randomUUID(), "A1"), /B2 or C1/);
+  await assert.rejects(() => generate(randomUUID(), "Z2"), /A1 to C2/);
   console.log(`PASS ${live ? "live Luna 6/high" : "fixture"} sentence: both languages 15–30 words, complete vocabulary, persisted/idempotent generation, hidden solution, account protection`);
   const answer = stored!.sentence!.german, attemptId = randomUUID();
+  if (!live) {
+    contradictoryGrade = true;
+    const retryId = randomUUID(); await check(id, answer, retryId); const failed = await waitFor(() => get(id), true, true);
+    assert.match(failed.lastAttempt.error, /contradicted this exercise/);
+    assert.equal(await db.progress.countDocuments({ userId, writingReinforcementCredit: { $gt: 0 } }), 0);
+    contradictoryGrade = false; await check(id, answer, retryId); await waitFor(() => get(id), true);
+    console.log("PASS conflicting AI grades stay failed/retryable, save the translation and award no premature reinforcement");
+  }
   const submissions = await Promise.all(Array.from({ length: 4 }, () => check(id, answer, attemptId)));
   assert.equal(new Set(submissions.map(s => s.id)).size, 1);
   const correct = await waitFor(() => get(id), true);
   assert.equal(correct.lastAttempt.feedback.correct, true); assert.equal(correct.lastAttempt.feedback.corrections.length, 0);
   assert.ok(correct.lastAttempt.feedback.alternatives.length >= 1 && correct.lastAttempt.feedback.alternatives.length <= 2);
   assert.equal(correct.sentence.german, answer);
-  await check(id, answer, attemptId); if (!live) assert.equal(requests.length, 2);
+  await check(id, answer, attemptId); if (!live) assert.equal(requests.length, 4);
   await assert.rejects(() => check(id, answer + " altered", attemptId), /different translation/);
   await assert.rejects(() => check(id, answer, randomUUID(), { _id: otherId }), /not found/);
   await assert.rejects(() => check(id, " ", randomUUID()), /Enter your German/);
@@ -103,11 +121,15 @@ try {
   assert.ok(spanishWord, "The target noun appears in the Spanish source");
   await Promise.all(Array.from({ length: 4 }, () => hint(id, spanishWord)));
   const translated = await waitFor(() => hint(id, spanishWord)); assert.ok(translated.german); assert.ok(translated.explanation);
-  await hint(id, spanishWord); if (!live) assert.equal(requests.length, 4);
+  await hint(id, spanishWord); if (!live) assert.equal(requests.length, 6);
   await assert.rejects(() => hint(id, "a_word_missing_from_the_source"), /Select a Spanish word/);
   await assert.rejects(() => hint(id, spanishWord, { _id: otherId }), /not found/);
-  assert.deepEqual(await db.progress.find({ userId }).toArray(), cardsBefore);
-  console.log("PASS mistakes explained in Spanish, contextual noun hint cached across retries, original SRS and failure counts preserved");
+  const after = await db.progress.find({ userId }).toArray();
+  const originalFields = (row: any) => { const { writingReinforcementCredit: _credit, lastWritingReinforcedAt: _reinforced, updatedAt: _updated, ...rest } = row; return rest; };
+  assert.deepEqual(after.map(originalFields), cardsBefore.map(originalFields));
+  assert.ok(after.every(card => card.writingReinforcementCredit === 0.25), "one quarter-point per word, despite multiple attempts and retries");
+  assert.equal((await db.writingExercises.findOne({ _id: new ObjectId(id) })).reinforcedWords.length, 4);
+  console.log("PASS mistakes explained, cached hints, SRS and lifetime failures unchanged, one durable reinforcement credit per word per exercise");
   if (!live) {
     invalidSentence = true;
     const badRequest = randomUUID(), started = await generate(badRequest);
@@ -118,6 +140,22 @@ try {
     assert.equal((await get(id)).lastAttempt.status, "FAILED");
     delete process.env.OPENAI_API_KEY; assert.equal((await generate(requestId)).status, "READY"); assert.equal((await hint(id, spanishWord)).status, "READY");
     console.log("PASS malformed AI output rejected, retries preserve jobs, interrupted assessments expire, saved work available without provider key");
+    process.env.OPENAI_API_KEY = "synthetic-test-key";
+    for (const level of ["B1", "B2", "C2"]) {
+      const job = await generate(randomUUID(), level); const ready = await waitFor(() => get(job.id)); assert.equal(ready.level, level);
+    }
+    for (const [deWord, esWord] of [["Brot", "pan"], ["Milch", "leche"]]) {
+      const de = new ObjectId(), es = new ObjectId(), relation = new ObjectId(); wordIds.push(de, es); relationIds.push(relation);
+      const data = { gramaticalCategories: [], examples: [], contexts: [], cefrLevel: "A1.1" as const, createdAt: new Date() };
+      await db.wordsDE.insertOne({ ...data, _id: de, word: deWord }); await db.wordsES.insertOne({ ...data, _id: es, word: esWord });
+      await db.relationsWordsEsDe.insertOne({ _id: relation, main: es, translated: de, createdAt: new Date() });
+    }
+    const basic = await generate(randomUUID(), "A1"); await waitFor(() => get(basic.id));
+    const storedBasic = await db.writingExercises.findOne({ _id: new ObjectId(basic.id) });
+    assert.equal(storedBasic.words.length, 2); assert.equal(storedBasic.sentence.clauseOrder, "SIMPLE");
+    await check(basic.id, storedBasic.sentence.german, randomUUID());
+    assert.equal((await waitFor(() => get(basic.id), true)).lastAttempt.feedback.correct, true);
+    console.log("PASS A1 simple generation and assessment, advanced levels B1–C2, suitable CEFR vocabulary and catalog fallback");
   } else {
     await mkdir("../.local/writing-tests", { recursive: true, mode: 0o700 });
     await writeFile("../.local/writing-tests/live-writing.json", JSON.stringify({ model: "gpt-6-luna", effort: "high", verifiedAt: new Date().toISOString(), words: stored!.words, sentence: stored!.sentence, correctFeedback: correct.lastAttempt.feedback, incorrectTranslation: badAnswer, incorrectFeedback: incorrect.lastAttempt.feedback, hint: translated }, null, 2), { mode: 0o600 });

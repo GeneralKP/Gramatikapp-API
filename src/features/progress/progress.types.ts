@@ -8,6 +8,8 @@ export interface UserProgress {
   itemType: "WORD" | "PHRASE";
   relationId?: ObjectId;
   failureIndex?: number;
+  writingReinforcementCredit?: number;
+  lastWritingReinforcedAt?: Date;
   failureAttemptIds?: string[];
   lastFailedAt?: Date;
   sourceFailureCount?: number;

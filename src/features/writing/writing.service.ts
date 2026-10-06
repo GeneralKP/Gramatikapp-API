@@ -1,12 +1,12 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { ObjectId } from "mongodb";
-import { getDb } from "../../lib/database.js";
+import { getDb, getDatabaseClient } from "../../lib/database.js";
 import { isReadingConfigured, requestStructured } from "../reading/openai.js";
 import { READING_MODEL } from "../reading/prompts.js";
-import type { SessionVocabulary } from "../reading/reading.types.js";
 import type { WritingAttempt, WritingExercise, WritingHint } from "./writing.types.js";
 import { HINT_INSTRUCTIONS, HINT_SCHEMA, SENTENCE_INSTRUCTIONS, SENTENCE_SCHEMA, WRITING_FEEDBACK_INSTRUCTIONS, WRITING_FEEDBACK_SCHEMA, WRITING_PROMPT_VERSION } from "./prompts.js";
 import { containsTerm, normalizedText, validateSentence, validateWritingFeedback } from "./validation.js";
+import { activeDifficulty, chooseWritingWords, REINFORCEMENT_CREDIT, writingFocus, writingLevel } from "./vocabulary.js";
 
 const LEASE_MS = 5 * 60000;
 const commandId = (id: string) => { if (!/^[a-zA-Z0-9_-]{16,100}$/.test(id)) throw new Error("Invalid request ID"); };
@@ -27,7 +27,8 @@ export async function writingExerciseForClient(exercise: WritingExercise) {
     db.writingAttempts.findOne({ ...filter, status: "READY" }, { projection: { _id: 1 } }),
   ]);
   const unlocked = !!completed;
-  return { id: exercise._id.toString(), requestId: exercise.requestId, level: exercise.level, model: exercise.model, status: exercise.status, error: exercise.error ?? null,
+  return { id: exercise._id.toString(), requestId: exercise.requestId, level: exercise.level, focus: exercise.focus ?? "RECENT", model: exercise.model, status: exercise.status, error: exercise.error ?? null,
+    reinforced: !!exercise.reinforcedWords?.length, selectedWordIds: exercise.selectedWordIds ?? [],
     words: exercise.words, createdAt: exercise.createdAt.toISOString(), lastAttempt: lastAttempt ? writingAttemptForClient(lastAttempt) : null,
     sentence: exercise.sentence ? { ...exercise.sentence, german: unlocked ? exercise.sentence.german : null,
       mainClause: unlocked ? exercise.sentence.mainClause : null, subordinateClause: unlocked ? exercise.sentence.subordinateClause : null,
@@ -43,47 +44,28 @@ export async function writingExercise(userId: ObjectId, id: ObjectId) {
   const exercise = await getDb().writingExercises.findOne({ _id: id, userId });
   return exercise ? writingExerciseForClient(exercise) : null;
 }
-async function chooseWords(userId: ObjectId, seed: ObjectId): Promise<SessionVocabulary[]> {
-  const db = getDb();
-  const progress = await db.progress.find({ userId, itemType: "WORD", suspended: { $ne: true }, supersededByAnki: { $ne: true }, lastReviewed: { $ne: null } }).sort({ lastReviewed: -1, failureIndex: -1 }).limit(180).toArray();
-  const relationIds = [...new Map(progress.map(p => { const id = p.relationId ?? p.itemId; return [id.toString(), id] as const; })).values()];
-  let relations = relationIds.length ? await db.relationsWordsEsDe.find({ _id: { $in: relationIds } }).toArray() : [];
-  if (relations.length < 4) relations = await db.relationsWordsEsDe.aggregate<any>([{ $sample: { size: 80 } }]).toArray();
-  const [german, spanish] = await Promise.all([
-    db.wordsDE.find({ _id: { $in: relations.map(r => r.translated) } }).toArray(), db.wordsES.find({ _id: { $in: relations.map(r => r.main) } }).toArray(),
-  ]);
-  const words: SessionVocabulary[] = [];
-  for (const relation of relations) {
-    const de = german.find(w => w._id.equals(relation.translated)), es = spanish.find(w => w._id.equals(relation.main));
-    if (!de?.word || !es?.word || de.word.length > 80 || de.word.trim().split(/\s+/u).length > 6) continue;
-    words.push({ id: relation._id.toString(), german: de.word, spanish: es.word,
-      forms: Object.fromEntries(Object.entries(de.forms ?? {}).filter((entry): entry is [string, string] => typeof entry[1] === "string")), notes: de.notes ?? "",
-      failureIndex: progress.filter(p => (p.relationId ?? p.itemId).equals(relation._id)).reduce((sum, p) => sum + (p.failureIndex ?? 0), 0) });
-  }
-  if (words.length < 3) throw new Error("Add at least three German-Spanish vocabulary entries before generating a sentence.");
-  const rank = (w: SessionVocabulary) => createHash("sha256").update(`${seed}:${w.id}`).digest("hex");
-  return words.sort((a, b) => rank(a).localeCompare(rank(b))).slice(0, Math.min(4, words.length));
-}
-export async function generateWritingExercise(userId: ObjectId, level: string, requestId: string) {
+export async function generateWritingExercise(userId: ObjectId, levelValue: string, requestId: string, focusValue = "RECENT", selectedWordIds: string[] = []) {
   commandId(requestId);
-  if (!["B2", "C1"].includes(level)) throw new Error("Choose B2 or C1");
+  const level = writingLevel(levelValue), focus = writingFocus(focusValue);
   const db = getDb();
   let exercise = await db.writingExercises.findOne({ userId, requestId });
-  if (exercise && exercise.level !== level) throw new Error("This request ID belongs to a different difficulty.");
+  const matches = (saved: WritingExercise) => saved.level === level && (saved.focus ?? "RECENT") === focus &&
+    JSON.stringify([...(saved.selectedWordIds ?? [])].sort()) === JSON.stringify([...selectedWordIds].sort());
+  if (exercise && !matches(exercise)) throw new Error("This request ID belongs to a different difficulty or vocabulary selection.");
   if (exercise?.status === "READY") return writingExerciseForClient(exercise);
   requireConfiguration();
   if (!exercise) {
     const now = new Date(), id = new ObjectId();
-    const created: WritingExercise = { _id: id, userId, requestId, level: level as "B2" | "C1", words: await chooseWords(userId, id), status: "FAILED",
+    const created: WritingExercise = { _id: id, userId, requestId, level, focus, selectedWordIds, words: await chooseWritingWords(userId, id, level, focus, selectedWordIds), status: "FAILED",
       model: READING_MODEL, promptVersion: WRITING_PROMPT_VERSION, createdAt: now, updatedAt: now };
     try { await db.writingExercises.updateOne({ userId, requestId }, { $setOnInsert: created }, { upsert: true }); }
     catch (error: any) { if (error.code !== 11000) throw error; }
     exercise = await db.writingExercises.findOne({ userId, requestId });
-    if (exercise.level !== level) throw new Error("This request ID belongs to a different difficulty.");
+    if (!matches(exercise)) throw new Error("This request ID belongs to a different difficulty or vocabulary selection.");
   }
   const now = new Date(), token = randomUUID();
   const claimed = await db.writingExercises.findOneAndUpdate({ _id: exercise._id, $or: [{ status: "FAILED" }, { status: "GENERATING", lockedUntil: { $lte: now } }] },
-    { $set: { status: "GENERATING", error: null, generationToken: token, lockedUntil: new Date(now.getTime() + LEASE_MS), updatedAt: now } }, { returnDocument: "after" });
+    { $set: { status: "GENERATING", error: null, promptVersion: WRITING_PROMPT_VERSION, generationToken: token, lockedUntil: new Date(now.getTime() + LEASE_MS), updatedAt: now } }, { returnDocument: "after" });
   if (claimed) void generateSentence(claimed, token).catch(() => console.error("Writing generation state could not be saved; its lease will expire."));
   return writingExerciseForClient(claimed ?? exercise);
 }
@@ -91,7 +73,7 @@ async function generateSentence(exercise: WritingExercise, token: string) {
   const db = getDb(), filter = { _id: exercise._id, generationToken: token, status: "GENERATING" as const };
   try {
     const value = await requestStructured(SENTENCE_INSTRUCTIONS, JSON.stringify({ level: exercise.level, vocabulary: exercise.words }), "writing_sentence", SENTENCE_SCHEMA);
-    const sentence = validateSentence(value, exercise.words);
+    const sentence = validateSentence(value, exercise.words, [15,30], exercise.level === "A1");
     await db.writingExercises.updateOne(filter, { $set: { sentence, status: "READY", updatedAt: new Date() }, $unset: { generationToken: "", lockedUntil: "" } });
   } catch (error) { await db.writingExercises.updateOne(filter, { $set: { status: "FAILED", error: message(error), updatedAt: new Date() }, $unset: { generationToken: "", lockedUntil: "" } }); }
 }
@@ -122,8 +104,30 @@ async function checkTranslation(attempt: WritingAttempt, exercise: WritingExerci
   const db = getDb(), filter = { _id: attempt._id, generationToken: token, status: "CHECKING" as const };
   try {
     const value = await requestStructured(exercise.promptVersion < 3 ? WRITING_FEEDBACK_INSTRUCTIONS.replaceAll("15–30", "30–50") : WRITING_FEEDBACK_INSTRUCTIONS, JSON.stringify({ level: exercise.level, spanishOriginal: exercise.sentence!.spanish, germanReference: exercise.sentence!.german, learnerTranslation: attempt.translation }), "writing_feedback", WRITING_FEEDBACK_SCHEMA);
-    const feedback = validateWritingFeedback(value, attempt.translation, exercise.promptVersion < 3 ? [30,50] : [15,30]);
-    await db.writingAttempts.updateOne(filter, { $set: { status: "READY", feedback, updatedAt: new Date() }, $unset: { generationToken: "", lockedUntil: "" } });
+    const feedback = validateWritingFeedback(value, attempt.translation, exercise.promptVersion < 3 ? [30,50] : [15,30], exercise.level === "A1", exercise.sentence!.german);
+    const session = getDatabaseClient().startSession();
+    try {
+      await session.withTransaction(async () => {
+        const now = new Date();
+        const saved = await db.writingAttempts.updateOne(filter, { $set: { status: "READY", feedback, updatedAt: now }, $unset: { generationToken: "", lockedUntil: "" } }, { session });
+        if (!saved.matchedCount) return;
+        const claimed = await db.writingExercises.updateOne({ _id: exercise._id, userId: attempt.userId, reinforcementAppliedAt: { $exists: false } },
+          { $set: { reinforcementAppliedAt: now } }, { session });
+        if (!claimed.modifiedCount) return;
+        const reinforcedWords: NonNullable<WritingExercise["reinforcedWords"]> = [];
+        for (const word of exercise.words) {
+          const relationId = new ObjectId(word.id);
+          const cards = await db.progress.find({ userId: attempt.userId, itemType: "WORD", suspended: { $ne: true }, supersededByAnki: { $ne: true },
+            $or: [{ relationId }, { relationId: { $exists: false }, itemId: relationId }] }, { session }).toArray();
+          const card = cards.sort((a, b) => activeDifficulty(b) - activeDifficulty(a) || a._id.toString().localeCompare(b._id.toString()))[0];
+          const credit = card ? Math.min(REINFORCEMENT_CREDIT, activeDifficulty(card)) : 0;
+          if (!card || !credit) continue;
+          await db.progress.updateOne({ _id: card._id }, { $inc: { writingReinforcementCredit: credit }, $set: { lastWritingReinforcedAt: now, updatedAt: now } }, { session });
+          reinforcedWords.push({ id: word.id, progressId: card._id, credit });
+        }
+        await db.writingExercises.updateOne({ _id: exercise._id }, { $set: { reinforcedWords } }, { session });
+      });
+    } finally { await session.endSession(); }
   } catch (error) { await db.writingAttempts.updateOne(filter, { $set: { status: "FAILED", error: message(error), updatedAt: new Date() }, $unset: { generationToken: "", lockedUntil: "" } }); }
 }
 const hintForClient = (hint: WritingHint) => ({ word: hint.word, status: hint.status, german: hint.german ?? null, explanation: hint.explanation ?? null, error: hint.error ?? null });

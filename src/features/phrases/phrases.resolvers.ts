@@ -84,6 +84,7 @@ export const phrasesResolvers = {
   },
 
   NewPhrase: {
+    level: (parent: any) => parent.cefrLevel?.split(".")[0] ?? parent.level ?? null,
     words: async (parent: any, _: unknown, context: any, info: any) => {
       const db = getDb();
       // Since a phrase might be from DE or ES, we'll try to find the words in both or one collection.

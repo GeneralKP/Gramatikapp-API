@@ -20,4 +20,5 @@ jobs:
       - run: npm run test:contexts
       - run: npm run test:reading-validation
       - run: npm run test:writing-validation
+      - run: npm run test:writing-vocabulary -- --unit
       - run: npx tsx scripts/testLevels.ts --unit

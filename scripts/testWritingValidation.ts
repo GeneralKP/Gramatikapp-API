@@ -24,3 +24,13 @@ assert.throws(() => validateClauseSentence({ ...valid, finiteVerbs: { main: ["ge
 assert.throws(() => validateClauseSentence({ ...valid, finiteVerbs: { main: ["erläuterte"], subordinate: ["hatte"] } }), /one audited finite verb/);
 assert.throws(() => validateClauseSentence({ ...valid, finiteVerbs: { main: ["gewann"], subordinate: ["übernommen hatte"] } }), /one audited finite verb/);
 console.log("PASS writing clause audits: valid adjective commas, unchanged public alternatives, exact fragment matching, word limits, duplicate rejection and real nested-clause regression");
+const simpleMain = "Ich kaufe heute frisches Brot und kalte Milch für meine große Familie im kleinen Supermarkt an der Ecke";
+const simple = { german: `${simpleMain}.`, mainClause: simpleMain, subordinateClause: "", connector: "", clauseOrder: "SIMPLE", finiteVerbs: { main: ["kaufe"], subordinate: [] } };
+assert.equal(validateClauseSentence(simple, [15,30], true).german, simple.german);
+assert.throws(() => validateClauseSentence(valid, [15,30], true), /A1 sentence/);
+assert.throws(() => validateClauseSentence(simple), /15–30/);
+for (const patch of [{ subordinateClause: "weil ich hungrig bin" }, { connector: "weil" }, { finiteVerbs: { main: ["kaufe"], subordinate: ["bin"] } }, { finiteVerbs: { main: ["kaufe", "bin"], subordinate: [] } }])
+  assert.throws(() => validateClauseSentence({ ...simple, ...patch }, [15,30], true), /A1 sentence/);
+console.log("PASS A1 simple clause audits and rejection of mixed or extra finite clauses");
+assert.throws(() => validateWritingFeedback({ ...feedback, correct: false, score: 85, alternatives: [], corrections: [{ original: "Vertrauen", corrected: "Zutrauen", explanation: "Una preferencia de estilo.", category: "WORD_CHOICE" }] }, reference, [15,30], false, reference), /contradicted this exercise/);
+console.log("PASS contradictory grading of the exercise reference is rejected instead of shown as a learner mistake");

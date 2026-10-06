@@ -1,13 +1,20 @@
 import type { ObjectId } from "mongodb";
 import type { JobStatus, SessionVocabulary, VocabularyUsage } from "../reading/reading.types.js";
+export const WRITING_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
+export type WritingLevel = typeof WRITING_LEVELS[number];
+export type WritingFocus = "RECENT" | "DIFFICULT";
+export interface WritingVocabulary extends SessionVocabulary { cefrLevel: string; difficultyScore: number }
 export interface WritingSentence {
   title: string; spanish: string; german: string; mainClause: string; subordinateClause: string;
-  clauseOrder: "MAIN_FIRST" | "SUBORDINATE_FIRST"; connector: string; grammarExplanation: string;
+  clauseOrder: "MAIN_FIRST" | "SUBORDINATE_FIRST" | "SIMPLE"; connector: string; grammarExplanation: string;
   finiteVerbs: { main: string[]; subordinate: string[] };
   spanishWordCount: number; germanWordCount: number; vocabulary: VocabularyUsage[];
 }
 export interface WritingExercise {
-  _id: ObjectId; userId: ObjectId; requestId: string; level: "B2" | "C1"; words: SessionVocabulary[];
+  _id: ObjectId; userId: ObjectId; requestId: string; level: WritingLevel; words: SessionVocabulary[];
+  focus?: WritingFocus; selectedWordIds?: string[];
+  reinforcementAppliedAt?: Date;
+  reinforcedWords?: { id: string; progressId: ObjectId; credit: number }[];
   sentence?: WritingSentence; status: JobStatus; error?: string | null; generationToken?: string; lockedUntil?: Date;
   model: string; promptVersion: number; createdAt: Date; updatedAt: Date;
 }

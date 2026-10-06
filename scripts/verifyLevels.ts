@@ -9,7 +9,7 @@ import { CEFR_LEVELS, CLASSIFICATION_VERSION } from "../src/features/levels/leve
 const directory = resolve(process.argv[2] || "../.local/levels"), db = await connectDatabase();
 try {
   const files = (await readdir(directory)).sort(), report: any[] = [];
-  const content = (row: any) => { const { cefrLevel: _level, cefrClassification: _metadata, ...original } = row; return original; };
+  const content = (row: any) => { const { level: _band, cefrLevel: _level, cefrClassification: _metadata, ...original } = row; return original; };
   for (const key of ["wordsDE", "wordsES", "phrasesDE", "phrasesES"] as const) {
     const originals = new Map<string, any>();
     for (const file of files.filter(file => file.startsWith(`${key}-before-`) && file.endsWith(".ejson"))) {
@@ -21,6 +21,7 @@ try {
     for (const row of current) {
       assert.ok(CEFR_LEVELS.includes(row.cefrLevel)); assert.equal(row.cefrClassification?.version, CLASSIFICATION_VERSION);
       assert.equal(row.cefrClassification?.level, row.cefrLevel); assert.ok(row.cefrClassification.classifiedAt instanceof Date);
+      assert.equal(row.level, row.cefrLevel.split(".")[0]);
       assert.deepEqual(content(row), content(originals.get(row._id.toString())), `${key}/${row._id}: classification preserved every original field`);
     }
     const distribution = Object.fromEntries(CEFR_LEVELS.map(level => [level, current.filter(row => row.cefrLevel === level).length]));
