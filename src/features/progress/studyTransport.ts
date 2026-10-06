@@ -113,19 +113,15 @@ async function playableItems(progress: UserProgress[], pairs: Map<string, Langua
       .project<{ itemId: ObjectId; card?: StudyCard }>({ _id: 0, itemId: 1, ...CARD_CONTENT_PROJECTION })
       .batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : Promise.resolve([]);
   const words = progress.filter(p => p.itemType === "WORD").map(p => ({ p, pair: pairs.get(`WORD:${p.relationId || p.itemId}`) })).filter(row => row.pair);
-  const phrases = progress.filter(p => p.itemType === "PHRASE").map(p => pairs.get(`PHRASE:${p.relationId || p.itemId}`)).filter(Boolean);
-  const germanIds = [...new Map(words.map(({ pair }) => [String(pair.translated._id), pair.translated._id])).values()];
   const legacyWords = words.filter(({ p }) => !p.card);
-  const [cards, grammar, legacyMain, legacyTranslated, phraseMeta] = await Promise.all([
-    cardsRequest,
-    germanIds.length ? db.wordsDE.find({ _id: { $in: germanIds } }).project<Word>({ _id: 1, gramaticalCategories: 1, "forms.gender": 1, "forms.past": 1, "forms.perfect": 1, "forms.imperativ": 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as Word[],
-    legacyWords.length ? db.wordsES.find({ _id: { $in: legacyWords.map(({ pair }) => pair.main._id) } }).project<Word>({ _id: 1, examples: 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as Word[],
-    legacyWords.length ? db.wordsDE.find({ _id: { $in: legacyWords.map(({ pair }) => pair.translated._id) } }).project<Word>({ _id: 1, notes: 1, examples: 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as Word[],
-    phrases.length ? db.phrasesDE.find({ _id: { $in: phrases.map(pair => pair.translated._id) } }).project<Phrase>({ _id: 1, synonyms: 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as Phrase[],
-  ]);
-  return { cards: new Map(cards.map(row => [String(row.itemId), row.card] as const)), grammar: new Map(grammar.map(row => [String(row._id), row] as const)),
-    legacyMain: new Map(legacyMain.map(row => [String(row._id), row] as const)), legacyTranslated: new Map(legacyTranslated.map(row => [String(row._id), row] as const)),
-    phraseMeta: new Map(phraseMeta.map(row => [String(row._id), row] as const)) };
+  const phrases = progress.filter(p => p.itemType === "PHRASE").map(p => pairs.get(`PHRASE:${p.relationId || p.itemId}`)).filter(Boolean);
+  const cards = await cardsRequest;
+  // Shared vocabulary display/legacy feedback comes from the same bounded
+  // immutable snapshot as its text. Per-card content stays freshly observed.
+  // DTO assembly exposes only the selected cards' explicit fields.
+  return { cards: new Map(cards.map(row => [String(row.itemId), row.card] as const)), grammar: new Map(words.map(({ pair }) => [String(pair.translated._id), pair.translated as Word] as const)),
+    legacyMain: new Map(legacyWords.map(({ pair }) => [String(pair.main._id), pair.main as Word] as const)), legacyTranslated: new Map(legacyWords.map(({ pair }) => [String(pair.translated._id), pair.translated as Word] as const)),
+    phraseMeta: new Map(phrases.map(pair => [String(pair.translated._id), pair.translated as Phrase] as const)) };
 }
 
 async function envelope(progress: UserProgress[], cardLimit = progress.length, includeManifest = true, capturedContent = false): Promise<CompactStudyEnvelope> {

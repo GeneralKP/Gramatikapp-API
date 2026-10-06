@@ -5,6 +5,7 @@ import { CEFR_LEVELS } from "../levels/levels.js";
 import { GrammaticalCategory, LearningContext, type Word } from "../words/words.types.js";
 import { generateTranslation } from "./translations.providers.js";
 import { READING_MODEL } from "../reading/prompts.js";
+import { invalidateStudyCatalog } from "../progress/catalogSummaryCache.js";
 import type { PhraseReference, ReviewedTranslation, TranslationLanguage } from "./translations.types.js";
 
 const LEASE_MS = 5 * 60_000;
@@ -134,7 +135,12 @@ export async function saveReviewedEntry(db: Database, client: MongoClient, rawEn
       await db.translationsEsDe.updateOne(filter, { $set: { word: entry.word, sourceLanguage: language, targetLanguage, key: entry.key, translation: entry.translation, kind: "SURFACE", lemma: entry.lemma, lemmaWordIds, category: entry.category, form: entry.form, cefrLevel: entry.cefrLevel, notes: entry.notes ?? "", examples: provenance.examples, contexts: provenance.contexts, phraseRefs: provenance.phraseRefs, origin: provenance.origin, ...(provenance.model ? { model: provenance.model } : {}), status: "READY", updatedAt: now }, $setOnInsert: { _id: lease?.id ?? stableId(`surface-translation:${language}:${targetLanguage}:${entry.key}`), createdAt: now }, $unset: { leaseToken: "", leaseUntil: "" } }, { upsert: !lease, session });
       return { word: entry.word, translation: entry.translation, source: "TRANSLATIONS" as const, sourceLanguage: language, targetLanguage };
     });
-  } finally { await session.endSession(); }
+  } finally {
+    // Commit errors can follow successful catalog writes. Invalidate every
+    // dictionary outcome; SURFACE translations never modify this catalog.
+    if (entry.kind === "LEXEME") invalidateStudyCatalog(db);
+    await session.endSession();
+  }
 }
 
 type LookupInput = { word: unknown; sourceLanguage: unknown; targetLanguage: unknown; context?: unknown };

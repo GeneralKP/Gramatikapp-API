@@ -17,6 +17,7 @@ import { studyTransportRouter } from '../src/features/progress/studyTransport.ht
 import { scheduleStudyReview } from '../src/features/progress/studyScheduling.js';
 import { nativeWordPair } from '../src/features/progress/nativeWordPairs.js';
 import { generateToken } from '../src/features/auth/auth.service.js';
+import { studyTextCatalog } from '../src/features/progress/studyTextCatalog.js';
 
 // This suite never opens a network connection. It runs the real GraphQL schema,
 // queue selection and nested resolvers against deterministic MongoDB responses.
@@ -47,6 +48,7 @@ const fixture:any={
 let reads:Record<string,number>={};
 let progressQueries: { query: any; projection?: any; batchSize?: number; limit?: number }[] = [];
 let counterCatalogQueries: { name: string; trace: { query: any; projection?: any; batchSize?: number; limit?: number } }[] = [];
+let displayCatalogQueries: typeof counterCatalogQueries = [];
 let batches:any[]=[];
 let holdRead: ((name: string, method: string, query: any) => Promise<void>) | undefined;
 const valueAt=(doc:any,key:string)=>key.split('.').reduce((value,part)=>value?.[part],doc);
@@ -91,7 +93,7 @@ function collection(name:string):any {
  const result={
   async createIndex(){},async dropIndex(){},
   async insertOne(doc:any){fixture[name]??=[];fixture[name].push(doc);return {insertedId:doc._id};},
-  find(query:any={}){count('find');const traced={query,projection:undefined as any,batchSize:undefined as number|undefined,limit:undefined as number|undefined};if(name==='userprogresses')progressQueries.push(traced);if(['WORDS_ES','WORDS_DE'].includes(name))counterCatalogQueries.push({name,trace:traced});let rows=(fixture[name]??[]).filter((doc:any)=>matches(doc,query));return {
+  find(query:any={}){count('find');const traced={query,projection:undefined as any,batchSize:undefined as number|undefined,limit:undefined as number|undefined};if(name==='userprogresses')progressQueries.push(traced);if(['WORDS_ES','WORDS_DE'].includes(name))counterCatalogQueries.push({name,trace:traced});if(['WORDS_DE','PHRASES_DE'].includes(name))displayCatalogQueries.push({name,trace:traced});let rows=(fixture[name]??[]).filter((doc:any)=>matches(doc,query));return {
    project(fields:any){traced.projection=fields;rows=rows.map((row:any)=>project(row,fields));return this;},
    batchSize(size:number){traced.batchSize=size;return this;},
    sort(fields:any){const [key,direction]=Object.entries(fields)[0] as [string,number];rows.sort((a:any,b:any)=>(valueAt(a,key)>valueAt(b,key)?1:valueAt(a,key)<valueAt(b,key)?-1:0)*direction);return this;},
@@ -237,7 +239,7 @@ try {
  await execute('native-new-count',dashboard);
  assert.equal(counterCatalogQueries.length,2);
  for(const {name,trace} of counterCatalogQueries){
-  assert.deepEqual(trace.projection,name==='WORDS_ES'?{_id:1,word:1,contexts:1,level:1}:{_id:1,word:1,'forms.gender':1},'counter-only native pairs never download full notes/examples');
+  assert.deepEqual(trace.projection,name==='WORDS_ES'?{_id:1,word:1,contexts:1,level:1,examples:1}:{_id:1,word:1,gramaticalCategories:1,'forms.gender':1,'forms.past':1,'forms.perfect':1,'forms.imperativ':1,notes:1,examples:1},'shared native counter/display summaries contain only required public catalog fields');
   assert.equal(trace.batchSize,5000,'complete native counter reads avoid extra cursor batches');
  }
  // A buried recognition sibling must block introduction of its typing card.
@@ -659,6 +661,94 @@ try {
  await assert.rejects(loadCompactStudyCards(user as any,{itemIds:[String(progress(90).itemId)]}),/unavailable/i,'another owner cannot be hydrated');
  await assert.rejects(loadCompactStudyQueue(user as any,{userId:String(otherOwner)} as any),/owner/i);
  await assert.rejects(loadCompactStudyCards(user as any,{itemIds:['invalid']}),/itemIds/i);
+ // Static displayed metadata now shares the same bounded catalog snapshot as
+ // text and global legacy feedback. Check complete/partial/category queues
+ // against GraphQL, while per-card content and every private read stay fresh.
+ const savedWordsES=fixture.WORDS_ES,savedWordsDE=fixture.WORDS_DE,savedPhrasesDE=fixture.PHRASES_DE,savedDisplayProgress=fixture.userprogresses;
+ try{
+  fixture.WORDS_DE=[{...savedWordsDE[0],forms:{gender:'das',past:'ging',perfect:'gegangen',imperativ:'geh',plural:'unused plural'},gramaticalCategories:['VERB']}];
+  fixture.PHRASES_DE=[{...savedPhrasesDE[0],synonyms:['snapshot alternative']}];
+  fixture.userprogresses=[progress(194,'WORD',20,{card:ankiCard}),progress(195,'WORD',20),progress(196,'PHRASE',40)];
+  invalidateStudyCatalog();const staticSnapshot=await studyTextCatalog(undefined,getDb());
+  const assertDisplayed=(packet:any,raw:any[])=>{
+   for(const row of packet.items){
+    const original=raw.find(p=>p.itemId===row.id);assert.ok(original);
+    const state=JSON.parse(original.studyState);delete state.card;assert.deepEqual(expanded(row,packet.profiles),state,'cached display metadata never changes scheduling state');
+    assert.deepEqual(row.card,displayCard(original.card),'per-card complete reveal content stays independent of the catalog cache');
+    const de=original.loadedWordRelation?.translatedDoc ?? original.loadedPhraseRelation?.translatedDoc;
+    if(de && row.type==='WORD'){
+     const projected=project(de,{gramaticalCategories:1,'forms.gender':1,'forms.past':1,'forms.perfect':1,'forms.imperativ':1});
+     assert.deepEqual(JSON.parse(JSON.stringify({gramaticalCategories:row.gramaticalCategories,forms:row.forms})),JSON.parse(JSON.stringify({gramaticalCategories:projected.gramaticalCategories ?? [],forms:projected.forms?{article:projected.forms.gender,past:projected.forms.past,perfect:projected.forms.perfect,imperativ:projected.forms.imperativ}:undefined})));
+     assert.equal(row.forms?.plural,undefined,'unused catalog forms do not reach the browser');
+     if(!row.card){assert.equal(row.wordNotes,de.notes);assert.deepEqual(row.examples,de.examples ?? []);assert.deepEqual(row.spanishExamples,original.loadedWordRelation.mainDoc.examples ?? []);}
+     else{assert.equal(row.wordNotes,undefined);assert.equal(row.examples,undefined);assert.equal(row.spanishExamples,undefined,'explicit-card feedback never duplicates global relation examples');}
+    }else if(de)assert.deepEqual(row.synonyms,de.synonyms ?? []);
+   }
+  };
+  for(const itemType of ['WORD','PHRASE',undefined])for(const context of [undefined,'university'])for(const cardLimit of [undefined,1]){
+   const args={userId:String(owner),...compactArgs,itemType,context};
+   const raw=await resolvers.Query.dueItems(null,args,{user} as any);
+   const expectedCounts=summary(await resolvers.Query.studyQueueCounts(null,args,{user} as any));
+   displayCatalogQueries=[];counterCatalogQueries=[];
+   const packet=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...args,cardLimit,includeCounts:true})));
+   assert.deepEqual((packet.manifest.length?packet.manifest:packet.items).map((row:any)=>row.id),raw.map((row:any)=>row.itemId),'static display projection cannot change full/category order');
+   assert.deepEqual(packet.counts,expectedCounts);assertDisplayed(packet,raw);
+   if(packet.remaining)assertDisplayed(JSON.parse(JSON.stringify(await loadCompactStudyCards(user as any,{itemIds:packet.manifest.slice(packet.items.length).map((row:any)=>row.id)}))),raw);
+   assert.ok(displayCatalogQueries.every(({trace})=>Object.keys(trace.projection).every(key=>key==='_id')),'warm full/partial/category/background has only original category ID lookups, with no late German display/feedback query');
+   assert.ok(counterCatalogQueries.filter(({name})=>name==='WORDS_ES').every(({trace})=>Object.keys(trace.projection).every(key=>key==='_id')),'warm full/partial/category/background has no late Spanish legacy example query');
+  }
+  const nativeCandidate=progress(197,'WORD',20,{isNew:true,interval:0,repetitions:0,lastReviewed:null});
+  const narrowGerman=project(staticSnapshot.wordsDE[0],{_id:1,word:1,'forms.gender':1});
+  const withoutFeedback=(rows:any[])=>rows.map(({card,...p})=>({...p,card:Object.fromEntries(Object.entries(card).filter(([key])=>!['notes','examples'].includes(key)))}));
+  const narrowSpanish=project(staticSnapshot.wordsES[0],{_id:1,word:1,contexts:1,level:1});
+  assert.deepEqual(withoutFeedback(nativeWordPair(nativeCandidate,staticSnapshot.wordsES[0],staticSnapshot.wordsDE[0])),withoutFeedback(nativeWordPair(nativeCandidate,narrowSpanish,narrowGerman)),'extra public feedback fields cannot change synthetic pairing, scheduling or selection/counts');
+  // External shared-catalog edits use the existing bounded age. Per-card
+  // content and newly read private state remain fresh without invalidation.
+  fixture.WORDS_ES=[{...fixture.WORDS_ES[0],examples:['edited Spanish example']}];
+  fixture.WORDS_DE=[{...fixture.WORDS_DE[0],forms:{...fixture.WORDS_DE[0].forms,past:'edited past'},notes:'fresh legacy note',examples:['fresh legacy example']}];
+  fixture.PHRASES_DE=[{...fixture.PHRASES_DE[0],synonyms:['edited alternative']}];
+  fixture.userprogresses=fixture.userprogresses.map((p:any)=>({...p,scheduleVersion:9,failureIndex:7,...(p.card?{card:{...p.card,notes:'fresh per-card note',examples:['fresh per-card example']}}:{})}));
+  let snapshotPacket=await loadCompactStudyQueue(user as any,{...compactArgs,includeCounts:true});
+  assert.ok(snapshotPacket.items.every(row=>row.schedule.version===9 && row.failureIndex===7),'static summaries never cache progress/version/failure state');
+  assert.equal(snapshotPacket.items.find(row=>row.type==='WORD').forms.past,'ging');assert.deepEqual(snapshotPacket.items.find(row=>row.type==='PHRASE').synonyms,['snapshot alternative']);
+  const legacySnapshot=snapshotPacket.items.find(row=>row.type==='WORD' && !row.card);assert.equal(legacySnapshot.wordNotes,'note');assert.deepEqual(legacySnapshot.examples,['Haus example']);assert.deepEqual(legacySnapshot.spanishExamples,['casa example']);
+  const explicitSnapshot=snapshotPacket.items.find(row=>row.card);assert.equal(explicitSnapshot.card.notes,'fresh per-card note');assert.deepEqual(explicitSnapshot.card.examples,['fresh per-card example']);
+  await studyTextCatalog(undefined,getDb(),true);
+  snapshotPacket=await loadCompactStudyQueue(user as any,{...compactArgs,includeCounts:true});
+  assert.equal(snapshotPacket.items.find(row=>row.type==='WORD').forms.past,'edited past');assert.deepEqual(snapshotPacket.items.find(row=>row.type==='PHRASE').synonyms,['edited alternative']);
+  const refreshedLegacy=snapshotPacket.items.find(row=>row.type==='WORD' && !row.card);assert.equal(refreshedLegacy.wordNotes,'fresh legacy note');assert.deepEqual(refreshedLegacy.examples,['fresh legacy example']);assert.deepEqual(refreshedLegacy.spanishExamples,['edited Spanish example']);
+  fixture.WORDS_DE=[{...fixture.WORDS_DE[0],notes:'invalidated note',examples:['invalidated example']}];
+  fixture.WORDS_ES=[{...fixture.WORDS_ES[0],examples:['invalidated Spanish example']}];
+  fixture.PHRASES_DE=[{...fixture.PHRASES_DE[0],synonyms:['invalidated alternative']}];invalidateStudyCatalog();
+  const invalidatedPacket=await loadCompactStudyQueue(user as any,compactArgs);
+  assert.deepEqual(invalidatedPacket.items.find(row=>row.type==='PHRASE').synonyms,['invalidated alternative'],'catalog invalidation makes displayed fields visible immediately');
+  const invalidatedLegacy=invalidatedPacket.items.find(row=>row.type==='WORD' && !row.card);assert.equal(invalidatedLegacy.wordNotes,'invalidated note');assert.deepEqual(invalidatedLegacy.examples,['invalidated example']);assert.deepEqual(invalidatedLegacy.spanishExamples,['invalidated Spanish example']);
+  for(const value of [undefined,null,{}, {gender:null,past:null,perfect:null,imperativ:null}, {gender:'das'}, {past:'ging',plural:'unused'}]){
+   fixture.WORDS_DE=[{...savedWordsDE[0],forms:value,gramaticalCategories:value===null?null:value===undefined?undefined:[]}];
+   fixture.PHRASES_DE=[{...savedPhrasesDE[0],synonyms:value===null?null:value===undefined?undefined:[]}];invalidateStudyCatalog();
+   const raw=await resolvers.Query.dueItems(null,{userId:String(owner),...compactArgs},{user} as any);
+   assertDisplayed(JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,compactArgs))),raw);
+  }
+  for(const fields of [{},{notes:null,examples:null,spanishExamples:null},{notes:'',examples:[],spanishExamples:[]},{notes:'only note',examples:['German example'],spanishExamples:['Spanish example']}]){
+   fixture.WORDS_DE=[{...savedWordsDE[0],notes:fields.notes,examples:fields.examples}];
+   fixture.WORDS_ES=[{...savedWordsES[0],examples:fields.spanishExamples}];invalidateStudyCatalog();
+   const raw=await resolvers.Query.dueItems(null,{userId:String(owner),...compactArgs},{user} as any);
+   for(const cardLimit of [undefined,1]){
+    const packet=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...compactArgs,cardLimit})));assertDisplayed(packet,raw);
+    if(packet.remaining)assertDisplayed(JSON.parse(JSON.stringify(await loadCompactStudyCards(user as any,{itemIds:packet.manifest.slice(packet.items.length).map((row:any)=>row.id)}))),raw);
+   }
+  }
+  // Keep the original legacy classification if another device removes an
+  // explicit card after selection but before optional content hydration.
+  fixture.WORDS_DE=savedWordsDE;fixture.WORDS_ES=savedWordsES;invalidateStudyCatalog();
+  fixture.userprogresses=[progress(198,'WORD',20,{card:ankiCard})];let removed=false;
+  holdRead=async(name,method,query)=>{if(!removed && name==='userprogresses' && method==='find' && query.$or){removed=true;fixture.userprogresses=fixture.userprogresses.map((p:any)=>({...p,card:null}));}};
+  try{
+   const removedPacket=await loadCompactStudyQueue(user as any,{...compactArgs,itemType:'WORD',cardLimit:1});assert.ok(removed);
+   assert.equal(removedPacket.items[0].card,null);assert.equal(removedPacket.items[0].wordNotes,undefined);assert.deepEqual(removedPacket.items[0].examples,[]);assert.deepEqual(removedPacket.items[0].spanishExamples,[]);
+  }finally{holdRead=undefined;}
+ }finally{fixture.WORDS_ES=savedWordsES;fixture.WORDS_DE=savedWordsDE;fixture.PHRASES_DE=savedPhrasesDE;fixture.userprogresses=savedDisplayProgress;invalidateStudyCatalog();}
+ console.log('PASS bounded global grammar/forms/synonyms/legacy feedback, full/partial/category parity, exact counters/order, refresh/invalidation and fresh per-card/private state');
  // Extra practice preserves future-first selection and its early-review flag.
  const oldMore=await resolvers.Query.studyMoreItems(null,{userId:String(owner),limit:2,itemType:'WORD'},{user} as any);
  const compactMore=await loadCompactStudyMore(user as any,{limit:2,itemType:'WORD'});

@@ -4,6 +4,8 @@ import { CATALOG_SUMMARY_TTL_MS, catalogSummaryCache, createCatalogSummaryCache 
 import { processSeedData } from "../src/features/phrases/seedService.js";
 import type { Database } from "../src/lib/database.js";
 import { CATALOG_SUMMARY_REFRESH_MS, startStudyCatalogRefresh, stopStudyCatalogRefresh } from "../src/features/progress/studyLoading.js";
+import { studyTextCatalog } from "../src/features/progress/studyTextCatalog.js";
+import { saveReviewedEntry } from "../src/features/translations/translations.service.js";
 
 let now = 0;
 const cache = createCatalogSummaryCache(() => now), db = {} as Database, secondDb = {} as Database;
@@ -72,6 +74,69 @@ const afterWrite = await refreshCache.read(db, "words", async () => [{ version: 
 releaseObsoleteRefresh(); await obsoleteRefresh;
 assert.equal(await refreshCache.read(db, "words", async () => []), afterWrite, "catalog mutation invalidation wins against an older background refresh");
 
+// The existing text parts also hold shared catalog display/feedback fields,
+// with the same immutable generations. Per-card/private state stays outside.
+const displaySource: Record<string, any[]> = {
+  wordsES: [{ _id: new ObjectId(), word: "casa", contexts: ["university"], level: "A1", examples: ["catalog Spanish example"], notes: "unused" }],
+  wordsDE: [{ _id: new ObjectId(), word: "Haus", gramaticalCategories: ["NOUN"], forms: { gender: "das", past: "ging", perfect: "gegangen", imperativ: "geh", plural: "unused" }, notes: "catalog note", examples: ["catalog German example"], userId: "private", scheduler: { private: true } }],
+  phrasesES: [{ _id: new ObjectId(), phrase: "Hoy estudio alemán.", contexts: ["university"], level: "A1" }],
+  phrasesDE: [{ _id: new ObjectId(), phrase: "Heute lerne ich Deutsch.", synonyms: ["Heute übe ich Deutsch."], words: ["unused"], perWordExplanation: { private: true } }],
+};
+const displayReads: { collection: string; projection: any }[] = [];
+const displayDb = Object.fromEntries(Object.keys(displaySource).map(collection => [collection, {
+  find(filter: any) {
+    assert.deepEqual(filter, {}, "static display cache never filters or reads by account");
+    let projected: any[];
+    return {
+      project(fields: any) {
+        displayReads.push({ collection, projection: fields });
+        projected = displaySource[collection].map(row => {
+          const result: any = {};
+          for (const key of Object.keys(fields)) {
+            const [parent, child] = key.split(".");
+            if (child) { if (row[parent] && typeof row[parent] === "object") { result[parent] ??= {}; if (row[parent][child] !== undefined) result[parent][child] = row[parent][child]; } }
+            else if (row[key] !== undefined) result[key] = row[key];
+          }
+          return result;
+        });
+        return this;
+      },
+      batchSize(size: number) { assert.equal(size, 5000); return this; },
+      async toArray() { return projected; },
+    };
+  },
+}])) as unknown as Database;
+for (const privatePart of ["users", "progress", "schedulerProfiles", "reviewEvents"]) Object.defineProperty(displayDb, privatePart, { get() { throw new Error("Private state must never enter the static display cache"); } });
+const display = await studyTextCatalog(undefined, displayDb);
+assert.equal(displayReads.length, 4);
+assert.deepEqual(displayReads.find(read => read.collection === "wordsES")!.projection, { _id: 1, word: 1, contexts: 1, level: 1, examples: 1 });
+assert.deepEqual(displayReads.find(read => read.collection === "wordsDE")!.projection, { _id: 1, word: 1, gramaticalCategories: 1, "forms.gender": 1, "forms.past": 1, "forms.perfect": 1, "forms.imperativ": 1, notes: 1, examples: 1 });
+assert.deepEqual(displayReads.find(read => read.collection === "phrasesDE")!.projection, { _id: 1, phrase: 1, synonyms: 1 });
+assert.deepEqual(Object.keys(display.wordsES[0]).sort(), ["_id", "word", "contexts", "level", "examples"].sort());
+assert.deepEqual(Object.keys(display.wordsDE[0]).sort(), ["_id", "word", "gramaticalCategories", "forms", "notes", "examples"].sort());
+assert.deepEqual(Object.keys(display.wordsDE[0].forms!).sort(), ["gender", "past", "perfect", "imperativ"].sort());
+assert.deepEqual(Object.keys(display.phrasesDE[0]).sort(), ["_id", "phrase", "synonyms"].sort());
+assert.throws(() => { display.wordsDE[0].forms!.past = "mutated"; }, TypeError);
+assert.throws(() => display.wordsDE[0].gramaticalCategories.push("VERB" as any), TypeError);
+assert.throws(() => display.phrasesDE[0].synonyms.push("mutated"), TypeError);
+assert.throws(() => display.wordsES[0].examples.push("mutated"), TypeError);
+assert.throws(() => display.wordsDE[0].examples.push("mutated"), TypeError);
+assert.equal((display.wordsDE[0] as any).userId, undefined); assert.equal((display.wordsDE[0] as any).scheduler, undefined);
+displaySource.wordsES[0] = { ...displaySource.wordsES[0], examples: ["edited Spanish example"] };
+displaySource.wordsDE[0] = { ...displaySource.wordsDE[0], word: "Gehen", forms: { ...displaySource.wordsDE[0].forms, past: "edited" }, notes: "edited catalog note", examples: ["edited German example"] };
+displaySource.phrasesDE[0] = { ...displaySource.phrasesDE[0], synonyms: ["edited alternative"] };
+const stillFresh = await studyTextCatalog(undefined, displayDb);
+assert.equal(displayReads.length, 4); assert.equal(stillFresh.wordsDE, display.wordsDE); assert.equal(stillFresh.wordsDE[0].forms!.past, "ging");
+assert.equal(stillFresh.wordsDE[0].notes, "catalog note"); assert.deepEqual(stillFresh.wordsDE[0].examples, ["catalog German example"]); assert.deepEqual(stillFresh.wordsES[0].examples, ["catalog Spanish example"]);
+const refreshedDisplay = await studyTextCatalog(undefined, displayDb, true);
+assert.equal(refreshedDisplay.wordsDE[0].word, "Gehen"); assert.equal(refreshedDisplay.wordsDE[0].forms!.past, "edited"); assert.deepEqual(refreshedDisplay.phrasesDE[0].synonyms, ["edited alternative"]);
+assert.equal(refreshedDisplay.wordsDE[0].notes, "edited catalog note"); assert.deepEqual(refreshedDisplay.wordsDE[0].examples, ["edited German example"]); assert.deepEqual(refreshedDisplay.wordsES[0].examples, ["edited Spanish example"]);
+assert.equal(display.wordsDE[0].forms!.past, "ging", "a replacement never mutates the earlier request's snapshot");
+catalogSummaryCache.invalidate(displayDb);
+const invalidatedDisplay = await studyTextCatalog(undefined, displayDb);
+assert.notEqual(invalidatedDisplay.wordsDE, refreshedDisplay.wordsDE, "catalog invalidation replaces enriched display generations too");
+assert.equal(displayReads.length, 12, "refresh and invalidation reuse only the same four text parts");
+
 const realSetInterval = globalThis.setInterval, realClearInterval = globalThis.clearInterval;
 let starts = 0, stops = 0, unrefs = 0;
 const fakeTimer = { unref() { unrefs++; } } as any;
@@ -99,4 +164,39 @@ await assert.rejects(processSeedData(partialDb, {
   word_relations: [], phrases_de: [], phrases_es: [], phrase_relations: [],
 }), error => error === failure);
 assert.notEqual(await catalogSummaryCache.read(partialDb, "words", async () => [{ version: 2 }]), before);
-console.log("PASS immutable catalog summaries, database isolation, singleflight, atomic refresh, hard expiry, retryable loads, generation-safe invalidation, timer lifecycle and partially failed seed imports");
+
+// The reviewed dictionary writer is also used by emergency translations. Its
+// catalog generations are invalidated on successful or uncertain transactions,
+// while SURFACE-only translations leave shared catalog snapshots untouched.
+const reviewed = {
+  kind: "LEXEME", word: "lernen", key: "lernen", lemma: "lernen", translation: "aprender", form: "dictionary form", category: "VERB", cefrLevel: "A1.1",
+  forms: { past: "lernte", perfect: "gelernt", imperativ: "Lerne!" },
+  target: { word: "aprender", category: "VERB", cefrLevel: "A1.1", forms: { past: "aprendió", perfect: "aprendido", imperativ: "aprende" }, example: "Quiero aprender alemán." },
+} as any;
+const provenance = { origin: "MANUAL" as const, examples: ["Ich lerne Deutsch."], contexts: ["university"], phraseRefs: [] };
+let catalogWrites = 0, surfaceWrites = 0, endedSessions = 0, uncertainCommit = false, rejectTransaction = false, rejectCleanup = false;
+const dictionary = { find() { return { async toArray() { return []; } }; }, async updateOne() { catalogWrites++; } };
+const reviewedDb = { wordsDE: dictionary, wordsES: dictionary, relationsWordsEsDe: { async findOne() { return null; }, async updateOne() { catalogWrites++; } }, translationsEsDe: { async updateOne() { surfaceWrites++; } } } as unknown as Database;
+const reviewedClient = { startSession() { return { async withTransaction(work: () => Promise<unknown>) { if (rejectTransaction) throw failure; const result = await work(); if (uncertainCommit) throw failure; return result; }, async endSession() { endedSessions++; if (rejectCleanup) throw failure; } }; } } as any;
+async function boundedReviewedSave(entry = reviewed) {
+  let timer: ReturnType<typeof setTimeout>;
+  try {
+    return await Promise.race([saveReviewedEntry(reviewedDb, reviewedClient, entry, "de", provenance), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("Mocked dictionary write timed out")), 3000); })]);
+  } finally { clearTimeout(timer!); }
+}
+for (const outcome of ["success", "transaction rejection", "uncertain commit", "cleanup rejection"]) {
+  uncertainCommit = outcome === "uncertain commit"; rejectTransaction = outcome === "transaction rejection"; rejectCleanup = outcome === "cleanup rejection";
+  const priorText = await catalogSummaryCache.read(reviewedDb, "wordTextDe", async () => [{ version: catalogWrites }]);
+  const priorRelations = await catalogSummaryCache.read(reviewedDb, "words", async () => [{ version: catalogWrites }]);
+  if (outcome !== "success") await assert.rejects(boundedReviewedSave(), error => error === failure);
+  else assert.equal((await boundedReviewedSave())?.source, "WORDS");
+  assert.notEqual(await catalogSummaryCache.read(reviewedDb, "wordTextDe", async () => [{ version: catalogWrites }]), priorText, `dictionary display invalidation survives ${outcome}`);
+  assert.notEqual(await catalogSummaryCache.read(reviewedDb, "words", async () => [{ version: catalogWrites }]), priorRelations, `dictionary relation invalidation survives ${outcome}`);
+}
+uncertainCommit = false; rejectTransaction = false; rejectCleanup = false;
+const beforeSurface = await catalogSummaryCache.read(reviewedDb, "wordTextDe", async () => []);
+const catalogWritesBeforeSurface = catalogWrites;
+assert.equal((await boundedReviewedSave({ ...reviewed, kind: "SURFACE", word: "lernte", key: "lernte", form: "past singular" }))?.source, "TRANSLATIONS");
+assert.equal(await catalogSummaryCache.read(reviewedDb, "wordTextDe", async () => []), beforeSurface);
+assert.equal(catalogWrites, catalogWritesBeforeSurface); assert.equal(surfaceWrites, 1); assert.equal(endedSessions, 5);
+console.log("PASS immutable catalog summaries, database isolation, singleflight, atomic refresh, hard expiry, retryable loads, generation-safe invalidation, timer lifecycle, shared display/feedback and seed/dictionary writers");
