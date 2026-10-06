@@ -18,7 +18,8 @@ The shared host and its operating system remain a shared failure domain.
 - Proxy admin API: `/run/gramatik-proxy/admin.sock`, inside its private runtime directory.
 - HTTP 80: ACME certificate validation only; no plaintext app endpoint.
 - MongoDB: existing production Atlas `gramatikapp` database; no import/reseed.
-- CORS: `WEB_ORIGINS=https://gramatikapp.netlify.app`.
+- CORS: exact Cloudflare and retained Netlify origins in `WEB_ORIGINS`:
+  `https://german-gramatic-preview.kevinandrespmgelcas.workers.dev,https://gramatikapp.netlify.app`.
 
 Keep the existing production JWT secret to preserve sign-ins and durable study
 commands. Configure the existing DB and AI keys only in the protected environment
@@ -40,10 +41,12 @@ queries, CORS preflight, and unauthenticated rejection of protected REST routes.
 Verify that a service restart preserves the account's schedules and counters.
 Confirm Hope's service PIDs/start times and configuration checksums remain intact.
 
-Only after those checks, set Netlify's production `VITE_API_URL` and `API_URL` to
-the new HTTPS origin and rebuild the frontend. Both GraphQL and durable study
-sync must use that origin. `API_URL` is also used by the Netlify translation
-function. Opening Reading/Writing still does not trigger generation.
+The Cloudflare frontend uses `VITE_API_URL=https://vps-0f140ad8.vps.ovh.net:8443`
+in its build variables. Cloudflare Git builds track `main` in Gramatikapp-Web,
+with `npm run build:cloudflare` and `npx wrangler deploy`. GraphQL, durable study
+sync and word lookup use the OVH origin; Writing hints use their existing GraphQL
+mutation. Opening Reading/Writing still does not trigger generation. Netlify's
+API configuration remains on Render during the migration observation period.
 
 The API gracefully drains HTTP requests before closing MongoDB on SIGTERM.
 Unacknowledged browser commands remain durable and retry normally; the backend
@@ -64,6 +67,6 @@ Record release IDs and retain the previous release. Restore its current symlink
 and restart only `gramatik-api` if a new release fails its local health check.
 
 Retain Render during the initial migration observation period. Frontend rollback
-is restoring Netlify's previous API variables and publishing a fresh build against
-Render, using the same Atlas database and JWT secret. This changes routing only;
+is restoring Cloudflare's API build variable to the previous Render origin and
+publishing a fresh build, using the same Atlas database and JWT secret. This changes routing only;
 it does not restore a database snapshot or erase practice performed since cutover.
