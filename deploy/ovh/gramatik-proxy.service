@@ -1,0 +1,47 @@
+[Unit]
+Description=Gramatik independent HTTPS proxy
+Wants=network-online.target
+After=network-online.target gramatik-api.service
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=notify
+User=gramatik-proxy
+Group=gramatik-proxy
+Environment=HOME=/var/lib/gramatik-proxy
+Environment=XDG_DATA_HOME=/var/lib/gramatik-proxy
+Environment=XDG_CONFIG_HOME=/var/lib/gramatik-proxy
+StateDirectory=gramatik-proxy
+StateDirectoryMode=0700
+RuntimeDirectory=gramatik-proxy
+RuntimeDirectoryMode=0700
+ExecStart=/usr/bin/caddy run --config /etc/gramatik-proxy/Caddyfile --adapter caddyfile
+ExecReload=/usr/bin/caddy reload --config /etc/gramatik-proxy/Caddyfile --adapter caddyfile --address unix//run/gramatik-proxy/admin.sock
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+InaccessiblePaths=-/etc/hope-and-heart -/opt/hope-and-heart -/etc/cloudflared -/etc/caddy -/etc/gramatik-api -/opt/gramatik-api
+ProtectProc=invisible
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+MemoryHigh=192M
+MemoryMax=256M
+CPUQuota=50%
+TasksMax=128
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gramatik-proxy
+
+[Install]
+WantedBy=multi-user.target

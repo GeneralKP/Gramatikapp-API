@@ -4,7 +4,7 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 import express from "express";
 import http from "http";
 import cors from "cors";
-import { connectDatabase, getDb } from "./lib/database.js";
+import { connectDatabase, closeDatabase } from "./lib/database.js";
 import { typeDefs, resolvers } from "./graphql/schema.js";
 import { getUserFromToken } from "./features/auth/auth.service.js";
 import { User } from "./features/auth/auth.types.js";
@@ -17,6 +17,7 @@ import { wordTranslationRouter } from "./features/translations/translations.http
 dotenv.config();
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
+const HOST = process.env.HOST?.trim() || undefined;
 
 export interface GraphQLContext {
   user: User | null;
@@ -34,6 +35,7 @@ async function startServer() {
   const server = new ApolloServer<GraphQLContext>({
     typeDefs,
     resolvers,
+    stopOnTerminationSignals: false,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
 
@@ -83,10 +85,27 @@ async function startServer() {
   );
 
   await new Promise<void>((resolve) =>
-    httpServer.listen({ port: PORT }, resolve),
+    httpServer.listen({ port: PORT, ...(HOST ? { host: HOST } : {}) }, resolve),
   );
 
-  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
+  let shuttingDown = false;
+  const shutdown = async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    try {
+      // Drain active HTTP requests before closing transaction connections.
+      await server.stop();
+      await closeDatabase();
+      process.exit(0);
+    } catch {
+      console.error("Failed to shut down cleanly");
+      process.exit(1);
+    }
+  };
+  process.on("SIGTERM", () => { void shutdown(); });
+  process.on("SIGINT", () => { void shutdown(); });
+
+  console.log(`🚀 Server ready at http://${HOST || "localhost"}:${PORT}/graphql`);
 }
 
 startServer().catch((error) => {
