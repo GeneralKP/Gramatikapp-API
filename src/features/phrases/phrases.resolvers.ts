@@ -1,4 +1,6 @@
 import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
+import { catalogProjection } from "../levels/catalogProjection.js";
+import type { GraphQLResolveInfo } from "graphql";
 import { ObjectId, Filter } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { translate as translateText } from "./phrases.service.js";
@@ -63,10 +65,10 @@ export const phrasesResolvers = {
       };
     },
 
-    phraseRelations: async (_: unknown, args: CatalogArgs) => {
+    phraseRelations: async (_: unknown, args: CatalogArgs, _context: unknown, info?: GraphQLResolveInfo) => {
       const db = getDb();
       const relations = await db.relationsPhrasesEsDe
-        .aggregate(catalogPipeline(args, "PHRASES_ES", "PHRASES_DE", "phrase"))
+        .aggregate(catalogPipeline(args, "PHRASES_ES", "PHRASES_DE", "phrase", catalogProjection(info)))
         .toArray();
 
       return relations.map((r) => {

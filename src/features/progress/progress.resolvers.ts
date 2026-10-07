@@ -15,6 +15,8 @@ import { nativeWordPair, ensureNativeWordPairs } from "./nativeWordPairs.js";
 import { introducedToday, applyDailyLimit } from "./dailyLimit.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
 import { isDueStudyCandidate } from "./studyCandidates.js";
+import { selectedFields } from "../levels/catalogProjection.js";
+import type { GraphQLResolveInfo } from "graphql";
 
 function requireOwner(context: { user: User | null }, userId: string) {
   if (!context?.user || context.user._id.toString() !== userId) throw new Error("Unauthorized");
@@ -432,14 +434,35 @@ export const progressResolvers = {
 
     allProgress: async (
       _: unknown,
-      { userId, itemType }: { userId: string; itemType?: string },
+      { userId, itemType, relationIds }: { userId: string; itemType?: string; relationIds?: string[] | null },
       context: { user: User | null },
+      info?: GraphQLResolveInfo,
     ) => {
       requireOwner(context, userId);
+      if (relationIds != null) {
+        if (relationIds.length > 500) throw new Error("At most 500 relation IDs may be requested");
+        if (relationIds.some(id => !ObjectId.isValid(id))) throw new Error("Invalid relation ID");
+        if (!relationIds.length) return [];
+      }
       const db = getDb();
       const query: any = { userId: new ObjectId(userId) };
       if (itemType) query.itemType = itemType;
+      if (relationIds != null) {
+        const ids = [...new Set(relationIds)].map(id => new ObjectId(id));
+        query.$or = [{ relationId: { $in: ids } }, { itemId: { $in: ids } }];
+      }
 
+      const summaryFields = new Set(['id','userId','itemId','relationId','itemType','ease','interval','repetitions','nextDueDate','lastReviewed','__typename']);
+      const summary = info && [...selectedFields(info).values()].every(nodes => summaryFields.has(nodes[0].name.value));
+      if (summary) {
+        const progress = await db.progress.find(query).project<UserProgress>({
+          _id: 1, userId: 1, itemId: 1, relationId: 1, itemType: 1,
+          ease: 1, interval: 1, repetitions: 1, nextDueDate: 1, temporaryDueDate: 1, lastReviewed: 1,
+        }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
+        return progress.map(row => ({...row, id: String(row._id), userId: String(row.userId),
+          itemId: String(row.itemId), relationId: row.relationId?.toString(),
+          nextDueDate: effectiveDueDate(row).toISOString(), lastReviewed: row.lastReviewed?.toISOString() ?? null}));
+      }
       const progress = await db.progress.find(query).toArray();
       return progress.map(toGraphQL);
     },

@@ -1,4 +1,6 @@
 import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
+import { catalogProjection } from "../levels/catalogProjection.js";
+import type { GraphQLResolveInfo } from "graphql";
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { Word, WordRelation } from "./words.types.js";
@@ -53,10 +55,10 @@ export const wordsResolvers = {
       const word = await collection.findOne({ _id: new ObjectId(id) });
       return toGraphQL(word);
     },
-    wordRelations: async (_: unknown, args: CatalogArgs) => {
+    wordRelations: async (_: unknown, args: CatalogArgs, _context: unknown, info?: GraphQLResolveInfo) => {
       const db = getDb();
       const relations = await db.relationsWordsEsDe
-        .aggregate(catalogPipeline(args, "WORDS_ES", "WORDS_DE", "word"))
+        .aggregate(catalogPipeline(args, "WORDS_ES", "WORDS_DE", "word", catalogProjection(info)))
         .toArray();
 
       return relations.map((r) => {

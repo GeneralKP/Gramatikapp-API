@@ -10,7 +10,7 @@ import { connectDatabase, closeDatabase, getDb } from '../src/lib/database.js';
 import { typeDefs, resolvers } from '../src/graphql/schema.js';
 import { DEFAULT_OPTIONS, initialScheduler } from '../src/features/progress/scheduler.js';
 import { withScheduler } from '../src/features/progress/reviews.js';
-import { insertNewProgress } from '../src/features/progress/studyLoading.js';
+import { insertNewProgress, STUDY_SUMMARY_BATCH_SIZE } from '../src/features/progress/studyLoading.js';
 import { invalidateStudyCatalog } from '../src/features/progress/catalogSummaryCache.js';
 import { loadCompactStudyQueue, loadCompactStudyCards, loadCompactStudyMore } from '../src/features/progress/studyTransport.js';
 import { studyTransportRouter } from '../src/features/progress/studyTransport.http.js';
@@ -127,6 +127,36 @@ const query=(name:string)=>queries[name];
 const dashboard='query($userId:ID!){studyQueueCounts(userId:$userId,itemType:"WORD"){new learning review total learned} learningPath(userId:$userId){id name level isUnlocked wordsTotal wordsLearned phrasesTotal phrasesLearned}}';
 try {
  const schema=makeExecutableSchema({typeDefs,resolvers});
+ const dictionaryProgressQuery='query($userId:ID!,$relationIds:[ID!]){allProgress(userId:$userId,relationIds:$relationIds){id itemId relationId itemType ease interval repetitions nextDueDate lastReviewed card{prompt answer}}}';
+ const dictionaryOriginalProgress=fixture.userprogresses;
+ fixture.userprogresses=[...dictionaryOriginalProgress.map((row:any,index:number)=>index===0?{...row,temporaryDueDate:new Date('2026-10-10T10:00:00Z')}:row),progress(8,'WORD',20,{relationId:undefined,itemId:id(20)})];
+ const allDictionaryProgress=await graphql({schema,source:dictionaryProgressQuery,variableValues:{userId:String(owner)},contextValue:{user}});
+ assert.equal(allDictionaryProgress.errors,undefined,'optional scoped dictionary progress must be accepted by the real SDL');
+ const scopedDictionaryProgress=await graphql({schema,source:dictionaryProgressQuery,variableValues:{userId:String(owner),relationIds:[String(id(20)),String(id(20))]},contextValue:{user}});
+ assert.equal(scopedDictionaryProgress.errors,undefined);
+ const allRows=JSON.parse(JSON.stringify(allDictionaryProgress.data)).allProgress;
+ assert.deepEqual(JSON.parse(JSON.stringify(scopedDictionaryProgress.data)).allProgress,allRows.filter((row:any)=>row.relationId===String(id(20)) || row.itemId===String(id(20))),'scope retains both directions, legacy relation IDs and full requested fields');
+ assert.equal(JSON.parse(JSON.stringify(scopedDictionaryProgress.data)).allProgress.length,4,'scope excludes other relations and owners');
+ const summaryQuery='query($userId:ID!,$relationIds:[ID!],$details:Boolean!){allProgress(userId:$userId,relationIds:$relationIds){...DictionarySummary card @include(if:$details){prompt answer}}} fragment DictionarySummary on UserProgress{id itemId relationId itemType ease interval repetitions due:nextDueDate lastReviewed}';
+ progressQueries=[];
+ const dictionarySummaryResult=await graphql({schema,source:summaryQuery,variableValues:{userId:String(owner),relationIds:[String(id(20))],details:false},contextValue:{user}});
+ assert.equal(dictionarySummaryResult.errors,undefined);
+ assert.deepEqual(JSON.parse(JSON.stringify(dictionarySummaryResult.data)).allProgress,JSON.parse(JSON.stringify(scopedDictionaryProgress.data)).allProgress.map(({card,nextDueDate,...row}:any)=>({...row,due:nextDueDate})),'summary projection matches full response with fragments, aliases, directives and temporary due dates');
+ assert.equal(JSON.parse(JSON.stringify(dictionarySummaryResult.data)).allProgress[0].due,'2026-10-10T10:00:00.000Z');
+ assert.equal(progressQueries.length,1);
+ assert.deepEqual(progressQueries[0].projection,{_id:1,userId:1,itemId:1,relationId:1,itemType:1,ease:1,interval:1,repetitions:1,nextDueDate:1,temporaryDueDate:1,lastReviewed:1},'dictionary summary never transfers cards or scheduler/provider content');
+ assert.equal(progressQueries[0].batchSize,STUDY_SUMMARY_BATCH_SIZE);
+ for(const relationIds of [[],['invalid'],Array(501).fill(String(id(20)))]){
+  reads={};const result=await graphql({schema,source:dictionaryProgressQuery,variableValues:{userId:String(owner),relationIds},contextValue:{user}});
+  if(relationIds.length===0){assert.equal(result.errors,undefined);assert.deepEqual(JSON.parse(JSON.stringify(result.data)),{allProgress:[]});}
+  else assert.ok(result.errors?.[0].message.includes('relation'));
+  assert.equal(reads['userprogresses.find']??0,0,'empty/invalid scope never reads all account progress');
+ }
+ reads={};const rejectedDictionaryProgress=await graphql({schema,source:dictionaryProgressQuery,variableValues:{userId:String(otherOwner),relationIds:['invalid']},contextValue:{user}});
+ assert.equal(rejectedDictionaryProgress.errors?.[0].message,'Unauthorized','ownership is checked before scope parsing');
+ assert.equal(reads['userprogresses.find']??0,0);
+ fixture.userprogresses=dictionaryOriginalProgress;
+ console.log('PASS scoped dictionary progress full-content parity, directional/legacy relations, empty scope, validation bounds and ownership');
  const responses:any={};
  const execute=async(name:string,source:string,variables:any={})=>{
   invalidateStudyCatalog();

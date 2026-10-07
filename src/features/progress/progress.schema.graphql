@@ -91,7 +91,7 @@ extend type Query {
   dueItems(userId: ID!, dueLimit: Int, newLimit: Int, itemType: String, context: String, includeLearningAhead: Boolean = false): [UserProgress!]!
   studyMoreItems(userId: ID!, limit: Int, itemType: String, context: String): [UserProgress!]!
   userProgress(userId: ID!, itemId: ID!): UserProgress
-  allProgress(userId: ID!, itemType: String): [UserProgress!]!
+  allProgress(userId: ID!, itemType: String, relationIds: [ID!]): [UserProgress!]!
   itemsCount(itemType: String!): Int!
   learningPath(userId: ID!): [LearningNode!]!
   reviewHistory(userId: ID!, itemId: ID, limit: Int): [ReviewEvent!]!
