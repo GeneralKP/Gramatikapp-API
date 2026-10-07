@@ -16,6 +16,7 @@ import { introducedToday, applyDailyLimit } from "./dailyLimit.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
 import { isDueStudyCandidate } from "./studyCandidates.js";
 import { selectedFields } from "../levels/catalogProjection.js";
+import { isGraduatedStudyCard, normalizedStudyPhase, STUDY_STATUS_PROJECTION } from "./studyStatus.js";
 import type { GraphQLResolveInfo } from "graphql";
 
 function requireOwner(context: { user: User | null }, userId: string) {
@@ -361,7 +362,7 @@ export async function loadStudyQueueCounts(
     const relations=type === "WORD" ? catalog.words : catalog.phrases;
     catalogIds.push(...relations.filter(r=>!categorySet || categorySet.has(String(r._id))).map(row=>row._id));
   }
-  const learnedIds=new Set(allSeen.filter(p=>p.repetitions>0 && (!itemType || p.itemType===itemType)).map(p=>String(p.relationId ?? p.itemId)));
+  const learnedIds=new Set(allSeen.filter(p=>isGraduatedStudyCard(p) && (!itemType || p.itemType===itemType)).map(p=>String(p.relationId ?? p.itemId)));
   return { total: catalogIds.length, learned: catalogIds.filter(id=>learnedIds.has(String(id))).length, ...summary };
 }
 
@@ -452,15 +453,18 @@ export const progressResolvers = {
         query.$or = [{ relationId: { $in: ids } }, { itemId: { $in: ids } }];
       }
 
-      const summaryFields = new Set(['id','userId','itemId','relationId','itemType','ease','interval','repetitions','nextDueDate','lastReviewed','__typename']);
+      const summaryFields = new Set(['id','userId','itemId','relationId','itemType','ease','interval','repetitions','nextDueDate','lastReviewed','schedulerPhase','__typename']);
       const summary = info && [...selectedFields(info).values()].every(nodes => summaryFields.has(nodes[0].name.value));
       if (summary) {
+        const includePhase = [...selectedFields(info).values()].some(nodes => nodes[0].name.value === 'schedulerPhase');
         const progress = await db.progress.find(query).project<UserProgress>({
           _id: 1, userId: 1, itemId: 1, relationId: 1, itemType: 1,
           ease: 1, interval: 1, repetitions: 1, nextDueDate: 1, temporaryDueDate: 1, lastReviewed: 1,
+          ...(includePhase ? STUDY_STATUS_PROJECTION : {}),
         }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
         return progress.map(row => ({...row, id: String(row._id), userId: String(row.userId),
           itemId: String(row.itemId), relationId: row.relationId?.toString(),
+          ...(includePhase ? { schedulerPhase: normalizedStudyPhase(row) } : {}),
           nextDueDate: effectiveDueDate(row).toISOString(), lastReviewed: row.lastReviewed?.toISOString() ?? null}));
       }
       const progress = await db.progress.find(query).toArray();
@@ -502,7 +506,7 @@ export const progressResolvers = {
 
       const learnedSet = new Set(
         progresses
-          .filter((p) => p.repetitions > 0)
+          .filter(isGraduatedStudyCard)
           .map((p) => (p.relationId || p.itemId).toString()),
       );
 

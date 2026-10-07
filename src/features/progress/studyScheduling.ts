@@ -17,7 +17,7 @@ export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, n
     // Completing the extra practice leaves interval, ease and regular due intact.
     return { ...progress, temporaryDueDate: undefined, totalReviews: (progress.totalReviews ?? 0) + 1, delaySeconds: Math.max(0, (progress.nextDueDate.getTime() - now.getTime()) / 1000) };
   }
-  if (progress.itemType === 'PHRASE') {
+  if (progress.itemType === 'PHRASE' && progress.scheduler.phase === 'REVIEW') {
     const interval = [7, 30, 180, 365][GRADES.indexOf(grade)];
     const scheduler = { ...progress.scheduler, phase: 'REVIEW' as const, queue: 'DAY' as const, remainingSteps: 0, scheduledSeconds: 0, interval, lapses: (progress.lapses ?? 0) + (grade === 'AGAIN' ? 1 : 0) };
     return { scheduler, interval, ease: progress.ease, repetitions: grade === 'AGAIN' ? 0 : progress.repetitions + 1,

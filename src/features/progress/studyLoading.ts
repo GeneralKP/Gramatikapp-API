@@ -8,6 +8,7 @@ import type { User } from "../auth/auth.types.js";
 import { dailyCounts, type SchedulerProfile } from "./reviews.js";
 import { catalogSummaryCache, type CatalogPart } from "./catalogSummaryCache.js";
 import { studySpanishWords, studySpanishPhrases, studyTextCatalog } from "./studyTextCatalog.js";
+import { STUDY_STATUS_PROJECTION, type StudyStatusSnapshot } from "./studyStatus.js";
 
 // These reads already consume every result; larger batches remove the default
 // 101-document first-batch round trip without imposing a result limit.
@@ -84,7 +85,7 @@ export function studyCountSnapshot(context: object, userId: ObjectId, now: Date,
   return snapshot;
 }
 
-type StudyIdentity = Pick<UserProgress, "itemId" | "relationId" | "itemType" | "repetitions">;
+type StudyIdentity = Pick<UserProgress, "itemId" | "relationId" | "itemType" | "repetitions"> & StudyStatusSnapshot;
 const identities = new WeakMap<object, Map<string, Promise<StudyIdentity[]>>>();
 export function studyIdentities(context: object, userId: ObjectId, phraseRelationIds?: ObjectId[]) {
   let requests = identities.get(context);
@@ -98,7 +99,7 @@ export function studyIdentities(context: object, userId: ObjectId, phraseRelatio
     { relationId: null, itemId: { $in: phraseRelationIds } },
   ] } : {};
   if (!result) requests.set(key, result = getDb().progress.find({ userId, ...scope })
-    .project<StudyIdentity>({ _id: 0, itemId: 1, relationId: 1, itemType: 1, repetitions: 1 })
+    .project<StudyIdentity>({ _id: 0, itemId: 1, relationId: 1, itemType: 1, repetitions: 1, ...STUDY_STATUS_PROJECTION })
     .batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray());
   return result;
 }

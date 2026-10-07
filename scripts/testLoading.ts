@@ -18,6 +18,7 @@ import { scheduleStudyReview } from '../src/features/progress/studyScheduling.js
 import { nativeWordPair } from '../src/features/progress/nativeWordPairs.js';
 import { generateToken } from '../src/features/auth/auth.service.js';
 import { studyTextCatalog } from '../src/features/progress/studyTextCatalog.js';
+import { STUDY_STATUS_PROJECTION } from '../src/features/progress/studyStatus.js';
 
 // This suite never opens a network connection. It runs the real GraphQL schema,
 // queue selection and nested resolvers against deterministic MongoDB responses.
@@ -127,7 +128,7 @@ const query=(name:string)=>queries[name];
 const dashboard='query($userId:ID!){studyQueueCounts(userId:$userId,itemType:"WORD"){new learning review total learned} learningPath(userId:$userId){id name level isUnlocked wordsTotal wordsLearned phrasesTotal phrasesLearned}}';
 try {
  const schema=makeExecutableSchema({typeDefs,resolvers});
- const dictionaryProgressQuery='query($userId:ID!,$relationIds:[ID!]){allProgress(userId:$userId,relationIds:$relationIds){id itemId relationId itemType ease interval repetitions nextDueDate lastReviewed card{prompt answer}}}';
+ const dictionaryProgressQuery='query($userId:ID!,$relationIds:[ID!]){allProgress(userId:$userId,relationIds:$relationIds){id itemId relationId itemType ease interval repetitions nextDueDate lastReviewed schedulerPhase card{prompt answer}}}';
  const dictionaryOriginalProgress=fixture.userprogresses;
  fixture.userprogresses=[...dictionaryOriginalProgress.map((row:any,index:number)=>index===0?{...row,temporaryDueDate:new Date('2026-10-10T10:00:00Z')}:row),progress(8,'WORD',20,{relationId:undefined,itemId:id(20)})];
  const allDictionaryProgress=await graphql({schema,source:dictionaryProgressQuery,variableValues:{userId:String(owner)},contextValue:{user}});
@@ -137,14 +138,14 @@ try {
  const allRows=JSON.parse(JSON.stringify(allDictionaryProgress.data)).allProgress;
  assert.deepEqual(JSON.parse(JSON.stringify(scopedDictionaryProgress.data)).allProgress,allRows.filter((row:any)=>row.relationId===String(id(20)) || row.itemId===String(id(20))),'scope retains both directions, legacy relation IDs and full requested fields');
  assert.equal(JSON.parse(JSON.stringify(scopedDictionaryProgress.data)).allProgress.length,4,'scope excludes other relations and owners');
- const summaryQuery='query($userId:ID!,$relationIds:[ID!],$details:Boolean!){allProgress(userId:$userId,relationIds:$relationIds){...DictionarySummary card @include(if:$details){prompt answer}}} fragment DictionarySummary on UserProgress{id itemId relationId itemType ease interval repetitions due:nextDueDate lastReviewed}';
+ const summaryQuery='query($userId:ID!,$relationIds:[ID!],$details:Boolean!){allProgress(userId:$userId,relationIds:$relationIds){...DictionarySummary card @include(if:$details){prompt answer}}} fragment DictionarySummary on UserProgress{id itemId relationId itemType ease interval repetitions due:nextDueDate lastReviewed schedulerPhase}';
  progressQueries=[];
  const dictionarySummaryResult=await graphql({schema,source:summaryQuery,variableValues:{userId:String(owner),relationIds:[String(id(20))],details:false},contextValue:{user}});
  assert.equal(dictionarySummaryResult.errors,undefined);
  assert.deepEqual(JSON.parse(JSON.stringify(dictionarySummaryResult.data)).allProgress,JSON.parse(JSON.stringify(scopedDictionaryProgress.data)).allProgress.map(({card,nextDueDate,...row}:any)=>({...row,due:nextDueDate})),'summary projection matches full response with fragments, aliases, directives and temporary due dates');
  assert.equal(JSON.parse(JSON.stringify(dictionarySummaryResult.data)).allProgress[0].due,'2026-10-10T10:00:00.000Z');
  assert.equal(progressQueries.length,1);
- assert.deepEqual(progressQueries[0].projection,{_id:1,userId:1,itemId:1,relationId:1,itemType:1,ease:1,interval:1,repetitions:1,nextDueDate:1,temporaryDueDate:1,lastReviewed:1},'dictionary summary never transfers cards or scheduler/provider content');
+ assert.deepEqual(progressQueries[0].projection,{_id:1,userId:1,itemId:1,relationId:1,itemType:1,ease:1,interval:1,repetitions:1,nextDueDate:1,temporaryDueDate:1,lastReviewed:1,...STUDY_STATUS_PROJECTION},'dictionary summary transfers normalized phase inputs without cards, options or provider content');
  assert.equal(progressQueries[0].batchSize,STUDY_SUMMARY_BATCH_SIZE);
  for(const relationIds of [[],['invalid'],Array(501).fill(String(id(20)))]){
   reads={};const result=await graphql({schema,source:dictionaryProgressQuery,variableValues:{userId:String(owner),relationIds},contextValue:{user}});
@@ -155,6 +156,16 @@ try {
  reads={};const rejectedDictionaryProgress=await graphql({schema,source:dictionaryProgressQuery,variableValues:{userId:String(otherOwner),relationIds:['invalid']},contextValue:{user}});
  assert.equal(rejectedDictionaryProgress.errors?.[0].message,'Unauthorized','ownership is checked before scope parsing');
  assert.equal(reads['userprogresses.find']??0,0);
+ fixture.userprogresses=dictionaryOriginalProgress;
+ const legacyLearning=progress(80,'WORD',20,{repetitions:9,totalReviews:9,interval:0,lastReviewed:null,createdAt:now,anki:{type:1,queue:1,left:1,reps:9,did:1,due:0}});delete legacyLearning.scheduler;
+ const legacyReview=progress(81,'WORD',21,{repetitions:0,interval:1});delete legacyReview.scheduler;
+ fixture.userprogresses=[legacyLearning,legacyReview];
+ const legacySummary=await graphql({schema,source:summaryQuery,variableValues:{userId:String(owner),details:false},contextValue:{user}});
+ assert.equal(legacySummary.errors,undefined);
+ assert.deepEqual((legacySummary.data?.allProgress as any[]).map(row=>row.schedulerPhase),['LEARNING','REVIEW'],'slim dictionary phase uses authoritative legacy Anki normalization');
+ const legacyDashboard=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
+ assert.equal(legacyDashboard.errors,undefined);
+ assert.equal((legacyDashboard.data?.studyQueueCounts as any).learned,1,'legacy learning repetitions do not graduate while normalized day review does');
  fixture.userprogresses=dictionaryOriginalProgress;
  console.log('PASS scoped dictionary progress full-content parity, directional/legacy relations, empty scope, validation bounds and ownership');
  const responses:any={};
@@ -192,7 +203,12 @@ try {
  assert.equal(reads['userprogresses.find'],2,'progress is fresh on every dashboard request');
  assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['reviewevents.aggregate'],1);
  const savedProgress=fixture.userprogresses;
- fixture.userprogresses=savedProgress.map((p:any)=>({...p,repetitions:0}));
+ fixture.userprogresses=savedProgress.map((p:any)=>({...p,scheduler:{...p.scheduler,phase:p.itemType==='WORD'?'LEARNING':'RELEARNING'}}));
+ const learningDashboard=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
+ assert.equal(learningDashboard.errors,undefined);
+ assert.equal((learningDashboard.data?.studyQueueCounts as any).learned,0,'positive repetitions and retained review intervals never graduate learning/relearning cards');
+ for(const node of learningDashboard.data?.learningPath as any[]){assert.equal(node.wordsLearned,0);assert.equal(node.phrasesLearned,0);}
+ fixture.userprogresses=savedProgress.map((p:any)=>({...p,repetitions:0,interval:0}));
  const freshDashboard=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(freshDashboard.errors,undefined);
  const expectedFresh=JSON.parse(JSON.stringify(responses.dashboard.data));

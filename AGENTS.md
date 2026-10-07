@@ -2,6 +2,10 @@
 
 Be pragmatic and straightforward.
 
+## Client parity and deployment
+
+Changes to study/API behavior must preserve and verify equivalent web and native client behavior in the same task. An explicit verbal/chat instruction from the owner is required for each production deployment or mobile GitHub release; prior standing automatic-release permission is revoked. Local implementation and verification are authorized. Do not push to a deployment-triggering branch or publish a deployment artifact without that instruction.
+
 ## Required database documentation
 
 `docs/database-model/index.html` is the canonical saved database and data-flow diagram. It must stay independent of the app.

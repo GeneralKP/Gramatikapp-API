@@ -7,7 +7,7 @@ import { graphql } from 'graphql';
 import { connectDatabase, closeDatabase } from '../src/lib/database.js';
 import { typeDefs, resolvers } from '../src/graphql/schema.js';
 import { defaultUserSettings } from '../src/features/auth/auth.types.js';
-import { initialScheduler, DEFAULT_OPTIONS, studyDay, schedulerSeed } from '../src/features/progress/scheduler.js';
+import { initialScheduler, DEFAULT_OPTIONS, studyDay, dateForStudyDay, schedulerSeed } from '../src/features/progress/scheduler.js';
 import { syncStudy, validateStudyOperations, type StudyOperation } from '../src/features/progress/studySync.js';
 import { dailyCounts } from '../src/features/progress/reviews.js';
 import { introducedToday } from '../src/features/progress/dailyLimit.js';
@@ -18,7 +18,7 @@ if (!process.env.MONGODB_URI?.startsWith('mongodb://127.0.0.1:27019/')) throw ne
 const db = await connectDatabase(), userId = new ObjectId(), otherId = new ObjectId(), now = new Date(), sessionId = randomUUID();
 const schema = makeExecutableSchema({typeDefs,resolvers});
 const options = {...DEFAULT_OPTIONS,reviewsPerDay:5000,newPerDay:1000};
-const call = async (source: string, vars: any = {}) => graphql({schema,source,variableValues:{userId:String(userId),...vars},contextValue:{user:{_id:userId}}});
+const call = async (source: string, vars: any = {}) => graphql({schema,source,variableValues:{userId:String(userId),...vars},contextValue:{user:await db.users.findOne({_id:userId})}});
 const created: ObjectId[] = [];
 const make = async (extra: any = {}) => {
   const p: any = {_id:new ObjectId(),userId,itemId:new ObjectId(),itemType:'WORD',isNew:true,failureIndex:0,ease:2.5,interval:0,repetitions:0,totalReviews:0,lapses:0,nextDueDate:now,lastReviewed:null,createdAt:now,...extra};
@@ -51,7 +51,7 @@ try {
   const nextPlace=await call('query($userId:ID!){dueItems(userId:$userId,itemType:"WORD",dueLimit:0,newLimit:1000){card{direction}}}');assert.equal((nextPlace.data as any).dueItems.length,1);
   await db.users.updateOne({_id:otherId},{$set:{'settings.dailyNewCards':1}});
   const onePair=cards.slice(0,2).map(card=>({...card,_id:new ObjectId(),itemId:new ObjectId(),userId:otherId,card:{...card.card,sourceNoteGuid:'one-per-day'}}));await db.progress.insertMany(onePair);
-  const otherQueue=()=>graphql({schema,source:'query($userId:ID!){dueItems(userId:$userId,itemType:"WORD",dueLimit:0,newLimit:1000){itemId card{direction}}studyQueueCounts(userId:$userId,itemType:"WORD"){new}}',variableValues:{userId:String(otherId)},contextValue:{user:{_id:otherId}}});
+  const otherQueue=async()=>graphql({schema,source:'query($userId:ID!){dueItems(userId:$userId,itemType:"WORD",dueLimit:0,newLimit:1000){itemId card{direction}}studyQueueCounts(userId:$userId,itemType:"WORD"){new}}',variableValues:{userId:String(otherId)},contextValue:{user:await db.users.findOne({_id:otherId})}});
   const one=await otherQueue();assert.deepEqual((one.data as any).dueItems.map((p:any)=>p.card.direction),['DE_ES']);assert.equal((one.data as any).studyQueueCounts.new,1);
   const yesterday=new Date(now.getTime()-86400000);assert.equal((await syncStudy(otherId,[op(onePair[0],{occurredAt:yesterday.toISOString()})])).results[0].success,true);
   const tomorrow=await otherQueue();assert.deepEqual((tomorrow.data as any).dueItems.map((p:any)=>p.card.direction),['ES_DE'],'a one-card daily allowance unlocks typing after the earlier-day introduction');
@@ -70,6 +70,42 @@ try {
   const many=[];for(let i=0;i<100;i++) many.push(op(await make({itemType:'PHRASE',isNew:false,interval:30,repetitions:1,lastReviewed:earlier}),{grade:'EASY'}));
   assert.ok((await syncStudy(userId,many)).results.every(x=>x.success));assert.ok((await syncStudy(userId,many)).results.every(x=>x.success));assert.equal(await db.reviewEvents.countDocuments({userId,reviewId:{$in:many.map(x=>x.id)}}),100);
   assert.throws(()=>validateStudyOperations([...many,many[0]]));assert.throws(()=>validateStudyOperations([{...many[0],occurredAt:'invalid'}]));
+  await db.users.updateOne({_id:userId},{$set:{'settings.dailyNewCards':1000}});
+  const mixedCards=[await make(),await make(),await make({itemType:'PHRASE'}),await make({itemType:'PHRASE'})];
+  const mixed:StudyOperation[]=[];
+  for(let index=0;index<mixedCards.length;index++){
+    const card=mixedCards[index];
+    mixed.push(op(card,{kind:'FAILURE'}),op(card,{grade:index%2?'AGAIN':'HARD'}));
+    mixed.push(op(card,{grade:'GOOD',expectedVersion:1}),op(card,{grade:'GOOD',expectedVersion:2}));
+  }
+  assert.ok((await syncStudy(userId,mixed)).results.every(result=>result.success));
+  const mixedFirst=await db.progress.find({_id:{$in:mixedCards.map(card=>card._id)}}).toArray();
+  assert.ok((await syncStudy(userId,mixed)).results.every(result=>result.success));
+  const mixedRetry=await db.progress.find({_id:{$in:mixedCards.map(card=>card._id)}}).toArray();
+  assert.deepEqual(mixedRetry,mixedFirst,'mixed exact retry neither regrades cards nor duplicates independent mistakes');
+  assert.ok(mixedRetry.every(card=>card.failureIndex===1 && card.scheduler.phase==='REVIEW' && card.interval>=1));
+  assert.deepEqual(mixedRetry.map(card=>card.scheduleVersion),[3,3,3,3]);
+  assert.equal(await db.reviewEvents.countDocuments({userId,reviewId:{$in:mixed.filter(job=>job.kind==='REVIEW').map(job=>job.id)}}),12);
+  console.log('PASS two-word/two-phrase mixed batch, short-step review chain, per-card versions and exact idempotent mistake/review retry');
+  const phraseLearning=await make({itemType:'PHRASE'});
+  const phraseHard=op(phraseLearning,{grade:'HARD'});
+  assert.equal((await syncStudy(userId,[phraseHard])).results[0].success,true);
+  const phraseFirst=await db.progress.findOne({_id:phraseLearning._id});
+  assert.equal(phraseFirst.scheduler.phase,'LEARNING');assert.equal(phraseFirst.scheduler.queue,'MINUTE');assert.equal(phraseFirst.interval,0);
+  const phraseGood=op(phraseLearning,{grade:'GOOD',expectedVersion:1});
+  assert.equal((await syncStudy(userId,[phraseGood])).results[0].success,true);
+  assert.equal((await db.progress.findOne({_id:phraseLearning._id})).scheduler.phase,'LEARNING');
+  const phraseFinal=op(phraseLearning,{grade:'GOOD',expectedVersion:2});
+  assert.equal((await syncStudy(userId,[phraseFinal])).results[0].success,true);
+  assert.equal((await db.progress.findOne({_id:phraseLearning._id})).scheduler.phase,'REVIEW');
+  const crossingPhrase=await make({itemType:'PHRASE'});
+  const beforeRollover=new Date(dateForStudyDay(studyDay(now,'Europe/Berlin',4),'Europe/Berlin',4).getTime()-120000);
+  assert.equal((await syncStudy(userId,[op(crossingPhrase,{grade:'HARD',occurredAt:beforeRollover.toISOString()})])).results[0].success,true);
+  const nextDayPhrase=await db.progress.findOne({_id:crossingPhrase._id});
+  assert.equal(nextDayPhrase.scheduler.phase,'LEARNING');assert.equal(nextDayPhrase.scheduler.queue,'DAY');
+  assert.equal((await syncStudy(userId,[op(crossingPhrase,{grade:'HARD',expectedVersion:1,occurredAt:nextDayPhrase.nextDueDate.toISOString()})])).results[0].success,true);
+  assert.equal((await db.progress.findOne({_id:crossingPhrase._id})).scheduler.phase,'LEARNING');
+  console.log('PASS stored NEW phrase Hard/Good/Good learning chain and rollover DAY learning recurrence');
   for(const phase of ['NEW','LEARNING','REVIEW','RELEARNING']) for(const kind of ['WORD','PHRASE']) for(const stamp of ['2026-03-28T20:10:00Z','2026-10-24T23:50:00Z','2026-10-06T12:00:00Z']) {
     const p:any={...mature,itemType:kind,scheduler:{...mature.scheduler,phase,queue:phase==='NEW'?'NEW':'DAY',remainingSteps:2,interval:100},nextDueDate:new Date(stamp),temporaryDueDate:undefined};
     const browser:any={...p,itemId:String(p.itemId),fuzzSeed:schedulerSeed(p).toString()};
