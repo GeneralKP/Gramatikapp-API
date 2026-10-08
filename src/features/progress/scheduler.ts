@@ -164,7 +164,21 @@ export function initialScheduler(progress: UserProgress, options = DEFAULT_OPTIO
 export function schedulerSeed(progress: UserProgress): bigint {
   return progress.card?.sourceCardId ? BigInt(progress.card.sourceCardId) : BigInt("0x" + createHash("sha256").update(progress.itemId.toString()).digest("hex").slice(0, 15));
 }
+/** Older manual date edits could turn an untouched card into REVIEW without a review. */
+export function normalizeUnstudiedProgress(progress: UserProgress, now = new Date()): UserProgress {
+  const current = progress.scheduler;
+  if (current?.phase !== 'REVIEW' || progress.lastReviewed !== null || (progress.totalReviews ?? 0) !== 0
+    || progress.interval !== 0 || current.interval !== 0 || progress.repetitions !== 0 || (progress.lapses ?? 0) !== 0
+    || current.lapses !== 0 || (progress.anki?.reps ?? 0) !== 0) return progress;
+  const steps = current.options.learningSteps;
+  const deferred = progress.nextDueDate > now ? progress.nextDueDate : undefined;
+  return { ...progress, isNew: true,
+    scheduler: { ...current, phase: 'NEW', queue: 'NEW', remainingSteps: steps.length, scheduledSeconds: Math.trunc((steps[0] ?? 0) * 60) },
+    ...(deferred && (!progress.buriedUntil || progress.buriedUntil < deferred) ? { buriedUntil: deferred } : {}),
+  };
+}
 export function scheduleReview(progress: UserProgress, grade: Grade, now: Date, earlyReview = false) {
+  progress = normalizeUnstudiedProgress(progress, now);
   const current = progress.scheduler ?? initialScheduler(progress);
   const today = studyDay(now, current.timeZone, current.rollover);
   // Normal Anki review treats a future review as due today. Filtered/custom

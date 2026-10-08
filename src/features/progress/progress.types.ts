@@ -8,6 +8,8 @@ export interface UserProgress {
   itemType: "WORD" | "PHRASE";
   relationId?: ObjectId;
   failureIndex?: number;
+  /** Advances only for manual counter adjustments; ordinary failures remain additive. */
+  failureVersion?: number;
   writingReinforcementCredit?: number;
   lastWritingReinforcedAt?: Date;
   failureAttemptIds?: string[];

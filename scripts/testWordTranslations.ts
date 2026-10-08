@@ -54,6 +54,7 @@ try {
   assert.equal((await service.lookup({ word: "aprender", sourceLanguage: "es", targetLanguage: "de" })).translation, "lernen");
   const learned = await db.wordsDE.findOne({ word: "lernen" });
   assert.equal(learned?.forms?.perfect, "gelernt"); assert.equal(learned?.cefrLevel, "A1.1");
+  assert.equal(learned?.notes, "", "seeding a dictionary record without notes does not add provenance boilerplate");
   assert.deepEqual(learned?.relatedWords?.homophones, [], "reused legacy words receive absent metadata containers without invented relations");
   await saveReviewedEntry(db, client, lexeme as any, "de", { origin: "MANUAL", examples: ["Ich möchte Deutsch lernen."], contexts: ["university"], phraseRefs: [] });
   assert.equal(await db.wordsDE.countDocuments({ word: "lernen" }), 1);

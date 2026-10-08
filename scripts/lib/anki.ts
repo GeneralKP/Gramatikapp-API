@@ -93,7 +93,9 @@ export function noteContent(note: any, tables: any) {
   }
   // Correct this mixed Spanish/German source typo in learning content. The
   // original note fields remain untouched in ANKI_NOTES and the export.
-  const examples = fields[3].split("\n").filter(Boolean).map(example => example.replace(/\bkann sie den Lärm nicht ignorar\b/g, "kann sie den Lärm nicht ignorieren"));
+  // Both clients number array entries. Anki's exported list markers are not
+  // part of the sentence; archived fields remain untouched.
+  const examples = fields[3].split("\n").filter(Boolean).map(example => example.replace(/^\d+[.)]\s*/, "").replace(/\bkann sie den Lärm nicht ignorar\b/g, "kann sie den Lärm nicht ignorieren"));
   const deExamples: string[] = [], esExamples: string[] = [];
   for (const example of examples) {
     const pair = example.replace(/^\d+[.)]\s*/, "").match(/^([\s\S]+?)\s*\(([^()]*)\)\s*$/);

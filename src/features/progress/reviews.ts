@@ -1,7 +1,7 @@
 import { ObjectId, type ClientSession } from "mongodb";
 import { getDb, getDatabaseClient } from "../../lib/database.js";
 import type { UserProgress } from "./progress.types.js";
-import { DEFAULT_OPTIONS, DeckOptions, Grade, GRADES, initialScheduler, scheduleReview, studyDay, dateForStudyDay } from "./scheduler.js";
+import { DEFAULT_OPTIONS, DeckOptions, Grade, GRADES, initialScheduler, normalizeUnstudiedProgress, scheduleReview, studyDay, dateForStudyDay } from "./scheduler.js";
 import { scheduleStudyReview, type StudyGrade } from "./studyScheduling.js";
 import { isIntroductionFollowup, isNewCard } from "./newWordOrder.js";
 import { introducedToday } from "./dailyLimit.js";
@@ -27,7 +27,7 @@ export class ReviewConflict extends Error {
   constructor(message: string, public progress: UserProgress, public code: string) { super(message); }
 }
 export async function withScheduler(progress: UserProgress, profile?: SchedulerProfile | null): Promise<UserProgress> {
-  if (progress.scheduler) return progress;
+  if (progress.scheduler) return normalizeUnstudiedProgress(progress);
   if (profile === undefined) profile = await getDb().schedulerProfiles.findOne({ _id: progress.userId });
   return { ...progress, scheduler: initialScheduler(progress, profile?.defaultOptions ?? DEFAULT_OPTIONS, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4) };
 }

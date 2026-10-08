@@ -13,13 +13,18 @@ const client = await new MongoClient(uri, { serverSelectionTimeoutMS: 5000 }).co
 const db = client.db(`dictionary_contract_tests_${process.pid}`);
 const id = (n: number) => new ObjectId(n.toString(16).padStart(24, '0'));
 const baseline = (args: { limit?: number; offset?: number; search?: string; cefrLevel?: string }, field: 'word' | 'phrase') => {
-  const pipeline = catalogPipeline(args, 'es', 'de', field);
   // Existing contract: full documents joined before selection and pagination.
-  const selector = pipeline.filter(stage => '$match' in stage || '$sort' in stage || '$skip' in stage || '$limit' in stage);
+  const match: Record<string, unknown> = {};
+  if (args.search) {
+    const regex = args.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    match.$or = ['mainDocs', 'translatedDocs'].map(side => ({[`${side}.${field}`]: {$regex: regex, $options: 'i'}}));
+  }
+  if (args.cefrLevel) match['translatedDocs.cefrLevel'] = args.cefrLevel;
   return [
     { $lookup: { from: 'es', localField: 'main', foreignField: '_id', as: 'mainDocs' } },
     { $lookup: { from: 'de', localField: 'translated', foreignField: '_id', as: 'translatedDocs' } },
-    ...selector,
+    {$match: match}, {$sort: {[`translatedDocs.${field}`]: 1, _id: 1}},
+    {$skip: args.offset ?? 0}, {$limit: args.limit ?? 100},
   ];
 };
 try {

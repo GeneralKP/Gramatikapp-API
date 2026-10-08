@@ -16,12 +16,13 @@ assert.equal(activeDifficulty({ failureIndex: 0, writingReinforcementCredit: 1 }
 if (!process.argv.includes("--unit")) {
   const db = await connectDatabase(), userId = new ObjectId(), otherId = new ObjectId(), ids: ObjectId[] = [], words: ObjectId[] = [];
   const schema = makeExecutableSchema({ typeDefs, resolvers });
+  const reviewed = { version: 1 as const, german: "Die kindliche Pietät", spanish: "la piedad filial", notes: "", forms: { gender: "die", plural: "" }, examples: [], auditedAt: new Date() };
   try {
     for (let i = 0; i < 5; i++) {
       const relation = new ObjectId(), de = new ObjectId(), es = new ObjectId(); ids.push(relation); words.push(de, es);
       const data = { gramaticalCategories: [], examples: [], contexts: [], cefrLevel: i === 4 ? "C2.1" as const : "A1.1" as const, createdAt: new Date() };
       await db.wordsDE.insertOne({ ...data, _id: de, word: `Testwort${i}` }); await db.wordsES.insertOne({ ...data, _id: es, word: `palabra${i}` });
-      await db.relationsWordsEsDe.insertOne({ _id: relation, main: es, translated: de, createdAt: new Date() });
+      await db.relationsWordsEsDe.insertOne({ _id: relation, main: es, translated: de, ...(i === 0 ? { study: reviewed } : {}), createdAt: new Date() });
       const base = { userId, relationId: relation, itemType: "WORD" as const, ease: 2.5, interval: 12, repetitions: 6, nextDueDate: new Date(), lastReviewed: new Date(i ? Date.now() : 0), createdAt: new Date() };
       const id = new ObjectId();
       await db.progress.insertOne({ ...base, _id: id, itemId: id, failureIndex: i === 0 ? 9 : i + 1, writingReinforcementCredit: i === 0 ? .25 : 0 });
@@ -32,9 +33,14 @@ if (!process.argv.includes("--unit")) {
     const top = await difficultWritingWords(userId, "B2");
     assert.equal(top[0].id, ids[0].toString()); assert.equal(top[0].failureIndex, 13); assert.equal(top[0].difficultyScore, 12.75);
     assert.equal(top.length, 4, "higher-level words do not appear in a beginner/intermediate list");
+    assert.equal(top[0].german, reviewed.german); assert.equal(top[0].spanish, reviewed.spanish);
+    assert.equal(top[0].notes, ""); assert.deepEqual(top[0].forms, reviewed.forms);
+    assert.equal("study" in top[0], false, "internal pair content is removed from public vocabulary snapshots");
     const picked = await chooseWritingWords(userId, new ObjectId(), "B2", "DIFFICULT");
     assert.equal(picked[0].id, ids[0].toString(), "old high-failure words outrank recent easy words");
     assert.equal((await chooseWritingWords(userId, new ObjectId(), "A1", "DIFFICULT")).length, 2);
+    const fallback = await chooseWritingWords(new ObjectId(), new ObjectId(), "B2", "RECENT");
+    assert.equal(fallback.find(word => word.id === ids[0].toString())?.german, reviewed.german, "unpracticed fallback vocabulary also uses reviewed pair labels");
     const selection = [ids[2].toString(), ids[0].toString()];
     assert.deepEqual((await chooseWritingWords(userId, new ObjectId(), "C2", "DIFFICULT", selection)).map(word => word.id), selection);
     await assert.rejects(() => chooseWritingWords(userId, new ObjectId(), "A1", "DIFFICULT", [ids[4].toString()]), /above the chosen level/);

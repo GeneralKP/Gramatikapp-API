@@ -3,21 +3,29 @@ import { getDb } from "../../lib/database.js";
 import { recordFailure } from "./failures.js";
 import { saveReview, undoReview, ReviewConflict } from "./reviews.js";
 import type { StudyGrade } from "./studyScheduling.js";
+import { CardEditConflict, saveCardEdit } from "./cardEdits.js";
+import { validateCardEdit, type CardEditCommand } from "./cardEdits.types.js";
 
 export interface StudyOperation {
-  id: string; kind: "FAILURE" | "REVIEW" | "UNDO"; itemId: string;
+  id: string; kind: "FAILURE" | "REVIEW" | "UNDO" | "EDIT"; itemId: string;
   occurredAt: string; sessionId: string; itemType?: "WORD" | "PHRASE";
   grade?: StudyGrade; expectedVersion?: number; earlyReview?: boolean; reviewId?: string;
+  edit?: CardEditCommand;
 }
 const validId = (id: unknown) => typeof id === "string" && /^[a-zA-Z0-9_-]{16,100}$/.test(id);
 export function validateStudyOperations(input: unknown): StudyOperation[] {
   if (!Array.isArray(input) || input.length > 100 || !input.length) throw new Error("Send 1–100 study operations per batch.");
   for (const job of input) {
-    if (!job || !validId(job.id) || !validId(job.sessionId) || !ObjectId.isValid(job.itemId) || !["FAILURE", "REVIEW", "UNDO"].includes(job.kind)) throw new Error("Invalid study operation.");
+    if (!job || !validId(job.id) || !validId(job.sessionId) || !ObjectId.isValid(job.itemId) || !["FAILURE", "REVIEW", "UNDO", "EDIT"].includes(job.kind)) throw new Error("Invalid study operation.");
     const time = Date.parse(job.occurredAt);
     if (!Number.isFinite(time) || time < Date.UTC(2000, 0, 1) || time > Date.now() + 300000) throw new Error("Invalid study time. Check your device clock.");
     if (job.kind === "REVIEW" && (!["WORD", "PHRASE"].includes(job.itemType) || !["AGAIN", "HARD", "GOOD", "EASY", "REVISIT"].includes(job.grade) || !Number.isInteger(job.expectedVersion) || job.expectedVersion < 0 || (job.earlyReview !== undefined && typeof job.earlyReview !== "boolean"))) throw new Error("Invalid review operation.");
     if (job.kind === "UNDO" && !validId(job.reviewId)) throw new Error("Invalid undo operation.");
+    if (job.kind === "EDIT") {
+      if (!["WORD", "PHRASE"].includes(job.itemType)) throw new Error("Invalid edited card type.");
+      validateCardEdit(job.edit);
+      if (job.edit.nextDueDate !== undefined && (!Number.isSafeInteger(job.expectedVersion) || job.expectedVersion < 0)) throw new Error("A due-date edit requires its saved schedule version.");
+    } else if (job.edit !== undefined) throw new Error("Unexpected edit data.");
   }
   return input;
 }
@@ -25,9 +33,9 @@ export function validateStudyOperations(input: unknown): StudyOperation[] {
 // device outbox; a lost/partial response can replay the exact same batch safely.
 export async function syncStudy(userId: ObjectId, input: unknown) {
   const operations = validateStudyOperations(input), results: { id: string; success: boolean; error?: string; code?: string }[] = [];
-  const blocked = new Set<string>();
+  const blocked = new Set<string>(), blockedRelations = new Set<string>();
   for (const job of operations) {
-    if (blocked.has(job.itemId) && job.kind !== "FAILURE") { results.push({ id: job.id, success: false, code: "DEPENDENCY_CONFLICT", error: "Resolve the earlier conflicting card before this operation." }); continue; }
+    if ((blocked.has(job.itemId) && job.kind !== "FAILURE") || (job.kind === 'EDIT' && blockedRelations.has(`${job.itemType}:${job.edit?.relationId}`))) { results.push({ id: job.id, success: false, code: "DEPENDENCY_CONFLICT", error: "Resolve the earlier conflicting card before this operation." }); continue; }
     try {
       const itemId = new ObjectId(job.itemId);
       if (job.kind === "FAILURE") await recordFailure(getDb().progress, userId, itemId, job.id, new Date(job.occurredAt));
@@ -37,6 +45,7 @@ export async function syncStudy(userId: ObjectId, input: unknown) {
         if (job.grade === "REVISIT") await recordFailure(getDb().progress, userId, itemId, `revisit_${job.id}`, new Date(job.occurredAt));
         await saveReview(userId, itemId, job.itemType, job.grade, job.id, job.expectedVersion, job.earlyReview ?? false, undefined, { reviewedAt: new Date(job.occurredAt), studySessionId: job.sessionId });
       }
+      else if (job.kind === "EDIT") await saveCardEdit(userId, job);
       else {
         const event = await getDb().reviewEvents.findOne({ userId, reviewId: job.reviewId });
         if (!event || !event.itemId.equals(itemId)) throw new Error("Review not found.");
@@ -51,9 +60,10 @@ export async function syncStudy(userId: ObjectId, input: unknown) {
         // saveReview checked that this ID still represents the exact same review.
         results.push({id:job.id,success:true});continue;
       }
-      const conflict = error instanceof ReviewConflict;
+      const conflict = error instanceof ReviewConflict || error instanceof CardEditConflict;
       const code = conflict ? error.code : "STUDY_SYNC_FAILED";
       if (job.kind !== "FAILURE") blocked.add(job.itemId);
+      if (job.kind === "EDIT") blockedRelations.add(`${job.itemType}:${job.edit?.relationId}`);
       results.push({ id: job.id, success: false, code, error: conflict ? error.message : "This operation could not be synchronized. Your device copy has been retained." });
     }
   }

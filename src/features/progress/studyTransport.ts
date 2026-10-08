@@ -11,12 +11,14 @@ import type { SchedulerProfile } from "./reviews.js";
 import type { Word } from "../words/words.types.js";
 import type { Phrase } from "../phrases/phrases.types.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
+import { readCardEdits } from "./cardEdits.js";
+import type { CardEdit, CardFlag } from "./cardEdits.types.js";
 
 // Selection/state inputs only. Rich prompts, notes/examples and append-only
 // failure/import history are fetched only for playable cards after selection.
 export const COMPACT_STUDY_SELECTION = {
   _id: 1, userId: 1, itemId: 1, itemType: 1, relationId: 1,
-  failureIndex: 1, isNew: 1, suspended: 1, supersededByAnki: 1, buriedUntil: 1,
+  failureIndex: 1, failureVersion: 1, isNew: 1, suspended: 1, supersededByAnki: 1, buriedUntil: 1,
   scheduler: 1, scheduleVersion: 1,
   "anki.type": 1, "anki.queue": 1, "anki.left": 1, "anki.reps": 1,
   "anki.did": 1, "anki.odid": 1, "anki.due": 1,
@@ -47,6 +49,8 @@ export interface CompactStudyShell {
   spanish: string;
   contexts: string[];
   failureIndex: number;
+  failureVersion: number;
+  edit: { relationId: string; version: number; flag: CardFlag };
   card: Pick<StudyCard, "sourceNoteGuid" | "direction"> | null;
   schedule: { version: number; profile: number; state: Partial<State> };
   extraPractice?: boolean;
@@ -133,7 +137,8 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
     if (previous.scheduler.phase === "NEW" && following.scheduler.phase === "NEW" && previous.card?.direction === "DE_ES" && following.card?.direction === "ES_DE" && previous.card.sourceNoteGuid === following.card.sourceNoteGuid) cardLimit++;
   }
   const selected = progress.slice(0, cardLimit);
-  const pairs = await languagePairs(progress, db);
+  const [pairs, edits] = await Promise.all([languagePairs(progress, db), readCardEdits(progress[0]?.userId, undefined, progress.map(p => p.relationId ?? p.itemId), db)]);
+  const editMap = new Map(edits.map(edit => [`${edit.itemType}:${edit.relationId}`, edit]));
   const playable = await playableItems(selected, pairs, db, capturedContent);
   const manifest: CompactStudyShell[] = progress.map(p => {
     const { options, ...scheduler } = p.scheduler;
@@ -144,6 +149,7 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
     return {
       id: String(p.itemId), type: p.itemType, german: pair ? (p.itemType === "WORD" ? (pair.translated as Word).word : (pair.translated as Phrase).phrase) : "",
       spanish: pair ? (p.itemType === "WORD" ? (pair.main as Word).word : (pair.main as Phrase).phrase) : "", contexts: pair?.main.contexts ?? [], failureIndex: p.failureIndex ?? 0,
+      failureVersion: p.failureVersion ?? 0, edit: { relationId: String(p.relationId ?? p.itemId), version: editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`)?.version ?? 0, flag: editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`)?.flag ?? null },
       card: p.card ? { sourceNoteGuid: p.card.sourceNoteGuid, direction: p.card.direction } : null,
       schedule: { version: p.scheduleVersion ?? 0, profile, state: {
         ease: p.ease, interval: p.interval, repetitions: p.repetitions,
@@ -157,16 +163,37 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
   const items: CompactStudyItem[] = manifest.slice(0, selected.length).map((shell, index) => {
     const p = selected[index], card = capturedContent ? capturedCard(p.card) : playable.cards.get(shell.id), pair = pairs.get(`${p.itemType}:${p.relationId || p.itemId}`);
     const grammar = pair && playable.grammar.get(String(pair.translated._id));
-    return { ...shell, card: card ? { sourceNoteGuid: card.sourceNoteGuid, direction: card.direction, prompt: card.prompt, answer: card.answer, acceptedAnswers: card.acceptedAnswers, notes: card.notes, examples: card.examples } : null,
+    const item: CompactStudyItem = { ...shell, card: card ? { sourceNoteGuid: card.sourceNoteGuid, direction: card.direction, prompt: card.prompt, answer: card.answer, acceptedAnswers: card.acceptedAnswers, notes: card.notes, examples: card.examples } : null,
       ...(grammar ? { gramaticalCategories: grammar.gramaticalCategories ?? [], forms: grammar.forms ? { article: grammar.forms.gender, past: grammar.forms.past, perfect: grammar.forms.perfect, imperativ: grammar.forms.imperativ } : undefined } : {}),
       ...(pair && p.itemType === "PHRASE" ? { synonyms: playable.phraseMeta.get(String(pair.translated._id))?.synonyms ?? [] } : {}),
       ...(pair && p.itemType === "WORD" && !card ? { wordNotes: playable.legacyTranslated.get(String(pair.translated._id))?.notes,
         examples: playable.legacyTranslated.get(String(pair.translated._id))?.examples ?? [], spanishExamples: playable.legacyMain.get(String(pair.main._id))?.examples ?? [] } : {}),
     };
+    return applyPersonalContent(item, editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`));
   });
   // Complete queues already carry every shell field in items. Only a partial
   // starter needs a second manifest for pending content, siblings and ordering.
   return { version: 1, profiles, items, manifest: includeManifest && items.length < manifest.length ? manifest : [], remaining: manifest.length - items.length, complete: manifest.length === items.length };
+}
+
+export function applyPersonalContent(item: CompactStudyItem, edit?: CardEdit): CompactStudyItem {
+  const content = edit?.content;
+  if (!content) return item;
+  const next = { ...item, german: content.german, spanish: content.spanish };
+  if (item.card) {
+    const recognition = item.card.direction === 'DE_ES';
+    const answer = recognition ? content.spanish : content.german;
+    next.card = { ...item.card, notes: content.notes, examples: content.examples,
+      ...(item.card.direction === 'CLOZE' ? {} : { prompt: recognition ? content.german : content.spanish, answer,
+        acceptedAnswers: answer === item.card.answer ? item.card.acceptedAnswers : [answer] }) };
+  } else {
+    next.wordNotes = content.notes;
+    // The user's Notes replace generated verb notes; retain the noun article.
+    next.forms = item.forms ? { article: item.forms.article } : undefined;
+    next.examples = content.examples;
+    next.spanishExamples = [];
+  }
+  return next;
 }
 
 export async function loadCompactStudyQueue(user: User, input: any = {}, prepared?: { userId: ObjectId; profile: Promise<SchedulerProfile | null> }): Promise<CompactStudyEnvelope> {

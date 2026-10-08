@@ -5,6 +5,7 @@ import type { ReadingLesson, StudySession, SessionVocabulary, TranslationAttempt
 import { CORRECTION_INSTRUCTIONS, FEEDBACK_SCHEMA, GENERATION_INSTRUCTIONS, PAGE_SCHEMA, PROMPT_VERSION, READING_MODEL, WORDS_PER_PAGE, correctionInput, generationInput } from "./prompts.js";
 import { isReadingConfigured, requestStructured } from "./openai.js";
 import { validateFeedback, validatePage } from "./validation.js";
+import { dictionaryWord } from "../words/reviewedWordContent.js";
 
 export const SESSION_BREAK_MS = 30 * 60000;
 const LEASE_MS = 5 * 60000;
@@ -44,7 +45,8 @@ async function sessionWords(userId: ObjectId, session: StudySession): Promise<Se
   const words: SessionVocabulary[] = [];
   for (const relationId of relationIds.reverse()) {
     const relation = relations.find(r => r._id.equals(relationId));
-    const de = german.find(w => w._id.equals(relation?.translated)), es = spanish.find(w => w._id.equals(relation?.main));
+    const de = dictionaryWord(german.find(w => w._id.equals(relation?.translated)), relation?.study, "DE"),
+      es = dictionaryWord(spanish.find(w => w._id.equals(relation?.main)), relation?.study, "ES");
     if (!de?.word || !es?.word) throw new Error("A word from this session is missing its German or Spanish entry. No vocabulary has been omitted; repair the entry and retry.");
     words.push({ id: relationId.toString(), german: de.word, spanish: es.word,
       forms: Object.fromEntries(Object.entries(de.forms ?? {}).filter((entry): entry is [string, string] => typeof entry[1] === "string")),

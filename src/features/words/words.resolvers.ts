@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { Word, WordRelation } from "./words.types.js";
 import { invalidateStudyCatalog } from "../progress/catalogSummaryCache.js";
+import { dictionaryWord } from "./reviewedWordContent.js";
 
 function toGraphQL(doc: any) {
   if (!doc) return null;
@@ -58,7 +59,7 @@ export const wordsResolvers = {
     wordRelations: async (_: unknown, args: CatalogArgs, _context: unknown, info?: GraphQLResolveInfo) => {
       const db = getDb();
       const relations = await db.relationsWordsEsDe
-        .aggregate(catalogPipeline(args, "WORDS_ES", "WORDS_DE", "word", catalogProjection(info)))
+        .aggregate(catalogPipeline(args, "WORDS_ES", "WORDS_DE", "word", catalogProjection(info, true)))
         .toArray();
 
       return relations.map((r) => {
@@ -158,18 +159,18 @@ export const wordsResolvers = {
   },
   WordRelation: {
     main: async (parent: any) => {
-      if ("mainDoc" in parent) return toGraphQL(parent.mainDoc);
+      if ("mainDoc" in parent) return toGraphQL(dictionaryWord(parent.mainDoc, parent.study, "ES"));
       const db = getDb();
       const word = await db.wordsES.findOne({ _id: new ObjectId(parent.main) });
-      return toGraphQL(word);
+      return toGraphQL(dictionaryWord(word, parent.study, "ES"));
     },
     translated: async (parent: any) => {
-      if ("translatedDoc" in parent) return toGraphQL(parent.translatedDoc);
+      if ("translatedDoc" in parent) return toGraphQL(dictionaryWord(parent.translatedDoc, parent.study, "DE"));
       const db = getDb();
       const word = await db.wordsDE.findOne({
         _id: new ObjectId(parent.translated),
       });
-      return toGraphQL(word);
+      return toGraphQL(dictionaryWord(word, parent.study, "DE"));
     },
   },
   Mutation: {

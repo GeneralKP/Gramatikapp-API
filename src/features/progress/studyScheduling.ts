@@ -1,8 +1,20 @@
 import type { UserProgress } from './progress.types.js';
-import { dateForStudyDay, GRADES, scheduleReview, studyDay, type Grade } from './scheduler.js';
+import { dateForStudyDay, GRADES, normalizeUnstudiedProgress, scheduleReview, studyDay, type Grade } from './scheduler.js';
 export type StudyGrade = Grade | 'REVISIT';
 export const effectiveDueDate = (progress: UserProgress) => progress.temporaryDueDate ?? progress.nextDueDate;
+/** Manual date changes preserve phase, interval, repetitions and review history. */
+export function rescheduleStudyCard(progress: UserProgress, due: Date, now = new Date()) {
+  if (!Number.isFinite(+due)) throw new Error('Invalid due date.');
+  return { nextDueDate: due, temporaryDueDate: null, buriedUntil: progress.scheduler.phase === 'NEW' && due > now ? due : null };
+}
+/** An unintroduced production card cannot precede its manually deferred recognition card. */
+export function isRescheduleFollower(progress: UserProgress, sibling: UserProgress): boolean {
+  return progress.itemType === 'WORD' && progress.scheduler.phase === 'NEW' && progress.card?.direction === 'DE_ES'
+    && !!progress.card.sourceNoteGuid && sibling.itemType === 'WORD' && sibling.scheduler.phase === 'NEW'
+    && sibling.card?.direction === 'ES_DE' && sibling.card.sourceNoteGuid === progress.card.sourceNoteGuid;
+}
 export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, now: Date, earlyReview = false) {
+  progress = normalizeUnstudiedProgress(progress, now);
   const temporaryDueDate = new Date(now.getTime() + 86400000);
   if (grade === 'REVISIT') {
     if (progress.itemType !== 'WORD' || progress.scheduler.phase !== 'REVIEW') throw new Error('Revisit is available for established word cards.');
@@ -27,6 +39,7 @@ export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, n
   return { ...scheduleReview(progress, grade, now, earlyReview), temporaryDueDate: undefined };
 }
 export function studyReviewOptions(progress: UserProgress, now = new Date(), earlyReview = false) {
+  progress = normalizeUnstudiedProgress(progress, now);
   const grades: StudyGrade[] = [...GRADES, ...(progress.itemType === 'WORD' && progress.scheduler.phase === 'REVIEW' && (progress.nextDueDate > now ? progress.nextDueDate : scheduleReview(progress, 'GOOD', now, earlyReview).nextDueDate).getTime() > now.getTime() + 86400000 ? ['REVISIT' as const] : [])];
   return grades.map(grade => { const next = scheduleStudyReview(progress, grade, now, earlyReview); return { grade, delaySeconds: next.delaySeconds, nextDueDate: effectiveDueDate({ ...progress, ...next }).toISOString(), phase: next.scheduler.phase }; });
 }

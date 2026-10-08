@@ -10,11 +10,14 @@ import { ReviewEvent, SchedulerProfile } from "../features/progress/reviews.js";
 import type { ReadingLesson, TranslationAttempt } from "../features/reading/reading.types.js";
 import type { WritingAttempt, WritingExercise, WritingHint } from "../features/writing/writing.types.js";
 import type { WordTranslation } from "../features/translations/translations.types.js";
+import type { CardEdit, CardEditEvent } from "../features/progress/cardEdits.types.js";
 
 export interface Database {
   users: Collection<User>;
   progress: Collection<UserProgress>;
   reviewEvents: Collection<ReviewEvent>;
+  cardEdits: Collection<CardEdit>;
+  cardEditEvents: Collection<CardEditEvent>;
   schedulerProfiles: Collection<SchedulerProfile>;
   readingLessons: Collection<ReadingLesson>;
   translationAttempts: Collection<TranslationAttempt>;
@@ -60,6 +63,8 @@ export const connectDatabase = async (): Promise<Database> => {
     users: database.collection<User>("users"),
     progress: database.collection<UserProgress>("userprogresses"),
     reviewEvents: database.collection<ReviewEvent>("reviewevents"),
+    cardEdits: database.collection<CardEdit>("cardedits"),
+    cardEditEvents: database.collection<CardEditEvent>("cardeditevents"),
     schedulerProfiles: database.collection<SchedulerProfile>("schedulerprofiles"),
     readingLessons: database.collection<ReadingLesson>("readinglessons"),
     translationAttempts: database.collection<TranslationAttempt>("translationattempts"),
@@ -95,6 +100,9 @@ export const connectDatabase = async (): Promise<Database> => {
   await db.progress.createIndex({ userId: 1, itemType: 1, failureIndex: -1 });
   await db.progress.createIndex({ userId: 1, relationId: 1 });
   await db.reviewEvents.createIndex({ userId: 1, reviewId: 1 }, { unique: true });
+  await db.cardEdits.createIndex({ userId: 1, itemType: 1, relationId: 1 }, { unique: true });
+  await db.cardEdits.createIndex({ userId: 1, relationId: 1 });
+  await db.cardEditEvents.createIndex({ userId: 1, commandId: 1 }, { unique: true });
   await db.reviewEvents.createIndex({ userId: 1, day: 1, reversedAt: 1, deck: 1 });
   await db.reviewEvents.createIndex({ userId: 1, itemId: 1, reviewedAt: -1 });
   await db.reviewEvents.createIndex({ userId: 1, reviewedAt: -1, _id: -1 });

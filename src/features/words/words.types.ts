@@ -94,9 +94,24 @@ export interface Word {
   updatedAt?: Date;
 }
 
+/** Card wording belongs to a sense-specific pair; dictionary spellings remain searchable. */
+export interface WordStudyContent {
+  version: 1;
+  german: string;
+  spanish: string;
+  notes: string;
+  examples: string[];
+  germanExamples?: string[];
+  spanishExamples?: string[];
+  forms?: WordForms;
+  category?: GrammaticalCategory;
+  auditedAt: Date;
+}
+
 export interface WordRelation {
   _id: ObjectId;
   main: ObjectId; // Ref to WORDS_ES
   translated: ObjectId; // Ref to WORDS_DE
   createdAt: Date;
+  study?: WordStudyContent;
 }

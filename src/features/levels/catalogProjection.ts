@@ -8,7 +8,7 @@ export function selectedFields(info: GraphQLResolveInfo, type = getNamedType(inf
   return collectSubfields(info.schema, info.fragments, info.variableValues, type, nodes);
 }
 
-export function catalogProjection(info?: GraphQLResolveInfo): Record<string, number> | undefined {
+export function catalogProjection(info?: GraphQLResolveInfo, reviewedWords = false): Record<string, number> | undefined {
   if (!info) return undefined;
   const relation = getNamedType(info.returnType);
   if (!isObjectType(relation)) return undefined;
@@ -21,6 +21,12 @@ export function catalogProjection(info?: GraphQLResolveInfo): Record<string, num
     projection[`${path}._id`] = 1;
     for (const nested of selectedFields(info, getNamedType(relation.getFields()[name].type), nodes).values()) {
       const field = nested[0].name.value;
+      if (reviewedWords && (['word', 'examples'].includes(field) || (name === 'translated' && ['notes', 'forms', 'gramaticalCategories'].includes(field)))) {
+        for (const dependency of ['version', 'german', 'spanish', 'notes']) projection[`study.${dependency}`] = 1;
+        if (name === 'translated' && field === 'forms') projection['study.forms'] = 1;
+        if (name === 'translated' && field === 'gramaticalCategories') projection['study.category'] = 1;
+        if (field === 'examples') projection[`study.${name === 'main' ? 'spanish' : 'german'}Examples`] = 1;
+      }
       if (field === 'id' || field === '__typename' || field === 'failureIndex') continue;
       projection[`${path}.${field}`] = 1;
       if (field === 'level') projection[`${path}.cefrLevel`] = 1;

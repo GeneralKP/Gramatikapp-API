@@ -15,6 +15,7 @@ import { translateWritingWord } from "./features/writing/writing.service.js";
 import { syncStudy } from "./features/progress/studySync.js";
 import { wordTranslationRouter } from "./features/translations/translations.http.js";
 import { studyTransportRouter } from "./features/progress/studyTransport.http.js";
+import { cardEditsRouter } from "./features/progress/cardEdits.http.js";
 import { warmStudyCatalog, startStudyCatalogRefresh, stopStudyCatalogRefresh } from "./features/progress/studyLoading.js";
 
 dotenv.config();
@@ -75,6 +76,7 @@ async function startServer() {
   });
   app.use(wordTranslationRouter());
   app.use(studyTransportRouter());
+  app.use(cardEditsRouter());
 
   // Apply GraphQL endpoint
   app.use(

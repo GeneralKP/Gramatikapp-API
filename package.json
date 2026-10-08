@@ -19,9 +19,11 @@
     "seed:phrase-translations": "tsx scripts/seedPhraseTranslations.ts apply",
     "seed": "tsx scripts/seedFromJson.ts",
     "test:anki": "tsx scripts/testAnki.ts",
+    "test:anki-due-sync": "tsx scripts/testAnkiDueSync.ts",
+    "sync:anki-due-dates": "tsx scripts/syncAnkiDueDates.ts",
     "test:failures": "tsx scripts/testFailures.ts",
     "import:anki": "tsx scripts/importAnki.ts",
-    "test:scheduler": "tsx scripts/testScheduler.ts",
+    "test:scheduler": "tsx scripts/testScheduler.ts && tsx scripts/testUnstudiedScheduling.ts && tsx scripts/testLegacyStudyRestart.ts",
     "test:reviews": "tsx scripts/testReviews.ts",
     "test:new-words": "tsx scripts/testNewWords.ts",
     "test:new-words-browser": "tsx scripts/testNewWordsBrowser.ts",
@@ -50,7 +52,8 @@
     "test:loading": "tsx scripts/testLoading.ts",
     "audit:loading": "tsx scripts/auditLoading.ts",
     "test:auth": "tsx scripts/testAuthentication.ts",
-    "test:catalog-cache": "tsx scripts/testCatalogCache.ts"
+    "test:catalog-cache": "tsx scripts/testCatalogCache.ts",
+    "test:card-edits": "tsx scripts/testCardEdits.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",
