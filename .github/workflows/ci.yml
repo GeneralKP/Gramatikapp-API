@@ -25,12 +25,16 @@ jobs:
       - run: npm run build
       - run: npm run test:loading
       - run: npx tsx scripts/testDictionaryCatalog.ts
+      - run: npx tsx scripts/testReviewedDictionaryCatalog.ts
+      - run: npx tsx scripts/testReviewedWordContent.ts
+      - run: npx tsx scripts/testReviewedTranslationText.ts
       - run: npm run test:catalog-cache
       - run: npm run test:auth
       - run: npm run test:anki
       - run: npm run test:scheduler
       - run: npm run test:study-scheduling
       - run: npm run test:study-sync-validation
+      - run: npm run test:card-edits
       - run: npm run test:contexts
       - run: npm run test:reading-validation
       - run: npm run test:writing-validation

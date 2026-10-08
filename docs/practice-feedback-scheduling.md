@@ -1,6 +1,6 @@
 # Practice feedback and schedule audit — 8 October 2026
 
-Client/API source changes are unreleased. The owner separately approved one production data repair for Waggon; no deployment, push or mobile release was performed.
+The owner authorized release of the web, mobile and backend changes on 8 October 2026. This report records the investigation and pre-release verification; the release process verifies the published commits separately. The owner separately approved one production data repair for Waggon. Publishing the source does not run Anki reconciliation or reset other legacy histories.
 
 ## Waggon
 
