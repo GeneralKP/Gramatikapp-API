@@ -169,7 +169,12 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
       ...(pair && p.itemType === "WORD" && !card ? { wordNotes: playable.legacyTranslated.get(String(pair.translated._id))?.notes,
         examples: playable.legacyTranslated.get(String(pair.translated._id))?.examples ?? [], spanishExamples: playable.legacyMain.get(String(pair.main._id))?.examples ?? [] } : {}),
     };
-    return applyPersonalContent(item, editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`));
+    const result = applyPersonalContent(item, editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`));
+    if (result.card ? !result.card.prompt?.trim() || !result.card.answer?.trim()
+      || !Array.isArray(result.card.acceptedAnswers) || !result.card.acceptedAnswers.length
+      || result.card.acceptedAnswers.some(answer => typeof answer !== "string" || !answer.trim())
+      : !result.german?.trim() || !result.spanish?.trim()) throw new Error("Study card content unavailable. Reload the cards.");
+    return result;
   });
   // Complete queues already carry every shell field in items. Only a partial
   // starter needs a second manifest for pending content, siblings and ordering.

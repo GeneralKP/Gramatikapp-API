@@ -3,6 +3,17 @@ import { getDb } from "../../lib/database.js";
 import type { UserProgress } from "./progress.types.js";
 import { STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
 
+/** Rich directional cards are self-contained; legacy cards need their catalog relation. */
+export function studyReferenceIds(catalog: { words: { _id: ObjectId }[]; phrases: { _id: ObjectId }[] }): ReadonlySet<string> {
+  return new Set([
+    ...catalog.words.map(row => `WORD:${row._id}`),
+    ...catalog.phrases.map(row => `PHRASE:${row._id}`),
+  ]);
+}
+export function hasStudyReference(progress: UserProgress, references: ReadonlySet<string>): boolean {
+  return !!progress.card || references.has(`${progress.itemType}:${progress.relationId ?? progress.itemId}`);
+}
+
 const atOrBefore = (value: Date | undefined, cutoff: Date) => value != null && typeof value.getTime === "function" && value.getTime() <= cutoff.getTime();
 
 /** These predicates mirror the existing Mongo views before any scheduling/pairing. */

@@ -63,7 +63,7 @@ function matches(doc:any,query:any):boolean {
   if(condition && typeof condition==='object' && !(condition instanceof ObjectId) && !(condition instanceof RealDate))return Object.entries(condition).every(([op,wanted]:[string,any])=>{
    if(op==='$in')return wanted.some((x:any)=>equal(value,x));
    if(op==='$nin')return !wanted.some((x:any)=>equal(value,x));
-   if(op==='$ne')return !equal(value,wanted);
+   if(op==='$ne')return wanted===null ? value!=null : !equal(value,wanted);
    if(op==='$exists')return (value!==undefined)===wanted;
    if(op==='$lte')return value!=null && value<=wanted;
    if(op==='$gt')return value!=null && value>wanted;
@@ -176,9 +176,9 @@ try {
   if (result.errors) assert.ok(result.errors.every(error=>error.message==='Cannot return null for non-nullable field WordRelation.translated.'),result.errors.map(error=>error.message).join(';'));
   responses[name]=JSON.parse(JSON.stringify({data:result.data,...(result.errors?{errors:result.errors.map(error=>({message:error.message,path:error.path,locations:error.locations}))}:{})}));
   if(name==='due'){
-   assert.equal(reads['WORDS_ES_DE.find'],1,'word relations must be fetched once for the entire queue');
+   assert.equal(reads['WORDS_ES_DE.find'],2,'one cold validity summary plus one bulk content read, never per-card lookups');
    assert.equal(reads['WORDS_ES.find'],1);assert.equal(reads['WORDS_DE.find'],1);
-   assert.equal(reads['PHRASES_ES_DE.find'],1);
+   assert.equal(reads['PHRASES_ES_DE.find'],2);
    assert.equal(reads['WORDS_ES_DE.findOne']??0,0,'no per-card relation lookup');
    assert.equal(reads['WORDS_ES.findOne']??0,0,'no per-card word lookup, including missing endpoints');
   }
@@ -188,7 +188,7 @@ try {
    for(const key of ['WORDS_ES_DE.find','WORDS_ES.find','PHRASES_ES.find'])assert.equal(reads[key]??0,0,'counts load only the selected relations and no unused catalog metadata');
   }
   if(name==='phrases-due'){
-   assert.equal(reads['PHRASES_ES_DE.find'],1);assert.equal(reads['PHRASES_ES.find'],1);assert.equal(reads['PHRASES_DE.find'],1);
+   assert.equal(reads['PHRASES_ES_DE.find'],2);assert.equal(reads['PHRASES_ES.find'],1);assert.equal(reads['PHRASES_DE.find'],1);
    assert.equal(reads['WORDS_ES_DE.find']??0,0);assert.equal(reads['schedulerprofiles.findOne'],1);
   }
  };
@@ -374,14 +374,14 @@ try {
  // Collection-local identifiers can overlap; relation type still controls which
  // GraphQL field is populated, even when both collections use the same ObjectId.
  fixture.userprogresses=[progress(21,'WORD',20),progress(22,'PHRASE',20)];
- fixture.PHRASES_ES_DE.push({_id:id(20),main:id(30),translated:id(31),createdAt:now});
+ fixture.PHRASES_ES_DE.push({_id:id(20),main:id(30),translated:id(31),createdAt:now});invalidateStudyCatalog();
  const collision=await graphql({schema,source:'query($userId:ID!){dueItems(userId:$userId,dueLimit:50,newLimit:0){itemType wordRelation{id} phraseRelation{id}}}',variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(collision.errors,undefined);
  const collisionRows=JSON.parse(JSON.stringify(collision.data)).dueItems;
  assert.equal(collisionRows.length,2);
  assert.deepEqual(collisionRows.find((p:any)=>p.itemType==='WORD'),{itemType:'WORD',wordRelation:{id:String(id(20))},phraseRelation:null});
  assert.deepEqual(collisionRows.find((p:any)=>p.itemType==='PHRASE'),{itemType:'PHRASE',wordRelation:null,phraseRelation:{id:String(id(20))}});
- fixture.PHRASES_ES_DE.pop();
+ fixture.PHRASES_ES_DE.pop();invalidateStudyCatalog();
  // Exercise actual allocation, then a repeat request, against the same mock store.
  // New phrases retain their original GraphQL dates/content and are written in one batch.
  fixture.schedulerprofiles=[profile];user.settings.dailyNewCards=20;fixture.userprogresses=[];batches=[];reads={};
@@ -392,7 +392,7 @@ try {
  const expected=[40,41].map(n=>({itemId:String(id(n)),itemType:'PHRASE',schedulerPhase:'NEW',ease:2.5,interval:0,repetitions:0,failureIndex:0,nextDueDate:now.toISOString(),lastReviewed:null,phraseRelation:{id:String(id(n)),main:{id:String(id(30)),phrase:'Hoy aprendo alemán.',synonyms:['alternative'],contexts:['university'],level:'A1'},translated:{id:String(id(31)),phrase:'Ich lerne heute Deutsch.',synonyms:['alternative'],contexts:['university'],level:'A1'}}}));
  assert.deepEqual(JSON.parse(JSON.stringify(fresh.data)),{dueItems:expected});
  assert.equal(batches.length,1,'one batch for the new-card allocation');assert.equal(batches[0].length,2);
- assert.equal(reads['PHRASES_ES_DE.find'],3,'category selection is reused by allocation, followed by catalog hydration');
+ assert.equal(reads['PHRASES_ES_DE.find'],4,'category selection, one cold validity summary, allocation and bulk hydration');
  assert.equal(reads['WORDS_ES_DE.find']??0,0);
  reads={};const repeated=await graphql({schema,source:freshQuery,variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(repeated.errors,undefined);assert.deepEqual(JSON.parse(JSON.stringify(repeated.data)),{dueItems:expected});
@@ -632,7 +632,7 @@ try {
   progress(84,'PHRASE',40,{card:{...ankiCard,sourceNoteGuid:'cloze',direction:'CLOZE',prompt:'Ich […] heute Deutsch.',answer:'lerne',acceptedAnswers:['lerne']}}),
   progress(85,'PHRASE',40),
   progress(86,'WORD',90),
-  progress(87,'WORD',21),
+  progress(87,'WORD',21,{card:ankiCard}),
   progress(88,'PHRASE',40,{nextDueDate:new Date(now.getTime()+300_000)}),
   progress(89,'WORD',20,{nextDueDate:new Date('2026-10-09T10:00:00Z'),temporaryDueDate:new Date(now.getTime()-1000)}),
  ];
@@ -662,12 +662,16 @@ try {
  for(const row of fullCompact.items)assert.deepEqual(row.card,displayCard(oldRaw.find((p:any)=>p.itemId===row.id).card),'full displayed card content matches the original GraphQL snapshot by item ID');
  for(const card of [undefined,null,{}, {sourceCardId:'992',deck:'App'}, {sourceCardId:'992',notes:'only note'}]){
   fixture.userprogresses=[progress(92,'WORD',20,{card})];progressQueries=[];
-  const full=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...compactArgs,itemType:'WORD'})));
-  const partial=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...compactArgs,itemType:'WORD',cardLimit:1})));
-  assert.deepEqual(full,partial,'missing/null/metadata-only and partially populated cards preserve transport shape');
-  if(card?.notes)assert.deepEqual(full.items[0].card,{notes:'only note'});
-  else if(card)assert.deepEqual(full.items[0].card,{});
-  else assert.equal(full.items[0].card,null);
+  const args={...compactArgs,itemType:'WORD'};
+  if(card){
+   await assert.rejects(loadCompactStudyQueue(user as any,args),/content unavailable/i);
+   await assert.rejects(loadCompactStudyQueue(user as any,{...args,cardLimit:1}),/content unavailable/i);
+  }else{
+   const full=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,args)));
+   const partial=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...args,cardLimit:1})));
+   assert.deepEqual(full,partial,'missing/null rich cards retain valid legacy relation content');
+   assert.equal(full.items[0].card,null);
+  }
  }
  fixture.userprogresses=[...compactCases,progress(90,'WORD',20,{userId:otherOwner})];
  // The original GraphQL queue captures card content with its progress read.
@@ -924,5 +928,29 @@ try {
   await assert.rejects(loadCompactStudyQueue(user as any,entry,{userId:otherOwner,profile:Promise.resolve(null)}),/owner/,'request metadata cannot be seeded for another owner');
   console.log('PASS queue-only auth/profile overlap, fresh account gate, invalid/deleted/error paths, absent profiles, concurrent settings/profile edits and request-only ownership');
  }finally{await new Promise<void>((resolve,reject)=>transportServer.close(error=>error?reject(error):resolve()));}
+ fixture.users=[user];fixture.schedulerprofiles=[profile];
+ const validReference=progress(201,'WORD',20,{card:ankiCard});
+ const orphanReference=progress(202,'WORD',99999);
+ delete orphanReference.card;
+ fixture.userprogresses=[validReference,orphanReference];invalidateStudyCatalog();
+ const playableQueue=await loadCompactStudyQueue(user as any,{itemType:'WORD',dueLimit:5000,newLimit:0,includeCounts:true});
+ assert.ok(playableQueue.items.every(item=>item.id!==String(orphanReference.itemId)),'legacy progress without a catalog relation must never become a blank practice card');
+ assert.equal(playableQueue.counts!.review,1,'orphan legacy progress must be excluded from the same queue counters');
+ await assert.rejects(loadCompactStudyCards(user as any,{itemIds:[String(orphanReference.itemId)]}),/content|unavailable/i,'stale orphan card requests must return a recoverable error');
+ assert.equal(fixture.userprogresses[1],orphanReference,'unplayable records remain stored without a migration');
+ const later=progress(204,'WORD',99998,{card:ankiCard,nextDueDate:new Date(now.getTime()+200_000_000)});
+ const orphanFuture=progress(203,'WORD',99997,{nextDueDate:new Date(now.getTime()+100_000_000)});
+ fixture.userprogresses=[orphanFuture,later];
+ const morePlayable=await loadCompactStudyMore(user as any,{itemType:'WORD',limit:1});
+ assert.deepEqual(morePlayable.items.map(row=>row.id),[String(later.itemId)],'orphan future cards cannot consume the limit ahead of a self-contained directional card');
+ const orphanPhrase=progress(205,'PHRASE',99996,{isNew:true,repetitions:0,totalReviews:0,interval:0,lastReviewed:null});
+ orphanPhrase.scheduler={...orphanPhrase.scheduler,phase:'NEW',queue:'NEW'};
+ const playablePendingPhrase=progress(206,'PHRASE',40,{isNew:true,repetitions:0,totalReviews:0,interval:0,lastReviewed:null});
+ playablePendingPhrase.scheduler={...playablePendingPhrase.scheduler,phase:'NEW',queue:'NEW'};
+ fixture.userprogresses=[orphanPhrase,playablePendingPhrase];
+ const phrasePlayable=await loadCompactStudyQueue(user as any,{itemType:'PHRASE',dueLimit:5000,newLimit:1,includeCounts:true});
+ assert.deepEqual(phrasePlayable.items.map(row=>row.id),[String(playablePendingPhrase.itemId)]);
+ assert.equal(phrasePlayable.counts!.new,1,'pending orphan phrases cannot consume the new-card allowance or counters');
+ console.log('PASS playable queue and counters exclude orphan legacy progress without deleting history');
  console.log('PASS compact ordered starter/background transport, custom profiles/timezones, local schedule transitions, reveal content, legacy/cloze/missing links and ownership');
 }finally{await closeDatabase();(globalThis as any).Date=RealDate;}

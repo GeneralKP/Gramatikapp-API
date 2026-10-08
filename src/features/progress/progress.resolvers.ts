@@ -14,7 +14,7 @@ import { isNewCard, newCardGroups } from "./newWordOrder.js";
 import { nativeWordPair, ensureNativeWordPairs } from "./nativeWordPairs.js";
 import { introducedToday, applyDailyLimit } from "./dailyLimit.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
-import { isDueStudyCandidate } from "./studyCandidates.js";
+import { isDueStudyCandidate, hasStudyReference, studyReferenceIds } from "./studyCandidates.js";
 import { selectedFields } from "../levels/catalogProjection.js";
 import { isGraduatedStudyCard, normalizedStudyPhase, STUDY_STATUS_PROJECTION } from "./studyStatus.js";
 import type { GraphQLResolveInfo } from "graphql";
@@ -114,9 +114,10 @@ async function fetchNewItems(
   }
   // The phrase due query already includes every pending phrase, including future
   // ones. Reuse it without allocating, dropping or reordering any new-card group.
-  const candidates = itemType === "PHRASE" && existingProgress
+  const references = studyReferenceIds(await studyCatalog({}, itemType, false));
+  const candidates = (itemType === "PHRASE" && existingProgress
     ? existingProgress.filter(p => p.isNew === true && !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= new Date()))
-    : await ensureNativeWordPairs(await (projection ? db.progress.find(pendingQuery).project<UserProgress>(projection) : db.progress.find(pendingQuery)).sort({ "anki.due": 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray());
+    : await ensureNativeWordPairs(await (projection ? db.progress.find(pendingQuery).project<UserProgress>(projection) : db.progress.find(pendingQuery)).sort({ "anki.due": 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray())).filter(p => hasStudyReference(p, references));
   // Enough pending candidates prevent allocation even if their eligible groups
   // are blocked/too large. When all their IDs are already in the outer snapshot,
   // that caller discards every returned pending ID. Keep its later sibling read
@@ -235,14 +236,16 @@ export async function loadDueStudyProgress(
     const read = db.progress.find(query);
     return (projection ? read.project<UserProgress>(projection) : read).batchSize(projection ? STUDY_SUMMARY_BATCH_SIZE : STUDY_CONTENT_BATCH_SIZE).toArray();
   };
-  const [{limit, profile}, counts, selectedCategoryIds, existing] = await Promise.all([
+  const [{limit, profile}, counts, selectedCategoryIds, existing, catalog] = await Promise.all([
     studyMetadata(context,userObjectId), studyDailyCounts(context,userObjectId,now), categoryRequest,
     dueLimit ? categoryRequest.then(readDue) : null,
+    studyCatalog(context, itemType, false),
   ]);
   newLimit = Math.max(0, Math.min(1000, newLimit, limit - introducedToday(counts)));
   if (!dueLimit && !newLimit) return [];
   const categoryIds = dueLimit ? selectedCategoryIds : await categoryRelations(category, itemType, context);
-  let docs = existing ?? await readDue(categoryIds);
+  const references = studyReferenceIds(catalog);
+  let docs = (existing ?? await readDue(categoryIds)).filter(p => hasStudyReference(p, references));
   if (newLimit > 0) {
     // Combined counters capture unseen identities before this request can
     // allocate progress. Existing pending/late sibling checks remain fresh.
@@ -270,8 +273,9 @@ export async function loadMoreStudyProgress(
   const now = new Date();
   const userObjectId = new ObjectId(userId);
 
-  const [{profile, limit: limitNew}, categoryIds] = await Promise.all([
+  const [{profile, limit: limitNew}, categoryIds, catalog] = await Promise.all([
     studyMetadata(context,userObjectId), categoryRelations(category,itemType,context),
+    studyCatalog(context, itemType, false),
   ]);
   const countsPromise = dailyCounts(userObjectId, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile);
   // 1) Fetch future-due items (nextDueDate > now), closest first
@@ -284,12 +288,25 @@ export async function loadMoreStudyProgress(
   };
   if (itemType) futureQuery.itemType = itemType;
 
+  // Exclude orphan references before LIMIT so they cannot hide valid later cards.
+  futureQuery.$and = [...(futureQuery.$and ?? []), { $or: [
+    { card: { $ne: null } },
+    ...([['WORD', catalog.words], ['PHRASE', catalog.phrases]] as const).map(([type, rows]) => ({
+      itemType: type, $or: [
+        { relationId: { $in: rows.map(row => row._id) } },
+        { relationId: null, itemId: { $in: rows.map(row => row._id) } },
+      ],
+    })),
+  ] }];
+
   const futureDueLimit = Math.ceil(limit * 0.7);
 
-  const [futureDocs, counts] = await Promise.all([
+  const [futureCandidates, counts] = await Promise.all([
     (projection ? db.progress.find(futureQuery).project<UserProgress>(projection) : db.progress.find(futureQuery)).sort({ nextDueDate: 1 }).limit(futureDueLimit).toArray(),
     countsPromise,
   ]);
+  const references = studyReferenceIds(catalog);
+  const futureDocs = futureCandidates.filter(p => hasStudyReference(p, references));
 
   // Extra practice never bypasses the account's daily new-card allowance.
   const remaining = limit - futureDocs.length;
@@ -320,7 +337,9 @@ export async function loadStudyQueueCounts(
     snapshotRequest, prepared?.countersOnly ? undefined : readIdentities(), catalogRequest, categoryRelations(category,itemType,context), studyDailyCounts(context,id,now),
   ]);
   const categorySet = categoryIds === null ? null : new Set(categoryIds.map(String));
+  const references = studyReferenceIds(catalog);
   const docs = scoped.filter(p => !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil<=now)
+    && hasStudyReference(p, references)
     && (!itemType || p.itemType===itemType) && (!categorySet || categorySet.has(String(p.relationId)) || p.relationId === undefined && categorySet.has(String(p.itemId))));
   const guids = new Set(docs.filter(p=>p.itemType==="WORD" && p.card && isNewCard(p)).map(p=>p.card!.sourceNoteGuid));
   const present = new Set(docs.map(p=>String(p.itemId)));
