@@ -19,6 +19,7 @@ import { nativeWordPair } from '../src/features/progress/nativeWordPairs.js';
 import { generateToken } from '../src/features/auth/auth.service.js';
 import { studyTextCatalog } from '../src/features/progress/studyTextCatalog.js';
 import { STUDY_STATUS_PROJECTION } from '../src/features/progress/studyStatus.js';
+import { isGraduatedStudyCard } from '../src/features/progress/studyStatus.js';
 
 // This suite never opens a network connection. It runs the real GraphQL schema,
 // queue selection and nested resolvers against deterministic MongoDB responses.
@@ -58,6 +59,7 @@ function matches(doc:any,query:any):boolean {
  return Object.entries(query).every(([key,condition]:[string,any])=>{
   if(key==='$or')return condition.some((q:any)=>matches(doc,q));
   if(key==='$and')return condition.every((q:any)=>matches(doc,q));
+  if(key==='$nor')return condition.every((q:any)=>!matches(doc,q));
   const value=valueAt(doc,key);
   if(condition===null)return value==null;
   if(condition && typeof condition==='object' && !(condition instanceof ObjectId) && !(condition instanceof RealDate))return Object.entries(condition).every(([op,wanted]:[string,any])=>{
@@ -114,7 +116,23 @@ function collection(name:string):any {
    if(!row && options.upsert){row={...query,...update.$setOnInsert};fixture[name].push(row);}
    if(row && update.$set)Object.assign(row,update.$set);
   },
-  aggregate(){count('aggregate');assert.equal(name,'reviewevents');return {async toArray(){return [];}};},
+  aggregate(pipeline:any[]){count('aggregate');return {async toArray(){
+   if(name==='reviewevents')return [];
+   assert.equal(name,'userprogresses');
+   await holdRead?.(name,'aggregate',pipeline[0].$match);
+   const rows=(fixture[name]??[]).filter((row:any)=>matches(row,pipeline[0].$match));
+   if(pipeline[1].$facet){
+    const known=new Map<string,any>(),legacy:any[]=[];
+    for(const row of rows){
+     if(!['NEW','LEARNING','RELEARNING','REVIEW'].includes(row.scheduler?.phase)){legacy.push(project(row,{itemId:1,relationId:1,itemType:1,...STUDY_STATUS_PROJECTION}));continue;}
+     const key=`${row.itemType}:${row.relationId??row.itemId}`,prior=known.get(key);
+     known.set(key,{itemId:row.relationId??row.itemId,itemType:row.itemType,graduated:!!prior?.graduated||isGraduatedStudyCard(row)});
+    }
+    return [{known:[...known.values()],legacy}];
+   }
+   return [{review:rows.filter((row:any)=>row.scheduler.phase==='REVIEW'&&(row.temporaryDueDate??row.nextDueDate)<=now).length,
+    learning:rows.filter((row:any)=>['LEARNING','RELEARNING'].includes(row.scheduler.phase)&&row.nextDueDate.getTime()<=now.getTime()+(row.scheduler.queue==='MINUTE'?row.scheduler.options.learnAheadSeconds*1000:0)).length}];
+  }};},
  };
  collections.set(name,result);return result;
 }
@@ -182,7 +200,7 @@ try {
    assert.equal(reads['WORDS_ES_DE.findOne']??0,0,'no per-card relation lookup');
    assert.equal(reads['WORDS_ES.findOne']??0,0,'no per-card word lookup, including missing endpoints');
   }
-  if(name==='dashboard')assert.equal(reads['userprogresses.find'],2,'counts and learning path share compact identities plus one scoped counter snapshot');
+  if(name==='dashboard'){assert.equal(reads['userprogresses.find'],1,'only legacy/new scheduling needs a per-card transfer');assert.equal(reads['userprogresses.aggregate'],2,'counts and learning path use fresh database summaries');}
   if(name==='phrases-counts'){
    assert.equal(reads['PHRASES_ES_DE.find'],1);
    for(const key of ['WORDS_ES_DE.find','WORDS_ES.find','PHRASES_ES.find'])assert.equal(reads[key]??0,0,'counts load only the selected relations and no unused catalog metadata');
@@ -200,7 +218,7 @@ try {
  assert.equal(warmDashboard.errors,undefined);
  assert.deepEqual(JSON.parse(JSON.stringify(warmDashboard.data)),responses.dashboard.data);
  for(const name of ['WORDS_ES_DE','PHRASES_ES_DE','WORDS_ES','PHRASES_ES'])assert.equal(reads[`${name}.find`]??0,0,'warm dashboards reuse immutable catalog summaries');
- assert.equal(reads['userprogresses.find'],2,'progress is fresh on every dashboard request');
+ assert.equal(reads['userprogresses.find'],1,'legacy/new progress is fresh on every dashboard request');assert.equal(reads['userprogresses.aggregate'],2,'known statuses remain fresh without transferring schedules');
  assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['reviewevents.aggregate'],1);
  const savedProgress=fixture.userprogresses;
  fixture.userprogresses=savedProgress.map((p:any)=>({...p,scheduler:{...p.scheduler,phase:p.itemType==='WORD'?'LEARNING':'RELEARNING'}}));
@@ -261,13 +279,13 @@ try {
  assert.equal(scopedCounts.errors,undefined);
  assert.deepEqual(JSON.parse(JSON.stringify(scopedCounts.data)),practiceResponses['phrases-counts'].data);
  assert.ok(progressQueries.some(read=>read.query.itemType==='PHRASE'),'phrase counter scheduling reads must exclude unrelated word cards');
- assert.ok(progressQueries.some(read=>!read.query.itemType && !read.projection?.scheduler && !read.projection?.anki),'cross-type seen/mastery inputs use only compact identities');
+ assert.equal(reads['userprogresses.aggregate'],2,'cross-type seen/mastery and ready counts use fresh database summaries');
  invalidateStudyCatalog();reads={};
  const aliases=await graphql({schema,source:'query($userId:ID!){first:studyQueueCounts(userId:$userId,itemType:"PHRASE",context:"University"){new learning review total learned} second:studyQueueCounts(userId:$userId,itemType:"PHRASE",context:"university"){new learning review total learned}}',variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(aliases.errors,undefined);
  const phraseCounts=practiceResponses['phrases-counts'].data.studyQueueCounts;
  assert.deepEqual(JSON.parse(JSON.stringify(aliases.data)),{first:phraseCounts,second:phraseCounts});
- assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['userprogresses.find'],2);
+ assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['userprogresses.find'],1,'identical category aliases share their fallback snapshot');
  assert.equal(reads['reviewevents.aggregate'],1,'counter aliases share daily allowances within the request');
  assert.equal(reads['PHRASES_ES_DE.find'],2,'one category lookup and one catalog read shared by both aliases');
  assert.equal(reads['PHRASES_ES.find'],1);assert.equal(reads['PHRASES_DE.find'],1);
@@ -577,7 +595,7 @@ try {
  let releaseIdentities!:()=>void, identitiesStarted!:()=>void;
  const identityGate=new Promise<void>(resolve=>{releaseIdentities=resolve;});
  const identityStart=new Promise<void>(resolve=>{identitiesStarted=resolve;});
- holdRead=async(name,method,query)=>{if(name==='userprogresses' && method==='find' && query.$or?.some((clause:any)=>clause.relationId?.$in)){identitiesStarted();await identityGate;}};
+ holdRead=async(name,method,query)=>{if(name==='userprogresses' && method==='aggregate' && query.$or?.some((clause:any)=>clause.relationId?.$in)){identitiesStarted();await identityGate;}};
  const allocatedCombined=loadCompactStudyQueue(user as any,{itemType:'PHRASE',dueLimit:5000,newLimit:2,includeCounts:true});
  try{
   await identityStart;await new Promise(resolve=>setImmediate(resolve));

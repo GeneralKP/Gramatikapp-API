@@ -1,4 +1,5 @@
-import { loadStudyRelations, studyCountSnapshot, studyIdentities, studyDailyCounts, studyCatalog, studyMetadata, insertNewProgress, STUDY_CONTENT_BATCH_SIZE, STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
+import { loadStudyRelations, studyCountSnapshot, summarizedStudyCounts, studyIdentities, studyDailyCounts, studyCatalog, studyMetadata, insertNewProgress, STUDY_CONTENT_BATCH_SIZE, STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
+import { counterEligibility, isGraduatedStudyIdentity } from './studySummaries.js';
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { UserProgress } from "./progress.types.js";
@@ -330,11 +331,12 @@ export async function loadStudyQueueCounts(
   const readIdentities = () => itemType === "PHRASE"
     ? catalogRequest.then(catalog => studyIdentities(context,id,catalog.phrases.map(relation=>relation._id)))
     : studyIdentities(context,id);
+  const categoryRequest = categoryRelations(category,itemType,context);
   const snapshotRequest = prepared
-    ? Promise.all([studyMetadata(context,id),prepared.progress]).then(([account,progress])=>({...account,progress}))
-    : studyCountSnapshot(context,id,now,itemType as UserProgress["itemType"] | undefined);
-  const [{profile, progress: scoped, limit}, initialSeen, catalog, categoryIds, counts] = await Promise.all([
-    snapshotRequest, prepared?.countersOnly ? undefined : readIdentities(), catalogRequest, categoryRelations(category,itemType,context), studyDailyCounts(context,id,now),
+    ? Promise.all([studyMetadata(context,id),prepared.progress]).then(([account,progress])=>({...account,progress,summary:{review:0,learning:0}}))
+    : Promise.all([catalogRequest,categoryRequest]).then(([catalog,categoryIds])=>summarizedStudyCounts(context,id,now,itemType as UserProgress['itemType'] | undefined,counterEligibility(now,categoryIds,catalog),category));
+  const [{profile, progress: scoped, limit, summary: ready}, initialSeen, catalog, categoryIds, counts] = await Promise.all([
+    snapshotRequest, prepared?.countersOnly ? undefined : readIdentities(), catalogRequest, categoryRequest, studyDailyCounts(context,id,now),
   ]);
   const categorySet = categoryIds === null ? null : new Set(categoryIds.map(String));
   const references = studyReferenceIds(catalog);
@@ -373,15 +375,15 @@ export async function loadStudyQueueCounts(
   }
   const newCards = selectStudyQueue(applyDailyLimit(candidates, limit), counts, now, 0, Math.max(0, limit - introducedToday(counts)), true).filter(p=>p.scheduler.phase === "NEW").length;
   const summary = { new: newCards,
-    learning: progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>["LEARNING","RELEARNING"].includes(p.scheduler.phase) && p.nextDueDate.getTime() <= now.getTime() + (p.scheduler.queue === "MINUTE" ? p.scheduler.options.learnAheadSeconds * 1000 : 0)).length,
-    review: progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>p.scheduler.phase === "REVIEW" && effectiveDueDate(p) <= now).length };
+    learning: ready.learning + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>["LEARNING","RELEARNING"].includes(p.scheduler.phase) && p.nextDueDate.getTime() <= now.getTime() + (p.scheduler.queue === "MINUTE" ? p.scheduler.options.learnAheadSeconds * 1000 : 0)).length,
+    review: ready.review + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>p.scheduler.phase === "REVIEW" && effectiveDueDate(p) <= now).length };
   if (prepared?.countersOnly) return summary;
   const catalogIds: ObjectId[] = [];
   for (const type of ["WORD","PHRASE"]) if (!itemType || itemType === type) {
     const relations=type === "WORD" ? catalog.words : catalog.phrases;
     catalogIds.push(...relations.filter(r=>!categorySet || categorySet.has(String(r._id))).map(row=>row._id));
   }
-  const learnedIds=new Set(allSeen.filter(p=>isGraduatedStudyCard(p) && (!itemType || p.itemType===itemType)).map(p=>String(p.relationId ?? p.itemId)));
+  const learnedIds=new Set(allSeen.filter(p=>isGraduatedStudyIdentity(p) && (!itemType || p.itemType===itemType)).map(p=>String(p.relationId ?? p.itemId)));
   return { total: catalogIds.length, learned: catalogIds.filter(id=>learnedIds.has(String(id))).length, ...summary };
 }
 
@@ -525,7 +527,7 @@ export const progressResolvers = {
 
       const learnedSet = new Set(
         progresses
-          .filter(isGraduatedStudyCard)
+          .filter(isGraduatedStudyIdentity)
           .map((p) => (p.relationId || p.itemId).toString()),
       );
 

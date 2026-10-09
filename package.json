@@ -50,6 +50,7 @@
     "test:study-sync-validation": "tsx scripts/testStudySyncValidation.ts",
     "generate:browser-scheduler": "node scripts/generateBrowserScheduler.mjs",
     "test:loading": "tsx scripts/testLoading.ts",
+    "test:dashboard-performance": "tsx scripts/testDashboardPerformance.ts",
     "audit:loading": "tsx scripts/auditLoading.ts",
     "test:auth": "tsx scripts/testAuthentication.ts",
     "test:catalog-cache": "tsx scripts/testCatalogCache.ts",
@@ -67,6 +68,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.10.0",
     "bcryptjs": "^3.0.3",
+    "compression": "^1.8.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.2.1",
@@ -76,6 +78,7 @@
     "typescript": "^5.7.2"
   },
   "devDependencies": {
+    "@types/compression": "^1.8.1",
     "copyfiles": "^2.4.1",
     "eslint": "^9.15.0",
     "tsx": "^4.19.2"

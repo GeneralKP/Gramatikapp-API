@@ -1,4 +1,6 @@
 import { Router } from "express";
+import compression from 'compression';
+import { constants } from 'node:zlib';
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { getUserFromToken, verifyToken } from "../auth/auth.service.js";
@@ -7,6 +9,11 @@ import { loadCompactStudyQueue, loadCompactStudyCards, loadCompactStudyMore } fr
 
 export function studyTransportRouter(options: { authenticate?: typeof getUserFromToken } = {}): Router {
   const router = Router();
+  // The native fetch stack and browsers negotiate/decode these transparently.
+  // Compress only card reads; authentication and mutation receipts stay separate.
+  router.use(['/api/study/queue', '/api/study/cards', '/api/study/more'], compression({ threshold: 1024, level: 1,
+    brotli: { params: { [constants.BROTLI_PARAM_QUALITY]: 2 } },
+  }));
   for (const [path, load] of [["queue", loadCompactStudyQueue], ["cards", loadCompactStudyCards], ["more", loadCompactStudyMore]] as const) {
     router.post(`/api/study/${path}`, async (req, res) => {
       res.set("Cache-Control", "no-store");

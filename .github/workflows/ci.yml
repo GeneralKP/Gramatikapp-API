@@ -24,6 +24,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run test:loading
+      - run: npm run test:dashboard-performance
       - run: npx tsx scripts/testDictionaryCatalog.ts
       - run: npx tsx scripts/testReviewedDictionaryCatalog.ts
       - run: npx tsx scripts/testReviewedWordContent.ts
