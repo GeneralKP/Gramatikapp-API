@@ -2,6 +2,8 @@
 
 GraphQL backend for the German Gramatic language learning application.
 
+Owner documentation: [Server access (SSH)](docs/owner-server-access.md) explains how to connect and change access in plain language.
+
 ## Database model and data flow
 
 The canonical [database diagram](docs/database-model/index.html) is saved in Git as a standalone HTML/CSS page. Open the file directly or serve `docs/database-model` locally. It describes the live catalog, study progress, Reading/Writing flows and archived Anki collections; record counts are an explicitly dated inventory snapshot.
