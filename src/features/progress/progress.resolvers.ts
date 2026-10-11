@@ -1,5 +1,5 @@
 import { loadStudyRelations, studyCountSnapshot, summarizedStudyCounts, studyIdentities, studyDailyCounts, studyCatalog, studyMetadata, insertNewProgress, STUDY_CONTENT_BATCH_SIZE, STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
-import { counterEligibility, isGraduatedStudyIdentity } from './studySummaries.js';
+import { counterEligibility, isGraduatedStudyIdentity, newItemIdentityPipeline } from './studySummaries.js';
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { UserProgress } from "./progress.types.js";
@@ -15,6 +15,7 @@ import { isNewCard, newCardGroups } from "./newWordOrder.js";
 import { nativeWordPair, ensureNativeWordPairs } from "./nativeWordPairs.js";
 import { introducedToday, applyDailyLimit } from "./dailyLimit.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
+import { studyCurriculum, planCurriculumIntroductions } from "./studyCurriculum.js";
 import { isDueStudyCandidate, hasStudyReference, studyReferenceIds } from "./studyCandidates.js";
 import { selectedFields } from "../levels/catalogProjection.js";
 import { isGraduatedStudyCard, normalizedStudyPhase, STUDY_STATUS_PROJECTION } from "./studyStatus.js";
@@ -76,139 +77,68 @@ async function withNewWordSiblings(db: ReturnType<typeof getDb>, userId: ObjectI
   return [...progress, ...siblings.filter(p => !seen.has(p.itemId.toString()))];
 }
 
-function coveredPendingCards(candidates: UserProgress[], existing: UserProgress[], needed: number) {
-  if (candidates.length < needed) return false;
+async function freshPendingRows(db: ReturnType<typeof getDb>, query: object, projection?: Record<string, number>, existing?: UserProgress[]) {
+  if (!projection || !existing) return (projection ? db.progress.find(query).project<UserProgress>(projection) : db.progress.find(query)).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+  // A compact freshness probe avoids transferring scheduling/content twice in
+  // starter/full queues. Identity, versions and update/deferral state must match;
+  // missing or changed cards fall back to a complete fresh pending read.
+  const rows = await db.progress.find(query).project<UserProgress>({ _id: 0, itemId: 1, itemType: 1, relationId: 1,
+    scheduleVersion: 1, failureVersion: 1, failureIndex: 1, updatedAt: 1, buriedUntil: 1, suspended: 1, supersededByAnki: 1, isNew: 1,
+    "card.sourceCardId": 1, "card.sourceNoteGuid": 1, "card.direction": 1 }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
   const byId = new Map(existing.map(p => [String(p.itemId), p]));
-  return candidates.every(p => {
-    const previous = byId.get(String(p.itemId));
-    if (!previous || previous.itemType !== p.itemType || String(previous.relationId) !== String(p.relationId)) return false;
-    // Native legacy words still need their existing transactional pairing path.
-    if (p.itemType === "WORD" && !p.card) return false;
-    return !!previous.card === !!p.card && (["sourceCardId", "sourceNoteGuid", "direction"] as const).every(key => previous.card?.[key] === p.card?.[key]);
-  });
+  const same = (a: unknown, b: unknown) => a instanceof Date && b instanceof Date ? +a === +b : String(a) === String(b);
+  const keys = ['itemType', 'relationId', 'scheduleVersion', 'failureVersion', 'failureIndex', 'updatedAt', 'buriedUntil', 'suspended', 'supersededByAnki', 'isNew'] as const;
+  if (rows.every(row => {
+    const previous = byId.get(String(row.itemId));
+    return previous && keys.every(key => same(row[key], previous[key])) && !!row.card === !!previous.card
+      && (['sourceCardId', 'sourceNoteGuid', 'direction'] as const).every(key => same(row.card?.[key], previous.card?.[key]));
+  })) return rows.map(row => byId.get(String(row.itemId))!);
+  return db.progress.find(query).project<UserProgress>(projection).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
 }
 
 async function fetchNewItems(
-  db: ReturnType<typeof getDb>,
-  userObjectId: ObjectId,
-  needed: number,
-  itemType?: string,
-  category?: string,
-  allowPartialIntroduction = false,
-  selectedCategoryIds?: ObjectId[] | null,
-  existingProgress?: UserProgress[],
+  db: ReturnType<typeof getDb>, userObjectId: ObjectId, needed: number,
+  itemType?: string, category?: string, allowPartialIntroduction = false,
+  selectedCategoryIds?: ObjectId[] | null, existingProgress?: UserProgress[],
   projection?: Record<string, number>,
 ): Promise<UserProgress[]> {
   const categoryIds = selectedCategoryIds === undefined ? await categoryRelations(category, itemType) : selectedCategoryIds;
-  const pendingQuery: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, isNew: true, suspended: { $ne: true }, supersededByAnki: { $ne: true }, $or: [{ buriedUntil: null }, { buriedUntil: { $lte: new Date() } }] };
-  if (itemType) pendingQuery.itemType = itemType;
-  if (projection && existingProgress && itemType !== "PHRASE") {
-    // Re-read identities from the database: another device can introduce a new
-    // pending card after the initial due snapshot. Covered, unchanged native/
-    // Anki cards need no repeated scheduler/options payload. Unknown IDs, changed
-    // card identity and legacy words fall through to the complete fresh read.
-    const identities = await db.progress.find(pendingQuery).project<UserProgress>({
-      _id: 0, itemId: 1, itemType: 1, relationId: 1,
-      "card.sourceCardId": 1, "card.sourceNoteGuid": 1, "card.direction": 1,
-    }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
-    if (coveredPendingCards(identities, existingProgress, needed)) return [];
-  }
-  // The phrase due query already includes every pending phrase, including future
-  // ones. Reuse it without allocating, dropping or reordering any new-card group.
-  const references = studyReferenceIds(await studyCatalog({}, itemType, false));
-  const candidates = (itemType === "PHRASE" && existingProgress
-    ? existingProgress.filter(p => p.isNew === true && !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= new Date()))
-    : await ensureNativeWordPairs(await (projection ? db.progress.find(pendingQuery).project<UserProgress>(projection) : db.progress.find(pendingQuery)).sort({ "anki.due": 1 }).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray())).filter(p => hasStudyReference(p, references));
-  // Enough pending candidates prevent allocation even if their eligible groups
-  // are blocked/too large. When all their IDs are already in the outer snapshot,
-  // that caller discards every returned pending ID. Keep its later sibling read
-  // fresh instead of performing an earlier lookup whose result cannot be used.
-  if (projection && existingProgress && itemType !== "PHRASE" && coveredPendingCards(candidates, existingProgress, needed)) return [];
+  const categorySet = categoryIds === null ? null : new Set(categoryIds.map(String));
+  const pendingQuery: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, isNew: true,
+    suspended: { $ne: true }, supersededByAnki: { $ne: true },
+    $or: [{ buriedUntil: null }, { buriedUntil: { $lte: new Date() } }] };
+  const identityQuery: any = { userId: userObjectId };
+  if (itemType) { pendingQuery.itemType = itemType; identityQuery.itemType = itemType; }
+  // Only immutable catalog order is cached. Read owner identities and pending
+  // state afresh so another device, a deferral or an import cannot skip a level.
+  const [curriculum, identities, pendingRows] = await Promise.all([
+    studyCurriculum({}, itemType),
+    db.progress.aggregate<{ itemId: ObjectId; itemType: string; relationId?: ObjectId }>(newItemIdentityPipeline(identityQuery)).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray(),
+    freshPendingRows(db, pendingQuery, projection, existingProgress),
+  ]);
+  const seen = new Set(identities.map(p => `${p.itemType}:${p.relationId ?? p.itemId}`));
+  const valid = new Set(curriculum.entries.map(entry => `${entry.type}:${entry.relation._id}`));
+  const candidates = pendingRows.filter(p => p.card || valid.has(`${p.itemType}:${p.relationId ?? p.itemId}`));
   const complete = await withNewWordSiblings(db, userObjectId, candidates, projection);
-  const pending: UserProgress[] = [];
-  for (const original of newCardGroups(complete, candidates)) {
-    const group = allowPartialIntroduction && needed - pending.length === 1 && original.length === 2 && original[0].card?.direction === "DE_ES" ? original.slice(0,1) : original;
-    if (pending.length + group.length <= needed) pending.push(...group);
+  const groups = newCardGroups(complete, candidates, curriculum.compare);
+  const unseen = curriculum.entries.filter(entry => !seen.has(`${entry.type}:${entry.relation._id}`)
+    && (!categorySet || categorySet.has(String(entry.relation._id))));
+  const plan = planCurriculumIntroductions(groups, unseen, needed, allowPartialIntroduction, curriculum.rank);
+  const pending = plan.pending;
+  const allocated: UserProgress[] = plan.entries.map(entry => ({ _id: new ObjectId(), userId: userObjectId, itemId: entry.relation._id,
+    itemType: entry.type, failureIndex: 0, isNew: true, ease: 2.5, interval: 0,
+    repetitions: 0, nextDueDate: new Date(), lastReviewed: null, createdAt: new Date() }));
+  // Selected IDs are already validated bilingual relations. Bounded indexed
+  // hydration replaces request-time catalog joins, sorts and growing $nin lists.
+  const persisted: UserProgress[] = [];
+  if (allocated.length) {
+    await insertNewProgress(allocated, db);
+    persisted.push(...await db.progress.find({ userId: userObjectId, itemId: { $in: allocated.map(p => p.itemId) } }).toArray());
   }
-  if (candidates.length >= needed) return pending;
-  needed -= pending.length;
-  if (needed <= 0) return pending;
-  const reviewedQuery: any = { userId: userObjectId };
-  if (itemType) reviewedQuery.itemType = itemType;
-
-  const reviewedIds = await db.progress
-    .find(reviewedQuery)
-    .project({ itemId: 1, relationId: 1 })
-    .toArray();
-  const reviewedSet = new Set(
-    reviewedIds.map((p) => (p.relationId || p.itemId).toString()),
-  );
-
-  const excludeFilter = {
-    _id: { $nin: [...reviewedSet].map((id) => new ObjectId(id)), ...(categoryIds !== null ? { $in: categoryIds } : {}) },
-  };
-
-  const newProgressDocs: UserProgress[] = [];
-
-  if (!itemType || itemType === "WORD") {
-    const neededWords = (allowPartialIntroduction ? Math.ceil : Math.floor)((itemType === "WORD" ? needed : Math.ceil(needed / 2)) / 2);
-    const newWords = neededWords ? await db.relationsWordsEsDe
-      .find(excludeFilter)
-      .limit(neededWords)
-      .toArray() : [];
-
-    for (const w of newWords) {
-      newProgressDocs.push({
-        _id: new ObjectId(),
-        userId: userObjectId,
-        itemId: w._id,
-        itemType: "WORD",
-        failureIndex: 0,
-        isNew: true,
-        ease: 2.5,
-        interval: 0,
-        repetitions: 0,
-        nextDueDate: new Date(),
-        lastReviewed: null,
-        createdAt: new Date(),
-      });
-    }
-  }
-
-  if (!itemType || itemType === "PHRASE") {
-    const neededPhrases =
-      itemType === "PHRASE" ? needed : Math.max(0, needed - newProgressDocs.length * 2);
-    const newPhrases = neededPhrases ? await db.relationsPhrasesEsDe
-      .find(excludeFilter)
-      .limit(neededPhrases)
-      .toArray() : [];
-
-    for (const p of newPhrases) {
-      newProgressDocs.push({
-        _id: new ObjectId(),
-        userId: userObjectId,
-        itemId: p._id,
-        itemType: "PHRASE",
-        failureIndex: 0,
-        isNew: true,
-        ease: 2.5,
-        interval: 0,
-        repetitions: 0,
-        nextDueDate: new Date(),
-        lastReviewed: null,
-        createdAt: new Date(),
-      });
-    }
-  }
-
-  const docsToAdd = newProgressDocs.slice(0, needed);
-  if (docsToAdd.length > 0) {
-    await insertNewProgress(docsToAdd, db);
-    const persisted = await db.progress.find({ userId: userObjectId, itemId: { $in: docsToAdd.map(p => p.itemId) } }).toArray();
-    const paired = await ensureNativeWordPairs(persisted);
-    return [...pending, ...newCardGroups(paired, paired).flat()];
-  }
-  return [...pending, ...docsToAdd];
+  // Pair only selected legacy introductions, rather than converting every
+  // later-level pending word while a small starter queue is being requested.
+  const paired = await ensureNativeWordPairs([...pending, ...persisted]);
+  return newCardGroups([...complete, ...paired], paired, curriculum.compare).flat();
 }
 
 export interface DueStudyRequest { userId: string; dueLimit?: number; newLimit?: number; itemType?: string; context?: string; includeLearningAhead?: boolean; }
@@ -225,6 +155,8 @@ export async function loadDueStudyProgress(
 
   if (itemType && !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid card type");
   dueLimit = Math.max(0, Math.min(5000, dueLimit));
+  newLimit = Math.max(0, Math.min(1000, newLimit));
+  if (!dueLimit && !newLimit) return [];
   const categoryRequest = dueLimit ? categoryRelations(category, itemType, context) : Promise.resolve(null);
   const readDue = (categoryIds: ObjectId[] | null) => {
     if (prepared?.candidates) {
@@ -237,26 +169,29 @@ export async function loadDueStudyProgress(
     const read = db.progress.find(query);
     return (projection ? read.project<UserProgress>(projection) : read).batchSize(projection ? STUDY_SUMMARY_BATCH_SIZE : STUDY_CONTENT_BATCH_SIZE).toArray();
   };
-  const [{limit, profile}, counts, selectedCategoryIds, existing, catalog] = await Promise.all([
+  const [{limit, profile}, counts, selectedCategoryIds, existing, catalog, curriculum] = await Promise.all([
     studyMetadata(context,userObjectId), studyDailyCounts(context,userObjectId,now), categoryRequest,
     dueLimit ? categoryRequest.then(readDue) : null,
-    studyCatalog(context, itemType, false),
+    studyCatalog(context, itemType, false), studyCurriculum(context, itemType),
   ]);
   newLimit = Math.max(0, Math.min(1000, newLimit, limit - introducedToday(counts)));
   if (!dueLimit && !newLimit) return [];
   const categoryIds = dueLimit ? selectedCategoryIds : await categoryRelations(category, itemType, context);
   const references = studyReferenceIds(catalog);
-  let docs = (existing ?? await readDue(categoryIds)).filter(p => hasStudyReference(p, references));
+  let docs = (existing ?? await readDue(categoryIds)).filter(p => hasStudyReference(p, references) && (p.card || curriculum.has(p)));
   if (newLimit > 0) {
     // Combined counters capture unseen identities before this request can
     // allocate progress. Existing pending/late sibling checks remain fresh.
     if (prepared?.beforeNewItems) await prepared.beforeNewItems;
     const fresh = await fetchNewItems(db, userObjectId, newLimit, itemType, category, newLimit >= limit - introducedToday(counts), categoryIds, docs, projection);
+    // Pending NEW state was revalidated above. Replace the earlier snapshot
+    // instead of keeping a stale card introduced/deferred by another device.
+    docs = docs.filter(p => !isNewCard(p));
     const seen = new Set(docs.map(p => p.itemId.toString()));
     docs.push(...fresh.filter(p => !seen.has(p.itemId.toString())));
   }
   docs = await Promise.all((await withNewWordSiblings(db, userObjectId, await ensureNativeWordPairs(docs), projection)).map(p => withScheduler(p, profile)));
-  const selected = selectStudyQueue(applyDailyLimit(docs, limit), counts, now, dueLimit, newLimit, newLimit >= limit - introducedToday(counts));
+  const selected = selectStudyQueue(applyDailyLimit(docs, limit), counts, now, dueLimit, newLimit, newLimit >= limit - introducedToday(counts), curriculum?.compare);
   const selectedIds = new Set(selected.map(p=>String(p.itemId)));
   const ahead = includeLearningAhead ? docs.filter(p=>!selectedIds.has(String(p.itemId)) && !p.suspended && (!p.buriedUntil || p.buriedUntil<=now) && p.scheduler.queue === "MINUTE" && p.nextDueDate>now && p.nextDueDate.getTime()<=now.getTime()+p.scheduler.options.learnAheadSeconds*1000) : [];
   return [...selected,...ahead];
@@ -274,9 +209,9 @@ export async function loadMoreStudyProgress(
   const now = new Date();
   const userObjectId = new ObjectId(userId);
 
-  const [{profile, limit: limitNew}, categoryIds, catalog] = await Promise.all([
+  const [{profile, limit: limitNew}, categoryIds, catalog, curriculum] = await Promise.all([
     studyMetadata(context,userObjectId), categoryRelations(category,itemType,context),
-    studyCatalog(context, itemType, false),
+    studyCatalog(context, itemType, false), studyCurriculum(context, itemType),
   ]);
   const countsPromise = dailyCounts(userObjectId, studyDay(now, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4), profile);
   // 1) Fetch future-due items (nextDueDate > now), closest first
@@ -292,7 +227,7 @@ export async function loadMoreStudyProgress(
   // Exclude orphan references before LIMIT so they cannot hide valid later cards.
   futureQuery.$and = [...(futureQuery.$and ?? []), { $or: [
     { card: { $ne: null } },
-    ...([['WORD', catalog.words], ['PHRASE', catalog.phrases]] as const).map(([type, rows]) => ({
+    ...([['WORD', curriculum.entries.filter(e => e.type === 'WORD').map(e => e.relation)], ['PHRASE', curriculum.entries.filter(e => e.type === 'PHRASE').map(e => e.relation)]] as const).map(([type, rows]) => ({
       itemType: type, $or: [
         { relationId: { $in: rows.map(row => row._id) } },
         { relationId: null, itemId: { $in: rows.map(row => row._id) } },
@@ -315,7 +250,7 @@ export async function loadMoreStudyProgress(
   const available = Math.max(0, Math.min(remaining, limitNew - introducedToday(counts)));
   if (available > 0) newDocs = await fetchNewItems(db, userObjectId, available, itemType, category, available >= limitNew - introducedToday(counts), categoryIds, undefined, projection);
   const newCards = await Promise.all((await withNewWordSiblings(db, userObjectId, newDocs, projection)).map(p => withScheduler(p, profile)));
-  return [...(await Promise.all(futureDocs.map(p => withScheduler(p, profile)))).map(p => ({ ...p, extraPractice: true })), ...selectStudyQueue(applyDailyLimit(newCards, limitNew), counts, now, 0, available, available >= limitNew - introducedToday(counts))];
+  return [...(await Promise.all(futureDocs.map(p => withScheduler(p, profile)))).map(p => ({ ...p, extraPractice: true })), ...selectStudyQueue(applyDailyLimit(newCards, limitNew), counts, now, 0, available, available >= limitNew - introducedToday(counts), curriculum?.compare)];
 }
 
 export interface StudyQueueCounts { new: number; learning: number; review: number; total?: number; learned?: number; }
@@ -327,7 +262,11 @@ export async function loadStudyQueueCounts(
   requireOwner(context, userId);
   if (itemType && !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid card type");
   const db = getDb(), id = new ObjectId(userId), now = prepared?.now ?? new Date();
-  const catalogRequest = studyCatalog(context,itemType,false);
+  const curriculumRequest = studyCurriculum(context, itemType);
+  const catalogRequest = curriculumRequest.then(curriculum => ({
+    words: curriculum.entries.filter(e => e.type === "WORD").map(e => e.relation),
+    phrases: curriculum.entries.filter(e => e.type === "PHRASE").map(e => e.relation),
+  }));
   const readIdentities = () => itemType === "PHRASE"
     ? catalogRequest.then(catalog => studyIdentities(context,id,catalog.phrases.map(relation=>relation._id)))
     : studyIdentities(context,id);
@@ -335,8 +274,8 @@ export async function loadStudyQueueCounts(
   const snapshotRequest = prepared
     ? Promise.all([studyMetadata(context,id),prepared.progress]).then(([account,progress])=>({...account,progress,summary:{review:0,learning:0}}))
     : Promise.all([catalogRequest,categoryRequest]).then(([catalog,categoryIds])=>summarizedStudyCounts(context,id,now,itemType as UserProgress['itemType'] | undefined,counterEligibility(now,categoryIds,catalog),category));
-  const [{profile, progress: scoped, limit, summary: ready}, initialSeen, catalog, categoryIds, counts] = await Promise.all([
-    snapshotRequest, prepared?.countersOnly ? undefined : readIdentities(), catalogRequest, categoryRequest, studyDailyCounts(context,id,now),
+  const [{profile, progress: scoped, limit, summary: ready}, initialSeen, catalog, categoryIds, counts, curriculum] = await Promise.all([
+    snapshotRequest, prepared?.countersOnly ? undefined : readIdentities(), catalogRequest, categoryRequest, studyDailyCounts(context,id,now), curriculumRequest,
   ]);
   const categorySet = categoryIds === null ? null : new Set(categoryIds.map(String));
   const references = studyReferenceIds(catalog);
@@ -349,31 +288,36 @@ export async function loadStudyQueueCounts(
   const progress = await Promise.all([...docs,...siblings].map(p=>withScheduler(p,profile)));
   // Count unseen catalogue cards without creating progress merely by opening
   // the dashboard. Native words count both recognition and production.
-  const hasPendingNew = docs.some(isNewCard);
-  // Three entry counters need seen identities only when synthesizing unseen
-  // catalog cards. Full GraphQL counts retain their mastery/total contract.
-  const allSeen = initialSeen ?? (hasPendingNew ? [] : await readIdentities());
-  const seen = new Set(allSeen.map(p=>String(p.relationId ?? p.itemId)));
-  const candidates = [...progress];
+  const allSeen = initialSeen ?? [];
+  const availableNew = Math.max(0, limit - introducedToday(counts));
   const makeNew = (relationId: ObjectId, type: "WORD" | "PHRASE"): UserProgress => {
     const p: UserProgress = {_id:relationId,userId:id,itemId:relationId,itemType:type,isNew:true,ease:2.5,interval:0,repetitions:0,nextDueDate:now,lastReviewed:null,createdAt:now};
     p.scheduler=initialScheduler(p,profile?.defaultOptions ?? DEFAULT_OPTIONS,profile?.timeZone ?? "Europe/Berlin",profile?.rollover ?? 4);return p;
   };
-  if (!itemType || itemType === "WORD") {
-    const relations=catalog.words.filter(r=>!categorySet || categorySet.has(String(r._id)));
-    const pending=progress.filter(p=>p.itemType==="WORD" && !p.card && isNewCard(p));
-    const needed=relations.filter(r=>!hasPendingNew && !seen.has(String(r._id)) || pending.some(p=>String(p.relationId??p.itemId)===String(r._id)));
-    // Native introduction counts need endpoint existence and pair identity,
-    // never the notes/examples returned later by actual study-card queries.
-    const {wordsES:es,wordsDE:de}=needed.length ? await studyTextCatalog("WORD",db) : {wordsES:[],wordsDE:[]};
-    const esMap=new Map(es.map(w=>[String(w._id),w] as const)),deMap=new Map(de.map(w=>[String(w._id),w] as const));
-    for(const r of needed){const a=esMap.get(String(r.main)),b=deMap.get(String(r.translated));if(!a||!b)continue;const existing=pending.find(p=>String(p.relationId??p.itemId)===String(r._id));if(existing)candidates.splice(candidates.indexOf(existing),1);candidates.push(...nativeWordPair(existing??makeNew(r._id,"WORD"),a,b));}
+  let newCards = 0;
+  if (availableNew) {
+    // Match retrieval's rank/allocation budget before applying deck ceilings.
+    // A few blocked/later pending cards must not hide earlier unseen cards.
+    // Typed exclusions are fresh; only selected virtual pairs are constructed.
+    const identities = initialSeen ?? await db.progress.aggregate<{ itemId: ObjectId; itemType: string; relationId?: ObjectId }>(newItemIdentityPipeline({ userId: id, ...(itemType ? { itemType } : {}) })).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
+    const seen = new Set(identities.map(p => `${p.itemType}:${p.relationId ?? p.itemId}`));
+    const available = progress.filter(p => !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= now));
+    const groups = newCardGroups(progress, available, curriculum.compare);
+    const unseen = curriculum.entries.filter(entry => !seen.has(`${entry.type}:${entry.relation._id}`)
+      && (!categorySet || categorySet.has(String(entry.relation._id))));
+    const plan = planCurriculumIntroductions(groups, unseen, availableNew, true, curriculum.rank);
+    const pending = [...plan.pending, ...plan.entries.map(entry => makeNew(entry.relation._id, entry.type))];
+    const relations = new Map(catalog.words.map(r => [String(r._id), r]));
+    const needsPairs = pending.some(p => p.itemType === "WORD" && !p.card && isNewCard(p));
+    const text = needsPairs ? await studyTextCatalog("WORD", db) : undefined;
+    const es = new Map(text?.wordsES.map(w => [String(w._id), w])), de = new Map(text?.wordsDE.map(w => [String(w._id), w]));
+    const candidates = [...progress.filter(p => !isNewCard(p)), ...pending.flatMap(p => {
+      if (p.itemType !== "WORD" || p.card || !isNewCard(p)) return [p];
+      const relation = relations.get(String(p.relationId ?? p.itemId))!;
+      return nativeWordPair(p, es.get(String(relation.main))!, de.get(String(relation.translated))!);
+    })];
+    newCards = selectStudyQueue(applyDailyLimit(candidates, limit), counts, now, 0, availableNew, true, curriculum.compare).filter(p=>p.scheduler.phase === "NEW").length;
   }
-  if ((!itemType || itemType === "PHRASE") && !hasPendingNew) {
-    const relations=catalog.phrases.filter(r=>!categorySet || categorySet.has(String(r._id)));
-    candidates.push(...relations.filter(r=>!seen.has(String(r._id))).map(r=>makeNew(r._id,"PHRASE")));
-  }
-  const newCards = selectStudyQueue(applyDailyLimit(candidates, limit), counts, now, 0, Math.max(0, limit - introducedToday(counts)), true).filter(p=>p.scheduler.phase === "NEW").length;
   const summary = { new: newCards,
     learning: ready.learning + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>["LEARNING","RELEARNING"].includes(p.scheduler.phase) && p.nextDueDate.getTime() <= now.getTime() + (p.scheduler.queue === "MINUTE" ? p.scheduler.options.learnAheadSeconds * 1000 : 0)).length,
     review: ready.review + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>p.scheduler.phase === "REVIEW" && effectiveDueDate(p) <= now).length };

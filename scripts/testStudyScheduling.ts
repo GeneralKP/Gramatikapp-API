@@ -11,14 +11,14 @@ for(const grade of ['AGAIN','HARD','GOOD','EASY']as const){const completed=sched
 const future={...p,nextDueDate:new Date(now.getTime()+180*86400000)};assert.equal(scheduleStudyReview(future,'REVISIT',now).nextDueDate,future.nextDueDate);
 assert.ok(!studyReviewOptions({...future,nextDueDate:new Date(now.getTime()+3600000)},now).some(o=>o.grade==='REVISIT'),'extra practice cannot delay an earlier regular review');
 const late=scheduleStudyReview({...p,temporaryDueDate:new Date(now.getTime()-86400000)},'GOOD',now);assert.ok(late.nextDueDate>now);assert.equal(late.temporaryDueDate,undefined);
-const phrase={...p,itemType:'PHRASE' as const};assert.deepEqual(studyReviewOptions(phrase,now).map(o=>o.delaySeconds),[7,30,180,365].map(d=>d*86400));
+const phrase={...p,itemType:'PHRASE' as const};assert.equal(studyReviewOptions(phrase,now)[0].phase,'RELEARNING');assert.equal(scheduleStudyReview(phrase,'GOOD',now).interval,scheduleStudyReview(p,'GOOD',now).interval);
 assert.throws(()=>scheduleStudyReview(phrase,'REVISIT',now),/established word/);
 const fresh:UserProgress={...p,itemId:new ObjectId(),isNew:true,interval:0,repetitions:0,totalReviews:0,lastReviewed:null};fresh.scheduler=initialScheduler(fresh);
 const freshPhrase={...fresh,itemType:'PHRASE' as const};
 for(const grade of ['AGAIN','HARD']as const){
  const first=scheduleStudyReview(freshPhrase,grade,now);
  assert.equal(first.scheduler.phase,'LEARNING','new phrases must use their Anki learning steps');
- assert.equal(first.scheduler.queue,'MINUTE');assert.equal(first.interval,0);
+ assert.equal(first.scheduler.queue,'DAY');assert.equal(first.interval,0);
  const advanced=scheduleStudyReview({...freshPhrase,...first},'GOOD',first.nextDueDate);
  assert.equal(advanced.scheduler.phase,'LEARNING');
  const graduated=scheduleStudyReview({...freshPhrase,...advanced},'GOOD',advanced.nextDueDate);

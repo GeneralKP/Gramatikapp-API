@@ -1,0 +1,2786 @@
+{
+  "sourceAuditedAt": "2026-10-10T22:19:23.015Z",
+  "isolated": true,
+  "start": "2026-10-11T10:00:00.000Z",
+  "days": 183,
+  "wordRelationsPerDay": 200,
+  "phraseRelationsPerDay": 100,
+  "ratings": 56082,
+  "existingUnclassifiedIntroductions": 0,
+  "originalProgress": 40,
+  "newRelations": {
+    "WORD": 6242,
+    "PHRASE": 269
+  },
+  "levelTransitions": {
+    "WORD": [
+      "A1.1",
+      "A1.2",
+      "A2.1",
+      "A2.2",
+      "B1.1",
+      "B1.2",
+      "B2.1",
+      "B2.2",
+      "C1.1",
+      "C1.2",
+      "C2.1",
+      "C2.2"
+    ],
+    "PHRASE": [
+      "A1.1",
+      "A1.2",
+      "A2.1",
+      "A2.2",
+      "B1.1",
+      "B1.2",
+      "B2.1",
+      "B2.2",
+      "C1.1",
+      "C1.2",
+      "C2.1",
+      "C2.2"
+    ]
+  },
+  "eligible": {
+    "WORD": {
+      "A1.1": 509,
+      "A1.2": 478,
+      "A2.1": 843,
+      "A2.2": 617,
+      "B1.1": 936,
+      "B1.2": 940,
+      "B2.1": 1062,
+      "B2.2": 400,
+      "C1.1": 353,
+      "C1.2": 75,
+      "C2.1": 26,
+      "C2.2": 3
+    },
+    "PHRASE": {
+      "A1.1": 4,
+      "A1.2": 3,
+      "A2.1": 5,
+      "A2.2": 10,
+      "B1.1": 10,
+      "B1.2": 15,
+      "B2.1": 34,
+      "B2.2": 80,
+      "C1.1": 64,
+      "C1.2": 40,
+      "C2.1": 2,
+      "C2.2": 2
+    }
+  },
+  "daily": [
+    {
+      "day": 1,
+      "date": "2026-10-11T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 400
+      },
+      "PHRASE": {
+        "newRelations": 100,
+        "ratings": 100
+      }
+    },
+    {
+      "day": 2,
+      "date": "2026-10-12T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 400
+      },
+      "PHRASE": {
+        "newRelations": 100,
+        "ratings": 100
+      }
+    },
+    {
+      "day": 3,
+      "date": "2026-10-13T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 400
+      },
+      "PHRASE": {
+        "newRelations": 69,
+        "ratings": 69
+      }
+    },
+    {
+      "day": 4,
+      "date": "2026-10-14T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 520
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 31
+      }
+    },
+    {
+      "day": 5,
+      "date": "2026-10-15T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 670
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 67
+      }
+    },
+    {
+      "day": 6,
+      "date": "2026-10-16T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 798
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 83
+      }
+    },
+    {
+      "day": 7,
+      "date": "2026-10-17T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 813
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 65
+      }
+    },
+    {
+      "day": 8,
+      "date": "2026-10-18T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 790
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 23
+      }
+    },
+    {
+      "day": 9,
+      "date": "2026-10-19T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 805
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 10,
+      "date": "2026-10-20T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 817
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 11,
+      "date": "2026-10-21T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 773
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 12,
+      "date": "2026-10-22T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 841
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 13,
+      "date": "2026-10-23T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 856
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 14,
+      "date": "2026-10-24T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 880
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 15,
+      "date": "2026-10-25T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 886
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 16,
+      "date": "2026-10-26T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 961
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 17,
+      "date": "2026-10-27T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 960
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 18,
+      "date": "2026-10-28T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1021
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 19,
+      "date": "2026-10-29T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1044
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 20,
+      "date": "2026-10-30T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1051
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 21,
+      "date": "2026-10-31T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1164
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 22,
+      "date": "2026-11-01T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1152
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 23,
+      "date": "2026-11-02T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1178
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 24,
+      "date": "2026-11-03T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1166
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 25,
+      "date": "2026-11-04T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1163
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 26,
+      "date": "2026-11-05T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1229
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 27,
+      "date": "2026-11-06T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1216
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 28,
+      "date": "2026-11-07T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1169
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 29,
+      "date": "2026-11-08T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1196
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 30,
+      "date": "2026-11-09T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1201
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 31,
+      "date": "2026-11-10T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 200,
+        "ratings": 1177
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 32,
+      "date": "2026-11-11T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 42,
+        "ratings": 911
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 33,
+      "date": "2026-11-12T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 761
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 34,
+      "date": "2026-11-13T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 798
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 31
+      }
+    },
+    {
+      "day": 35,
+      "date": "2026-11-14T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 708
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 67
+      }
+    },
+    {
+      "day": 36,
+      "date": "2026-11-15T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 571
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 83
+      }
+    },
+    {
+      "day": 37,
+      "date": "2026-11-16T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 413
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 65
+      }
+    },
+    {
+      "day": 38,
+      "date": "2026-11-17T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 421
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 23
+      }
+    },
+    {
+      "day": 39,
+      "date": "2026-11-18T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 413
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 40,
+      "date": "2026-11-19T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 413
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 41,
+      "date": "2026-11-20T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 433
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 42,
+      "date": "2026-11-21T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 422
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 43,
+      "date": "2026-11-22T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 410
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 44,
+      "date": "2026-11-23T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 395
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 45,
+      "date": "2026-11-24T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 412
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 46,
+      "date": "2026-11-25T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 391
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 47,
+      "date": "2026-11-26T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 291
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 48,
+      "date": "2026-11-27T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 296
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 49,
+      "date": "2026-11-28T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 269
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 50,
+      "date": "2026-11-29T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 215
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 51,
+      "date": "2026-11-30T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 199
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 52,
+      "date": "2026-12-01T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 187
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 53,
+      "date": "2026-12-02T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 162
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 54,
+      "date": "2026-12-03T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 186
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 55,
+      "date": "2026-12-04T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 159
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 56,
+      "date": "2026-12-05T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 148
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 57,
+      "date": "2026-12-06T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 140
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 58,
+      "date": "2026-12-07T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 153
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 59,
+      "date": "2026-12-08T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 180
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 60,
+      "date": "2026-12-09T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 215
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 61,
+      "date": "2026-12-10T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 187
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 62,
+      "date": "2026-12-11T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 193
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 63,
+      "date": "2026-12-12T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 200
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 64,
+      "date": "2026-12-13T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 216
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 31
+      }
+    },
+    {
+      "day": 65,
+      "date": "2026-12-14T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 237
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 67
+      }
+    },
+    {
+      "day": 66,
+      "date": "2026-12-15T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 249
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 83
+      }
+    },
+    {
+      "day": 67,
+      "date": "2026-12-16T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 241
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 65
+      }
+    },
+    {
+      "day": 68,
+      "date": "2026-12-17T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 231
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 23
+      }
+    },
+    {
+      "day": 69,
+      "date": "2026-12-18T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 245
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 70,
+      "date": "2026-12-19T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 279
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 71,
+      "date": "2026-12-20T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 244
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 72,
+      "date": "2026-12-21T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 220
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 73,
+      "date": "2026-12-22T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 250
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 74,
+      "date": "2026-12-23T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 246
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 75,
+      "date": "2026-12-24T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 253
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 76,
+      "date": "2026-12-25T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 272
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 77,
+      "date": "2026-12-26T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 268
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 78,
+      "date": "2026-12-27T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 265
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 79,
+      "date": "2026-12-28T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 264
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 80,
+      "date": "2026-12-29T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 277
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 81,
+      "date": "2026-12-30T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 259
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 82,
+      "date": "2026-12-31T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 287
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 83,
+      "date": "2027-01-01T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 278
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 84,
+      "date": "2027-01-02T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 269
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 85,
+      "date": "2027-01-03T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 258
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 86,
+      "date": "2027-01-04T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 221
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 87,
+      "date": "2027-01-05T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 242
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 88,
+      "date": "2027-01-06T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 232
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 89,
+      "date": "2027-01-07T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 236
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 90,
+      "date": "2027-01-08T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 204
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 91,
+      "date": "2027-01-09T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 201
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 92,
+      "date": "2027-01-10T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 211
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 93,
+      "date": "2027-01-11T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 209
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 94,
+      "date": "2027-01-12T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 177
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 31
+      }
+    },
+    {
+      "day": 95,
+      "date": "2027-01-13T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 197
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 67
+      }
+    },
+    {
+      "day": 96,
+      "date": "2027-01-14T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 171
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 83
+      }
+    },
+    {
+      "day": 97,
+      "date": "2027-01-15T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 205
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 65
+      }
+    },
+    {
+      "day": 98,
+      "date": "2027-01-16T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 184
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 23
+      }
+    },
+    {
+      "day": 99,
+      "date": "2027-01-17T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 158
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 100,
+      "date": "2027-01-18T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 128
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 101,
+      "date": "2027-01-19T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 139
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 102,
+      "date": "2027-01-20T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 116
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 103,
+      "date": "2027-01-21T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 116
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 104,
+      "date": "2027-01-22T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 98
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 105,
+      "date": "2027-01-23T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 101
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 106,
+      "date": "2027-01-24T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 88
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 107,
+      "date": "2027-01-25T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 94
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 108,
+      "date": "2027-01-26T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 81
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 109,
+      "date": "2027-01-27T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 84
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 110,
+      "date": "2027-01-28T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 72
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 111,
+      "date": "2027-01-29T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 67
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 112,
+      "date": "2027-01-30T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 82
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 113,
+      "date": "2027-01-31T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 58
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 114,
+      "date": "2027-02-01T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 57
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 115,
+      "date": "2027-02-02T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 54
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 116,
+      "date": "2027-02-03T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 38
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 117,
+      "date": "2027-02-04T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 43
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 118,
+      "date": "2027-02-05T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 56
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 119,
+      "date": "2027-02-06T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 49
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 120,
+      "date": "2027-02-07T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 44
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 121,
+      "date": "2027-02-08T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 41
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 122,
+      "date": "2027-02-09T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 41
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 123,
+      "date": "2027-02-10T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 36
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 124,
+      "date": "2027-02-11T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 38
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 31
+      }
+    },
+    {
+      "day": 125,
+      "date": "2027-02-12T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 39
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 67
+      }
+    },
+    {
+      "day": 126,
+      "date": "2027-02-13T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 44
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 83
+      }
+    },
+    {
+      "day": 127,
+      "date": "2027-02-14T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 44
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 65
+      }
+    },
+    {
+      "day": 128,
+      "date": "2027-02-15T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 54
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 23
+      }
+    },
+    {
+      "day": 129,
+      "date": "2027-02-16T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 46
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 130,
+      "date": "2027-02-17T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 44
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 131,
+      "date": "2027-02-18T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 39
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 132,
+      "date": "2027-02-19T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 46
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 133,
+      "date": "2027-02-20T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 36
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 134,
+      "date": "2027-02-21T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 53
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 135,
+      "date": "2027-02-22T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 44
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 136,
+      "date": "2027-02-23T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 53
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 137,
+      "date": "2027-02-24T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 43
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 138,
+      "date": "2027-02-25T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 43
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 139,
+      "date": "2027-02-26T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 47
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 140,
+      "date": "2027-02-27T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 47
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 141,
+      "date": "2027-02-28T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 43
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 142,
+      "date": "2027-03-01T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 42
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 143,
+      "date": "2027-03-02T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 51
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 144,
+      "date": "2027-03-03T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 44
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 145,
+      "date": "2027-03-04T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 47
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 146,
+      "date": "2027-03-05T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 46
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 147,
+      "date": "2027-03-06T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 49
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 148,
+      "date": "2027-03-07T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 35
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 149,
+      "date": "2027-03-08T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 53
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 150,
+      "date": "2027-03-09T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 52
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 151,
+      "date": "2027-03-10T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 53
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 152,
+      "date": "2027-03-11T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 70
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 153,
+      "date": "2027-03-12T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 62
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 154,
+      "date": "2027-03-13T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 51
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 31
+      }
+    },
+    {
+      "day": 155,
+      "date": "2027-03-14T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 64
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 67
+      }
+    },
+    {
+      "day": 156,
+      "date": "2027-03-15T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 60
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 83
+      }
+    },
+    {
+      "day": 157,
+      "date": "2027-03-16T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 70
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 65
+      }
+    },
+    {
+      "day": 158,
+      "date": "2027-03-17T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 87
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 23
+      }
+    },
+    {
+      "day": 159,
+      "date": "2027-03-18T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 56
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 160,
+      "date": "2027-03-19T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 79
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 161,
+      "date": "2027-03-20T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 69
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 162,
+      "date": "2027-03-21T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 79
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 163,
+      "date": "2027-03-22T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 78
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 164,
+      "date": "2027-03-23T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 66
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 165,
+      "date": "2027-03-24T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 104
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 166,
+      "date": "2027-03-25T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 77
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 167,
+      "date": "2027-03-26T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 95
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 168,
+      "date": "2027-03-27T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 67
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 169,
+      "date": "2027-03-28T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 83
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 170,
+      "date": "2027-03-29T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 88
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 171,
+      "date": "2027-03-30T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 100
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 172,
+      "date": "2027-03-31T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 104
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 173,
+      "date": "2027-04-01T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 95
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 174,
+      "date": "2027-04-02T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 94
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 175,
+      "date": "2027-04-03T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 96
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 176,
+      "date": "2027-04-04T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 115
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 177,
+      "date": "2027-04-05T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 107
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 178,
+      "date": "2027-04-06T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 101
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 179,
+      "date": "2027-04-07T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 100
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 180,
+      "date": "2027-04-08T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 102
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 181,
+      "date": "2027-04-09T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 104
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 182,
+      "date": "2027-04-10T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 112
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    },
+    {
+      "day": 183,
+      "date": "2027-04-11T10:00:00.000Z",
+      "WORD": {
+        "newRelations": 0,
+        "ratings": 101
+      },
+      "PHRASE": {
+        "newRelations": 0,
+        "ratings": 0
+      }
+    }
+  ],
+  "benchmarks": [
+    {
+      "day": 1,
+      "type": "WORD",
+      "ms": 367.65,
+      "cpuMs": 321.017,
+      "commands": 1402,
+      "bytes": 876694,
+      "byCommand": {
+        "find": 801,
+        "aggregate": 2,
+        "update": 397,
+        "getMore": 4,
+        "commitTransaction": 198
+      },
+      "catalogReads": [
+        {
+          "collection": "WORDS_ES_DE",
+          "ids": 198
+        },
+        {
+          "collection": "WORDS_ES",
+          "ids": 198
+        },
+        {
+          "collection": "WORDS_DE",
+          "ids": 198
+        }
+      ]
+    },
+    {
+      "day": 1,
+      "type": "WORD",
+      "scenario": "warm-pending-reload",
+      "ms": 27.88,
+      "commands": 7,
+      "bytes": 45896,
+      "catalogReads": 0
+    },
+    {
+      "day": 1,
+      "type": "PHRASE",
+      "ms": 9.23,
+      "cpuMs": 5.817,
+      "commands": 7,
+      "bytes": 30015,
+      "byCommand": {
+        "find": 4,
+        "aggregate": 2,
+        "update": 1
+      },
+      "catalogReads": []
+    },
+    {
+      "day": 1,
+      "type": "PHRASE",
+      "scenario": "warm-pending-reload",
+      "ms": 4.82,
+      "commands": 5,
+      "bytes": 2860,
+      "catalogReads": 0
+    },
+    {
+      "day": 2,
+      "type": "WORD",
+      "ms": 315.03,
+      "cpuMs": 191.278,
+      "commands": 1416,
+      "bytes": 884194,
+      "byCommand": {
+        "find": 809,
+        "aggregate": 2,
+        "update": 401,
+        "getMore": 4,
+        "commitTransaction": 200
+      },
+      "catalogReads": [
+        {
+          "collection": "WORDS_ES_DE",
+          "ids": 200
+        },
+        {
+          "collection": "WORDS_ES",
+          "ids": 200
+        },
+        {
+          "collection": "WORDS_DE",
+          "ids": 200
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "type": "WORD",
+      "scenario": "warm-pending-reload",
+      "ms": 31.48,
+      "commands": 7,
+      "bytes": 45896,
+      "catalogReads": 0
+    },
+    {
+      "day": 2,
+      "type": "PHRASE",
+      "ms": 10.17,
+      "cpuMs": 3.973,
+      "commands": 7,
+      "bytes": 36675,
+      "byCommand": {
+        "find": 4,
+        "aggregate": 2,
+        "update": 1
+      },
+      "catalogReads": []
+    },
+    {
+      "day": 2,
+      "type": "PHRASE",
+      "scenario": "warm-pending-reload",
+      "ms": 5.76,
+      "commands": 5,
+      "bytes": 2860,
+      "catalogReads": 0
+    },
+    {
+      "day": 33,
+      "type": "WORD",
+      "ms": 119.77,
+      "cpuMs": 39.283,
+      "commands": 6,
+      "bytes": 3094,
+      "byCommand": {
+        "find": 3,
+        "aggregate": 2,
+        "getMore": 1
+      },
+      "catalogReads": []
+    },
+    {
+      "day": 33,
+      "type": "PHRASE",
+      "ms": 7.66,
+      "cpuMs": 1.656,
+      "commands": 5,
+      "bytes": 2860,
+      "byCommand": {
+        "find": 3,
+        "aggregate": 2
+      },
+      "catalogReads": []
+    },
+    {
+      "day": 183,
+      "type": "WORD",
+      "ms": 153.11,
+      "cpuMs": 27.537,
+      "commands": 6,
+      "bytes": 3094,
+      "byCommand": {
+        "find": 3,
+        "aggregate": 2,
+        "getMore": 1
+      },
+      "catalogReads": []
+    },
+    {
+      "day": 183,
+      "type": "PHRASE",
+      "ms": 7.65,
+      "cpuMs": 1.237,
+      "commands": 5,
+      "bytes": 2860,
+      "byCommand": {
+        "find": 3,
+        "aggregate": 2
+      },
+      "catalogReads": []
+    }
+  ],
+  "queryPlans": [
+    {
+      "returned": 6511,
+      "documentsExamined": 12753,
+      "keysExamined": 12753,
+      "plan": {
+        "isCached": false,
+        "queryPlan": {
+          "stage": "GROUP",
+          "planNodeId": 4,
+          "inputStage": {
+            "stage": "FETCH",
+            "planNodeId": 2,
+            "inputStage": {
+              "stage": "IXSCAN",
+              "planNodeId": 1,
+              "keyPattern": {
+                "userId": 1,
+                "nextDueDate": 1
+              },
+              "indexName": "userId_1_nextDueDate_1",
+              "isMultiKey": false,
+              "multiKeyPaths": {
+                "userId": [],
+                "nextDueDate": []
+              },
+              "isUnique": false,
+              "isSparse": false,
+              "isPartial": false,
+              "indexVersion": 2,
+              "direction": "forward",
+              "indexBounds": {
+                "userId": [
+                  "[ObjectId('6ac7ebb66ef75f5b1e131307'), ObjectId('6ac7ebb66ef75f5b1e131307')]"
+                ],
+                "nextDueDate": [
+                  "[MinKey, MaxKey]"
+                ]
+              }
+            }
+          }
+        },
+        "slotBasedPlan": {
+          "slots": "$$RESULT=s13 env: { s5 = {\"userId\" : 1, \"nextDueDate\" : 1} }",
+          "stages": "[4] project [s13 = newObj(\"_id\", s12)] \n[4] project [s12 = newObj(\"itemType\", s9, \"itemId\", s11)] \n[4] group [s9, s11] [] \n[4] project [s11 = \n    if (typeMatch(s10, 1088) ?: true) \n    then s8 \n    else s10 \n] \n[2] nlj inner [] [s1, s2, s3, s4, s5] \n    left \n        [1] ixseek KS(646AC7EBB66EF75F5B1E1313070A0104) KS(646AC7EBB66EF75F5B1E131307F0FE04) s4 s1 s2 s3 [] @\"d551a93b-785e-4ffb-a37a-0544c0cfe7e5\" @\"userId_1_nextDueDate_1\" true \n    right \n        [2] limit 1ll \n        [2] seek s1 s6 s7 s2 s3 s4 s5 none none [s8 = itemId, s9 = itemType, s10 = relationId] @\"d551a93b-785e-4ffb-a37a-0544c0cfe7e5\" true false \n"
+        }
+      },
+      "groupStages": []
+    },
+    {
+      "returned": 0,
+      "documentsExamined": 12753,
+      "keysExamined": 12753,
+      "plan": {
+        "isCached": false,
+        "stage": "FETCH",
+        "filter": {
+          "$and": [
+            {
+              "suspended": {
+                "$not": {
+                  "$eq": true
+                }
+              }
+            },
+            {
+              "isNew": {
+                "$eq": true
+              }
+            }
+          ]
+        },
+        "inputStage": {
+          "stage": "IXSCAN",
+          "keyPattern": {
+            "userId": 1,
+            "nextDueDate": 1
+          },
+          "indexName": "userId_1_nextDueDate_1",
+          "isMultiKey": false,
+          "multiKeyPaths": {
+            "userId": [],
+            "nextDueDate": []
+          },
+          "isUnique": false,
+          "isSparse": false,
+          "isPartial": false,
+          "indexVersion": 2,
+          "direction": "forward",
+          "indexBounds": {
+            "userId": [
+              "[ObjectId('6ac7ebb66ef75f5b1e131307'), ObjectId('6ac7ebb66ef75f5b1e131307')]"
+            ],
+            "nextDueDate": [
+              "[MinKey, MaxKey]"
+            ]
+          }
+        }
+      },
+      "groupStages": []
+    },
+    {
+      "returned": 200,
+      "documentsExamined": 200,
+      "keysExamined": 383,
+      "plan": {
+        "isCached": false,
+        "stage": "FETCH",
+        "inputStage": {
+          "stage": "IXSCAN",
+          "keyPattern": {
+            "_id": 1
+          },
+          "indexName": "_id_",
+          "isMultiKey": false,
+          "isUnique": true,
+          "isSparse": false,
+          "isPartial": false,
+          "indexVersion": 2,
+          "direction": "forward",
+          "indexBounds": {
+            "_id": [
+              "[ObjectId('002c2173e5efadd0fdf5ec1d'), ObjectId('002c2173e5efadd0fdf5ec1d')]",
+              "[ObjectId('0108a39157c0916adae20f16'), ObjectId('0108a39157c0916adae20f16')]",
+              "[ObjectId('03c7373f6f01beceaedee62f'), ObjectId('03c7373f6f01beceaedee62f')]",
+              "[ObjectId('03fad28fe758dba498d86ce7'), ObjectId('03fad28fe758dba498d86ce7')]",
+              "[ObjectId('0421aa2fa8da95835328426c'), ObjectId('0421aa2fa8da95835328426c')]",
+              "[ObjectId('055016be85d1877c4099eeb4'), ObjectId('055016be85d1877c4099eeb4')]",
+              "[ObjectId('05b6897b15b35444cf333f38'), ObjectId('05b6897b15b35444cf333f38')]",
+              "[ObjectId('06068d8ef353102b450c64b9'), ObjectId('06068d8ef353102b450c64b9')]",
+              "[ObjectId('06b751007d55959d9183fbf1'), ObjectId('06b751007d55959d9183fbf1')]",
+              "[ObjectId('07b1174947a63c2b8d1d5cda'), ObjectId('07b1174947a63c2b8d1d5cda')]",
+              "[ObjectId('07cbd2dd754db7ec6d0e4f48'), ObjectId('07cbd2dd754db7ec6d0e4f48')]",
+              "[ObjectId('087311704207a65b04c62e02'), ObjectId('087311704207a65b04c62e02')]",
+              "[ObjectId('087f32413ba61326206ae37a'), ObjectId('087f32413ba61326206ae37a')]",
+              "[ObjectId('0887ea62fac933616bac9428'), ObjectId('0887ea62fac933616bac9428')]",
+              "[ObjectId('09531c3ac8c4e860288bd5b7'), ObjectId('09531c3ac8c4e860288bd5b7')]",
+              "[ObjectId('09ccb6684598f448cfb91903'), ObjectId('09ccb6684598f448cfb91903')]",
+              "[ObjectId('09e0f7eb9d544e67828dc3ad'), ObjectId('09e0f7eb9d544e67828dc3ad')]",
+              "[ObjectId('09f7b12a03a64dab2b71c63d'), ObjectId('09f7b12a03a64dab2b71c63d')]",
+              "[ObjectId('0a64084cd8555d40891ef533'), ObjectId('0a64084cd8555d40891ef533')]",
+              "[ObjectId('0af3fec2eb2c0c96702a4c65'), ObjectId('0af3fec2eb2c0c96702a4c65')]",
+              "[ObjectId('0b15b4a43a0bc113bfc3aed2'), ObjectId('0b15b4a43a0bc113bfc3aed2')]",
+              "[ObjectId('0bea4ad8664e285f6ece72e6'), ObjectId('0bea4ad8664e285f6ece72e6')]",
+              "[ObjectId('0c01277c16f95472c099053e'), ObjectId('0c01277c16f95472c099053e')]",
+              "[ObjectId('0c091a8949d2f1359d20ad8d'), ObjectId('0c091a8949d2f1359d20ad8d')]",
+              "[ObjectId('0ce56c91c31b015abfa008fc'), ObjectId('0ce56c91c31b015abfa008fc')]",
+              "[ObjectId('0cef37e9465c37456204aaec'), ObjectId('0cef37e9465c37456204aaec')]",
+              "[ObjectId('0d69621ef5453edb0e52ffb9'), ObjectId('0d69621ef5453edb0e52ffb9')]",
+              "[ObjectId('0da05bca70ff2d316c6b0912'), ObjectId('0da05bca70ff2d316c6b0912')]",
+              "[ObjectId('0eab1752a97aea32c1d7052b'), ObjectId('0eab1752a97aea32c1d7052b')]",
+              "[ObjectId('0eb0b081baddaf6bd3f7fc7f'), ObjectId('0eb0b081baddaf6bd3f7fc7f')]",
+              "[ObjectId('0eb580cd3bc0e74138e2e545'), ObjectId('0eb580cd3bc0e74138e2e545')]",
+              "[ObjectId('1016add00c96658d12292a91'), ObjectId('1016add00c96658d12292a91')]",
+              "[ObjectId('109f33783ed377263e5dd0ac'), ObjectId('109f33783ed377263e5dd0ac')]",
+              "[ObjectId('10ea45af4af428fff0f0de1c'), ObjectId('10ea45af4af428fff0f0de1c')]",
+              "[ObjectId('112ac5f297f13098f6a9c48b'), ObjectId('112ac5f297f13098f6a9c48b')]",
+              "[ObjectId('117408b3a0e8557a68dee92f'), ObjectId('117408b3a0e8557a68dee92f')]",
+              "[ObjectId('121b3a03cdc9f0ce5bb4ee42'), ObjectId('121b3a03cdc9f0ce5bb4ee42')]",
+              "[ObjectId('1272b6179667f278360b3e17'), ObjectId('1272b6179667f278360b3e17')]",
+              "[ObjectId('132f7cd2d4a63403362629dc'), ObjectId('132f7cd2d4a63403362629dc')]",
+              "[ObjectId('13667db42e76ed2b3765a91f'), ObjectId('13667db42e76ed2b3765a91f')]",
+              "[ObjectId('1397c9f831b259c96d49b1dd'), ObjectId('1397c9f831b259c96d49b1dd')]",
+              "[ObjectId('13d96beaaf177464cd02f9ba'), ObjectId('13d96beaaf177464cd02f9ba')]",
+              "[ObjectId('13e400cc6cdf2d4be8acf411'), ObjectId('13e400cc6cdf2d4be8acf411')]",
+              "[ObjectId('1475828f67983da044c82e6d'), ObjectId('1475828f67983da044c82e6d')]",
+              "[ObjectId('14fd6ee3535860feddbb061c'), ObjectId('14fd6ee3535860feddbb061c')]",
+              "[ObjectId('165c591ceedf317f45aaa97f'), ObjectId('165c591ceedf317f45aaa97f')]",
+              "[ObjectId('16e28c98f0e5851a09fc9817'), ObjectId('16e28c98f0e5851a09fc9817')]",
+              "[ObjectId('170a8f9d8c89086f9c5afd56'), ObjectId('170a8f9d8c89086f9c5afd56')]",
+              "[ObjectId('177a23ec49ca22e47ee95979'), ObjectId('177a23ec49ca22e47ee95979')]",
+              "[ObjectId('17adaff3791b1984cdad7f3e'), ObjectId('17adaff3791b1984cdad7f3e')]",
+              "[ObjectId('17f7992d6c559bc176a71d80'), ObjectId('17f7992d6c559bc176a71d80')]",
+              "[ObjectId('182063030a22006e8db5de25'), ObjectId('182063030a22006e8db5de25')]",
+              "[ObjectId('1939e996bbca6dcc610b2b03'), ObjectId('1939e996bbca6dcc610b2b03')]",
+              "[ObjectId('19d45f6f37c5506fc20e7d94'), ObjectId('19d45f6f37c5506fc20e7d94')]",
+              "[ObjectId('1a4434866c456dc60202aa7c'), ObjectId('1a4434866c456dc60202aa7c')]",
+              "[ObjectId('1b3f07445cfc7a5356bbaf4e'), ObjectId('1b3f07445cfc7a5356bbaf4e')]",
+              "[ObjectId('1bbd9f27e9e2cc9198360a28'), ObjectId('1bbd9f27e9e2cc9198360a28')]",
+              "[ObjectId('1db27009909010d242042947'), ObjectId('1db27009909010d242042947')]",
+              "[ObjectId('1dd335732e9b5ee9a3f8db64'), ObjectId('1dd335732e9b5ee9a3f8db64')]",
+              "[ObjectId('1e9e0a019fe5f85da2de3880'), ObjectId('1e9e0a019fe5f85da2de3880')]",
+              "[ObjectId('1f4d8f0a4e0ff85e376fd308'), ObjectId('1f4d8f0a4e0ff85e376fd308')]",
+              "[ObjectId('1f8bdac2433eb9a85da23403'), ObjectId('1f8bdac2433eb9a85da23403')]",
+              "[ObjectId('2053c7453b7335701a058abd'), ObjectId('2053c7453b7335701a058abd')]",
+              "[ObjectId('20580d96b478f18080b7258b'), ObjectId('20580d96b478f18080b7258b')]",
+              "[ObjectId('20ad4f2008878273319512e2'), ObjectId('20ad4f2008878273319512e2')]",
+              "[ObjectId('2120d79dcd8257a2cb2d40d4'), ObjectId('2120d79dcd8257a2cb2d40d4')]",
+              "[ObjectId('21fbe4f7841278954ac55063'), ObjectId('21fbe4f7841278954ac55063')]",
+              "[ObjectId('23590672cdcf088bcabf4f5a'), ObjectId('23590672cdcf088bcabf4f5a')]",
+              "[ObjectId('24a9e1c9992563842b2d863e'), ObjectId('24a9e1c9992563842b2d863e')]",
+              "[ObjectId('24fb2d762eb1549377f95d54'), ObjectId('24fb2d762eb1549377f95d54')]",
+              "[ObjectId('250f77dc7c1708325ee8f41c'), ObjectId('250f77dc7c1708325ee8f41c')]",
+              "[ObjectId('263212ed7027eff0460ea214'), ObjectId('263212ed7027eff0460ea214')]",
+              "[ObjectId('26aca6bb1f0043a28ed65bb7'), ObjectId('26aca6bb1f0043a28ed65bb7')]",
+              "[ObjectId('26f3f27a7267454f89cdda3a'), ObjectId('26f3f27a7267454f89cdda3a')]",
+              "[ObjectId('270f345e1c18f2631df2891a'), ObjectId('270f345e1c18f2631df2891a')]",
+              "[ObjectId('2746b36f282fac2b62f2fbe5'), ObjectId('2746b36f282fac2b62f2fbe5')]",
+              "[ObjectId('28e276c4a1346f0e7afb79c3'), ObjectId('28e276c4a1346f0e7afb79c3')]",
+              "[ObjectId('2968ac8c2400f94b0f1ef18b'), ObjectId('2968ac8c2400f94b0f1ef18b')]",
+              "[ObjectId('2a1608726c74df2cd8bb5135'), ObjectId('2a1608726c74df2cd8bb5135')]",
+              "[ObjectId('2ab29284c7ca1fc1d9d51655'), ObjectId('2ab29284c7ca1fc1d9d51655')]",
+              "[ObjectId('2b0fdb402f70f0c49f8172c5'), ObjectId('2b0fdb402f70f0c49f8172c5')]",
+              "[ObjectId('2c1bdb96d500cf4c7a522315'), ObjectId('2c1bdb96d500cf4c7a522315')]",
+              "[ObjectId('2c3aca33913b55a1b2127c30'), ObjectId('2c3aca33913b55a1b2127c30')]",
+              "[ObjectId('2c55fcda6676d6d7c9cb544a'), ObjectId('2c55fcda6676d6d7c9cb544a')]",
+              "[ObjectId('2ccfada0e1d0b687a29f0ba6'), ObjectId('2ccfada0e1d0b687a29f0ba6')]",
+              "[ObjectId('2db955c9fd14366e30c9c700'), ObjectId('2db955c9fd14366e30c9c700')]",
+              "[ObjectId('2dea3f1bb9dc5c14db62e000'), ObjectId('2dea3f1bb9dc5c14db62e000')]",
+              "[ObjectId('2e9a730bbfa740933a0f4b83'), ObjectId('2e9a730bbfa740933a0f4b83')]",
+              "[ObjectId('2f5f833eeeedda5c99a89953'), ObjectId('2f5f833eeeedda5c99a89953')]",
+              "[ObjectId('2f69d777d1d0947f6c120311'), ObjectId('2f69d777d1d0947f6c120311')]",
+              "[ObjectId('2f8bcd63131f74ac51241a0c'), ObjectId('2f8bcd63131f74ac51241a0c')]",
+              "[ObjectId('2fc95e6f10bb3c99a980b22f'), ObjectId('2fc95e6f10bb3c99a980b22f')]",
+              "[ObjectId('301530c9493f56b2cc8b49e9'), ObjectId('301530c9493f56b2cc8b49e9')]",
+              "[ObjectId('302531ea00e3a3096259079f'), ObjectId('302531ea00e3a3096259079f')]",
+              "[ObjectId('316206aa23022686dbc9f26d'), ObjectId('316206aa23022686dbc9f26d')]",
+              "[ObjectId('331ead23d8cfa0b56593872c'), ObjectId('331ead23d8cfa0b56593872c')]",
+              "[ObjectId('33738a02a3f1e54a15884f1b'), ObjectId('33738a02a3f1e54a15884f1b')]",
+              "[ObjectId('33da55cac660ac3c7ac65b60'), ObjectId('33da55cac660ac3c7ac65b60')]",
+              "[ObjectId('35aa5302d1a630b7a0e84917'), ObjectId('35aa5302d1a630b7a0e84917')]",
+              "[ObjectId('3601c60808a316db9eca6507'), ObjectId('3601c60808a316db9eca6507')]",
+              "[ObjectId('366283949d49d6c868a31f64'), ObjectId('366283949d49d6c868a31f64')]",
+              "[ObjectId('36ad4dd449b7c8fa548ec7b8'), ObjectId('36ad4dd449b7c8fa548ec7b8')]",
+              "[ObjectId('38600c9e0e1e37fcfba61ab4'), ObjectId('38600c9e0e1e37fcfba61ab4')]",
+              "[ObjectId('39244588da2923dc40e81b9b'), ObjectId('39244588da2923dc40e81b9b')]",
+              "[ObjectId('395a41bedd0bcb7685ddc2d6'), ObjectId('395a41bedd0bcb7685ddc2d6')]",
+              "[ObjectId('3ade3f99479a04e135cef9c6'), ObjectId('3ade3f99479a04e135cef9c6')]",
+              "[ObjectId('3ae42b33666b86baf000b853'), ObjectId('3ae42b33666b86baf000b853')]",
+              "[ObjectId('3b673799aced4550ce0bebf6'), ObjectId('3b673799aced4550ce0bebf6')]",
+              "[ObjectId('3b7d9e9318b7c62c9c88b3ba'), ObjectId('3b7d9e9318b7c62c9c88b3ba')]",
+              "[ObjectId('3c9b52435fe51455258e1101'), ObjectId('3c9b52435fe51455258e1101')]",
+              "[ObjectId('3cdd57260df0c6d7a3f3a157'), ObjectId('3cdd57260df0c6d7a3f3a157')]",
+              "[ObjectId('3d105fe76da8d584a1461d63'), ObjectId('3d105fe76da8d584a1461d63')]",
+              "[ObjectId('3eab516877c52ec4d4206bfe'), ObjectId('3eab516877c52ec4d4206bfe')]",
+              "[ObjectId('3f7416d315d578fc76229c41'), ObjectId('3f7416d315d578fc76229c41')]",
+              "[ObjectId('3fa1ec86c3d341a96e06a076'), ObjectId('3fa1ec86c3d341a96e06a076')]",
+              "[ObjectId('3fa369d3fac5aac8cf0196c7'), ObjectId('3fa369d3fac5aac8cf0196c7')]",
+              "[ObjectId('3fd764189ff2e58b3c3475c7'), ObjectId('3fd764189ff2e58b3c3475c7')]",
+              "[ObjectId('4148e948aa684daad29eed6f'), ObjectId('4148e948aa684daad29eed6f')]",
+              "[ObjectId('41f2892e243e8fc3d7f74972'), ObjectId('41f2892e243e8fc3d7f74972')]",
+              "[ObjectId('42d11a87ece05b4e9e3cc9e9'), ObjectId('42d11a87ece05b4e9e3cc9e9')]",
+              "[ObjectId('4318cd9dba94d0b5ede3b5d7'), ObjectId('4318cd9dba94d0b5ede3b5d7')]",
+              "[ObjectId('438fe1e0a8be39d9ea72def0'), ObjectId('438fe1e0a8be39d9ea72def0')]",
+              "[ObjectId('440adf18362d934347a28d91'), ObjectId('440adf18362d934347a28d91')]",
+              "[ObjectId('44160ecf4fdd2358b44208a7'), ObjectId('44160ecf4fdd2358b44208a7')]",
+              "[ObjectId('445cb37f7e309279f8f8e5cd'), ObjectId('445cb37f7e309279f8f8e5cd')]",
+              "[ObjectId('4590ab9e14603f0cd4570337'), ObjectId('4590ab9e14603f0cd4570337')]",
+              "[ObjectId('46ebf2447ce28c3990587bd1'), ObjectId('46ebf2447ce28c3990587bd1')]",
+              "[ObjectId('4814ee3fc229d91ffa63a4dc'), ObjectId('4814ee3fc229d91ffa63a4dc')]",
+              "[ObjectId('484b29bb75ff017750184a19'), ObjectId('484b29bb75ff017750184a19')]",
+              "[ObjectId('4886f978d59cb8771ba786d5'), ObjectId('4886f978d59cb8771ba786d5')]",
+              "[ObjectId('48beb163a9d44f2a2e962097'), ObjectId('48beb163a9d44f2a2e962097')]",
+              "[ObjectId('48f21ab26618eb11916e9683'), ObjectId('48f21ab26618eb11916e9683')]",
+              "[ObjectId('49232e1bece72c2f17ff8feb'), ObjectId('49232e1bece72c2f17ff8feb')]",
+              "[ObjectId('496edf92f9ca0537a39e4a7b'), ObjectId('496edf92f9ca0537a39e4a7b')]",
+              "[ObjectId('49f1d59d1425854c85656682'), ObjectId('49f1d59d1425854c85656682')]",
+              "[ObjectId('4a58fdd02a02f663f3f427fb'), ObjectId('4a58fdd02a02f663f3f427fb')]",
+              "[ObjectId('4abcb17d84839719bd73e4fb'), ObjectId('4abcb17d84839719bd73e4fb')]",
+              "[ObjectId('4ae2c51f84d7cb6a3fede9b8'), ObjectId('4ae2c51f84d7cb6a3fede9b8')]",
+              "[ObjectId('4ce2054c91b7c14961ec08e0'), ObjectId('4ce2054c91b7c14961ec08e0')]",
+              "[ObjectId('4cfc3dc1e16afa8e89dc72c6'), ObjectId('4cfc3dc1e16afa8e89dc72c6')]",
+              "[ObjectId('4f81cb2b3962a8cc0bb8fdad'), ObjectId('4f81cb2b3962a8cc0bb8fdad')]",
+              "[ObjectId('4fee801adeb211586e66eaac'), ObjectId('4fee801adeb211586e66eaac')]",
+              "[ObjectId('4ff69deb43a462118b3da3ce'), ObjectId('4ff69deb43a462118b3da3ce')]",
+              "[ObjectId('5040e000e0e2635dd453d0f3'), ObjectId('5040e000e0e2635dd453d0f3')]",
+              "[ObjectId('504f499e1a4af9bfc542d727'), ObjectId('504f499e1a4af9bfc542d727')]",
+              "[ObjectId('505ba71b25c0985307db4f0c'), ObjectId('505ba71b25c0985307db4f0c')]",
+              "[ObjectId('51c522e67db460f1b2709579'), ObjectId('51c522e67db460f1b2709579')]",
+              "[ObjectId('51cd60505d9be1fb6595b096'), ObjectId('51cd60505d9be1fb6595b096')]",
+              "[ObjectId('51d4a75f9041e7a91b41ffdc'), ObjectId('51d4a75f9041e7a91b41ffdc')]",
+              "[ObjectId('52cefcbbc7f9cdff27f38afa'), ObjectId('52cefcbbc7f9cdff27f38afa')]",
+              "[ObjectId('52dd505067bce180439881bc'), ObjectId('52dd505067bce180439881bc')]",
+              "[ObjectId('530eaec778eebed91e99338f'), ObjectId('530eaec778eebed91e99338f')]",
+              "[ObjectId('5396a4aded690b8f7ede08c9'), ObjectId('5396a4aded690b8f7ede08c9')]",
+              "[ObjectId('53d99d68a1b06851ee649438'), ObjectId('53d99d68a1b06851ee649438')]",
+              "[ObjectId('5437bea897f85e12950f4d6c'), ObjectId('5437bea897f85e12950f4d6c')]",
+              "[ObjectId('5495978714306fba36c7e3a1'), ObjectId('5495978714306fba36c7e3a1')]",
+              "[ObjectId('5506306f942ecea87b12efef'), ObjectId('5506306f942ecea87b12efef')]",
+              "[ObjectId('55082716bcee3a4eb1fb31b8'), ObjectId('55082716bcee3a4eb1fb31b8')]",
+              "[ObjectId('550e5fc4d1a18317cc07f0f0'), ObjectId('550e5fc4d1a18317cc07f0f0')]",
+              "[ObjectId('556310b3c2d0f4e2130cda1e'), ObjectId('556310b3c2d0f4e2130cda1e')]",
+              "[ObjectId('559df92c37dba4981e079b42'), ObjectId('559df92c37dba4981e079b42')]",
+              "[ObjectId('55a0c248374d2f6dc6d1393b'), ObjectId('55a0c248374d2f6dc6d1393b')]",
+              "[ObjectId('55b340a1017d3b666bd94f4f'), ObjectId('55b340a1017d3b666bd94f4f')]",
+              "[ObjectId('5635ca2dce4f731ed4c3e259'), ObjectId('5635ca2dce4f731ed4c3e259')]",
+              "[ObjectId('579f1bac6fafc31e21a53ab1'), ObjectId('579f1bac6fafc31e21a53ab1')]",
+              "[ObjectId('57f2f39786e2802d65f72e94'), ObjectId('57f2f39786e2802d65f72e94')]",
+              "[ObjectId('590fc8403b9bc1c86acce4ef'), ObjectId('590fc8403b9bc1c86acce4ef')]",
+              "[ObjectId('5944fdc3f2d61a33d17d02b0'), ObjectId('5944fdc3f2d61a33d17d02b0')]",
+              "[ObjectId('598880a775909078276bd429'), ObjectId('598880a775909078276bd429')]",
+              "[ObjectId('5a1a9f2b5272576afdcdca31'), ObjectId('5a1a9f2b5272576afdcdca31')]",
+              "[ObjectId('5af8ae976c315a8a5aa42cc0'), ObjectId('5af8ae976c315a8a5aa42cc0')]",
+              "[ObjectId('5b14d3ad4fc5b3120862b022'), ObjectId('5b14d3ad4fc5b3120862b022')]",
+              "[ObjectId('5b6e358f2f43fe745227aa0e'), ObjectId('5b6e358f2f43fe745227aa0e')]",
+              "[ObjectId('5b959a336afe8c59f5e00c32'), ObjectId('5b959a336afe8c59f5e00c32')]",
+              "[ObjectId('5bb4d3fe408ea91e7d085474'), ObjectId('5bb4d3fe408ea91e7d085474')]",
+              "[ObjectId('5c185179dd1dc66f046a4837'), ObjectId('5c185179dd1dc66f046a4837')]",
+              "[ObjectId('5c389a55850b24ef63a6400c'), ObjectId('5c389a55850b24ef63a6400c')]",
+              "[ObjectId('5d2ff8e94b985ce4c70525ee'), ObjectId('5d2ff8e94b985ce4c70525ee')]",
+              "[ObjectId('5e7787e42fe8b8078b8f4ed5'), ObjectId('5e7787e42fe8b8078b8f4ed5')]",
+              "[ObjectId('5ef32b73a21ce2661a86c324'), ObjectId('5ef32b73a21ce2661a86c324')]",
+              "[ObjectId('5f3f581f820e2e5921f686cb'), ObjectId('5f3f581f820e2e5921f686cb')]",
+              "[ObjectId('5fa48d3180a96257cace98b6'), ObjectId('5fa48d3180a96257cace98b6')]",
+              "[ObjectId('60ff316e15557608ee364c22'), ObjectId('60ff316e15557608ee364c22')]",
+              "[ObjectId('6113e70043d4ab6ec4979b1a'), ObjectId('6113e70043d4ab6ec4979b1a')]",
+              "[ObjectId('62d0ef2c0ded98ecd48c3af1'), ObjectId('62d0ef2c0ded98ecd48c3af1')]",
+              "[ObjectId('6308634f7f4272a6c9163ca9'), ObjectId('6308634f7f4272a6c9163ca9')]",
+              "[ObjectId('6363c926d6b1c2648e11280d'), ObjectId('6363c926d6b1c2648e11280d')]",
+              "[ObjectId('63a1b338221bff23c485e3c7'), ObjectId('63a1b338221bff23c485e3c7')]",
+              "[ObjectId('63fabdbd51a0d40a69f07c4b'), ObjectId('63fabdbd51a0d40a69f07c4b')]",
+              "[ObjectId('6442bb9d86ab38e637b107ab'), ObjectId('6442bb9d86ab38e637b107ab')]",
+              "[ObjectId('6475385b017733a372579132'), ObjectId('6475385b017733a372579132')]",
+              "[ObjectId('64a6ad6147378e24f86cdfb4'), ObjectId('64a6ad6147378e24f86cdfb4')]",
+              "[ObjectId('64c239d89e2e836404df6dac'), ObjectId('64c239d89e2e836404df6dac')]",
+              "[ObjectId('64fe130c54ad70f4c6ebd855'), ObjectId('64fe130c54ad70f4c6ebd855')]",
+              "[ObjectId('672b24fcaabf7cfc8270a8f1'), ObjectId('672b24fcaabf7cfc8270a8f1')]",
+              "[ObjectId('6740b99c85fc3ca148723f61'), ObjectId('6740b99c85fc3ca148723f61')]",
+              "[ObjectId('67d0a9436edb6744c60aa119'), ObjectId('67d0a9436edb6744c60aa119')]",
+              "[ObjectId('680373609c8feabf92f0873f'), ObjectId('680373609c8feabf92f0873f')]",
+              "[ObjectId('683a94b3cb921c6a7983a924'), ObjectId('683a94b3cb921c6a7983a924')]",
+              "[ObjectId('68b176ea7e4083b06594afe5'), ObjectId('68b176ea7e4083b06594afe5')]"
+            ]
+          }
+        }
+      },
+      "groupStages": []
+    }
+  ],
+  "violations": {
+    "levelOrder": 0,
+    "earlyReview": 0,
+    "intervalMismatch": 0,
+    "nonAscendingOptions": 0
+  }
+}

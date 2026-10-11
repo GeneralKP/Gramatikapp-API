@@ -110,8 +110,8 @@ for (const privatePart of ["users", "progress", "schedulerProfiles", "reviewEven
 const display = await studyTextCatalog(undefined, displayDb);
 assert.equal(displayReads.length, 4);
 assert.deepEqual(displayReads.find(read => read.collection === "wordsES")!.projection, { _id: 1, word: 1, contexts: 1, level: 1, examples: 1 });
-assert.deepEqual(displayReads.find(read => read.collection === "wordsDE")!.projection, { _id: 1, word: 1, gramaticalCategories: 1, "forms.gender": 1, "forms.past": 1, "forms.perfect": 1, "forms.imperativ": 1, notes: 1, examples: 1 });
-assert.deepEqual(displayReads.find(read => read.collection === "phrasesDE")!.projection, { _id: 1, phrase: 1, synonyms: 1 });
+assert.deepEqual(displayReads.find(read => read.collection === "wordsDE")!.projection, { _id: 1, word: 1, cefrLevel: 1, gramaticalCategories: 1, "forms.gender": 1, "forms.past": 1, "forms.perfect": 1, "forms.imperativ": 1, notes: 1, examples: 1 });
+assert.deepEqual(displayReads.find(read => read.collection === "phrasesDE")!.projection, { _id: 1, phrase: 1, cefrLevel: 1, synonyms: 1 });
 assert.deepEqual(Object.keys(display.wordsES[0]).sort(), ["_id", "word", "contexts", "level", "examples"].sort());
 assert.deepEqual(Object.keys(display.wordsDE[0]).sort(), ["_id", "word", "gramaticalCategories", "forms", "notes", "examples"].sort());
 assert.deepEqual(Object.keys(display.wordsDE[0].forms!).sort(), ["gender", "past", "perfect", "imperativ"].sort());

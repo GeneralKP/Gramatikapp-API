@@ -1,0 +1,831 @@
+{
+  "environment": "isolated loopback Mongo replica set; actual catalog; same owner ID; synthetic late-course progress; seven samples after one warmup, p95 is sample maximum, concurrent simulation may contend",
+  "queryPlans": [
+    {
+      "returned": 6511,
+      "documentsExamined": 12753,
+      "keysExamined": 12753,
+      "executionTimeMs": 23,
+      "plan": {
+        "isCached": false,
+        "queryPlan": {
+          "stage": "GROUP",
+          "planNodeId": 4,
+          "inputStage": {
+            "stage": "FETCH",
+            "planNodeId": 2,
+            "inputStage": {
+              "stage": "IXSCAN",
+              "planNodeId": 1,
+              "keyPattern": {
+                "userId": 1,
+                "nextDueDate": 1
+              },
+              "indexName": "userId_1_nextDueDate_1",
+              "isMultiKey": false,
+              "multiKeyPaths": {
+                "userId": [],
+                "nextDueDate": []
+              },
+              "isUnique": false,
+              "isSparse": false,
+              "isPartial": false,
+              "indexVersion": 2,
+              "direction": "forward",
+              "indexBounds": {
+                "userId": [
+                  "[ObjectId('6ac7ebb66ef75f5b1e131307'), ObjectId('6ac7ebb66ef75f5b1e131307')]"
+                ],
+                "nextDueDate": [
+                  "[MinKey, MaxKey]"
+                ]
+              }
+            }
+          }
+        },
+        "slotBasedPlan": {
+          "slots": "$$RESULT=s13 env: { s5 = {\"userId\" : 1, \"nextDueDate\" : 1} }",
+          "stages": "[4] project [s13 = newObj(\"_id\", s12)] \n[4] project [s12 = newObj(\"itemType\", s9, \"itemId\", s11)] \n[4] group [s9, s11] [] \n[4] project [s11 = \n    if (typeMatch(s10, 1088) ?: true) \n    then s8 \n    else s10 \n] \n[2] nlj inner [] [s1, s2, s3, s4, s5] \n    left \n        [1] ixseek KS(646AC7EBB66EF75F5B1E1313070A0104) KS(646AC7EBB66EF75F5B1E131307F0FE04) s4 s1 s2 s3 [] @\"ea7e7df9-d85d-49b6-af84-077905588756\" @\"userId_1_nextDueDate_1\" true \n    right \n        [2] limit 1ll \n        [2] seek s1 s6 s7 s2 s3 s4 s5 none none [s8 = itemId, s9 = itemType, s10 = relationId] @\"ea7e7df9-d85d-49b6-af84-077905588756\" true false \n"
+        }
+      },
+      "groupStages": []
+    },
+    {
+      "returned": 996,
+      "documentsExamined": 12484,
+      "keysExamined": 12484,
+      "executionTimeMs": 18,
+      "plan": {
+        "isCached": false,
+        "stage": "FETCH",
+        "filter": {
+          "$and": [
+            {
+              "$or": [
+                {
+                  "buriedUntil": {
+                    "$eq": null
+                  }
+                },
+                {
+                  "buriedUntil": {
+                    "$lte": "2026-10-10T22:35:00.777Z"
+                  }
+                }
+              ]
+            },
+            {
+              "supersededByAnki": {
+                "$not": {
+                  "$eq": true
+                }
+              }
+            },
+            {
+              "suspended": {
+                "$not": {
+                  "$eq": true
+                }
+              }
+            },
+            {
+              "isNew": {
+                "$eq": true
+              }
+            }
+          ]
+        },
+        "inputStage": {
+          "stage": "IXSCAN",
+          "keyPattern": {
+            "userId": 1,
+            "itemType": 1,
+            "failureIndex": -1
+          },
+          "indexName": "userId_1_itemType_1_failureIndex_-1",
+          "isMultiKey": false,
+          "multiKeyPaths": {
+            "userId": [],
+            "itemType": [],
+            "failureIndex": []
+          },
+          "isUnique": false,
+          "isSparse": false,
+          "isPartial": false,
+          "indexVersion": 2,
+          "direction": "forward",
+          "indexBounds": {
+            "userId": [
+              "[ObjectId('6ac7ebb66ef75f5b1e131307'), ObjectId('6ac7ebb66ef75f5b1e131307')]"
+            ],
+            "itemType": [
+              "[\"WORD\", \"WORD\"]"
+            ],
+            "failureIndex": [
+              "[MaxKey, MinKey]"
+            ]
+          }
+        }
+      },
+      "groupStages": []
+    },
+    {
+      "returned": 20,
+      "documentsExamined": 20,
+      "keysExamined": 38,
+      "executionTimeMs": 0,
+      "plan": {
+        "isCached": false,
+        "stage": "FETCH",
+        "inputStage": {
+          "stage": "IXSCAN",
+          "keyPattern": {
+            "_id": 1
+          },
+          "indexName": "_id_",
+          "isMultiKey": false,
+          "isUnique": true,
+          "isSparse": false,
+          "isPartial": false,
+          "indexVersion": 2,
+          "direction": "forward",
+          "indexBounds": {
+            "_id": [
+              "[ObjectId('002c2173e5efadd0fdf5ec1d'), ObjectId('002c2173e5efadd0fdf5ec1d')]",
+              "[ObjectId('0108a39157c0916adae20f16'), ObjectId('0108a39157c0916adae20f16')]",
+              "[ObjectId('03c7373f6f01beceaedee62f'), ObjectId('03c7373f6f01beceaedee62f')]",
+              "[ObjectId('03fad28fe758dba498d86ce7'), ObjectId('03fad28fe758dba498d86ce7')]",
+              "[ObjectId('0421aa2fa8da95835328426c'), ObjectId('0421aa2fa8da95835328426c')]",
+              "[ObjectId('055016be85d1877c4099eeb4'), ObjectId('055016be85d1877c4099eeb4')]",
+              "[ObjectId('05b6897b15b35444cf333f38'), ObjectId('05b6897b15b35444cf333f38')]",
+              "[ObjectId('06068d8ef353102b450c64b9'), ObjectId('06068d8ef353102b450c64b9')]",
+              "[ObjectId('06b751007d55959d9183fbf1'), ObjectId('06b751007d55959d9183fbf1')]",
+              "[ObjectId('07b1174947a63c2b8d1d5cda'), ObjectId('07b1174947a63c2b8d1d5cda')]",
+              "[ObjectId('07cbd2dd754db7ec6d0e4f48'), ObjectId('07cbd2dd754db7ec6d0e4f48')]",
+              "[ObjectId('087311704207a65b04c62e02'), ObjectId('087311704207a65b04c62e02')]",
+              "[ObjectId('087f32413ba61326206ae37a'), ObjectId('087f32413ba61326206ae37a')]",
+              "[ObjectId('0887ea62fac933616bac9428'), ObjectId('0887ea62fac933616bac9428')]",
+              "[ObjectId('09531c3ac8c4e860288bd5b7'), ObjectId('09531c3ac8c4e860288bd5b7')]",
+              "[ObjectId('09ccb6684598f448cfb91903'), ObjectId('09ccb6684598f448cfb91903')]",
+              "[ObjectId('09e0f7eb9d544e67828dc3ad'), ObjectId('09e0f7eb9d544e67828dc3ad')]",
+              "[ObjectId('09f7b12a03a64dab2b71c63d'), ObjectId('09f7b12a03a64dab2b71c63d')]",
+              "[ObjectId('0a64084cd8555d40891ef533'), ObjectId('0a64084cd8555d40891ef533')]",
+              "[ObjectId('0af3fec2eb2c0c96702a4c65'), ObjectId('0af3fec2eb2c0c96702a4c65')]"
+            ]
+          }
+        }
+      },
+      "groupStages": []
+    }
+  ],
+  "report": [
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "pendingCards": 100,
+      "p50Ms": 89.03,
+      "p95Ms": 185.36,
+      "samples": [
+        {
+          "ms": 185.36,
+          "cpuMs": 65.567,
+          "commands": 8,
+          "rowsRead": 6443,
+          "responseBytes": 442205,
+          "commandBytes": 10852,
+          "catalogReads": 0
+        },
+        {
+          "ms": 87.09,
+          "cpuMs": 57.146,
+          "commands": 8,
+          "rowsRead": 6443,
+          "responseBytes": 442205,
+          "commandBytes": 10852,
+          "catalogReads": 0
+        },
+        {
+          "ms": 88.96,
+          "cpuMs": 29.33,
+          "commands": 8,
+          "rowsRead": 6443,
+          "responseBytes": 442205,
+          "commandBytes": 10852,
+          "catalogReads": 0
+        },
+        {
+          "ms": 99.12,
+          "cpuMs": 54.865,
+          "commands": 8,
+          "rowsRead": 6443,
+          "responseBytes": 442205,
+          "commandBytes": 10852,
+          "catalogReads": 0
+        },
+        {
+          "ms": 121.77,
+          "cpuMs": 54.149,
+          "commands": 8,
+          "rowsRead": 6443,
+          "responseBytes": 442205,
+          "commandBytes": 10852,
+          "catalogReads": 0
+        },
+        {
+          "ms": 89.03,
+          "cpuMs": 50.328,
+          "commands": 8,
+          "rowsRead": 6443,
+          "responseBytes": 442205,
+          "commandBytes": 10852,
+          "catalogReads": 0
+        },
+        {
+          "ms": 82.78,
+          "cpuMs": 28.679,
+          "commands": 8,
+          "rowsRead": 6443,
+          "responseBytes": 442205,
+          "commandBytes": 10852,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "pendingCards": 500,
+      "p50Ms": 105.73,
+      "p95Ms": 106.31,
+      "samples": [
+        {
+          "ms": 105.38,
+          "cpuMs": 66.101,
+          "commands": 8,
+          "rowsRead": 7243,
+          "responseBytes": 963017,
+          "commandBytes": 31202,
+          "catalogReads": 0
+        },
+        {
+          "ms": 103.23,
+          "cpuMs": 59.876,
+          "commands": 8,
+          "rowsRead": 7243,
+          "responseBytes": 963017,
+          "commandBytes": 31202,
+          "catalogReads": 0
+        },
+        {
+          "ms": 99.38,
+          "cpuMs": 52.318,
+          "commands": 8,
+          "rowsRead": 7243,
+          "responseBytes": 963017,
+          "commandBytes": 31202,
+          "catalogReads": 0
+        },
+        {
+          "ms": 105.88,
+          "cpuMs": 54.883,
+          "commands": 8,
+          "rowsRead": 7243,
+          "responseBytes": 963017,
+          "commandBytes": 31202,
+          "catalogReads": 0
+        },
+        {
+          "ms": 105.73,
+          "cpuMs": 55.159,
+          "commands": 8,
+          "rowsRead": 7243,
+          "responseBytes": 963017,
+          "commandBytes": 31202,
+          "catalogReads": 0
+        },
+        {
+          "ms": 106.31,
+          "cpuMs": 55.137,
+          "commands": 8,
+          "rowsRead": 7243,
+          "responseBytes": 963017,
+          "commandBytes": 31202,
+          "catalogReads": 0
+        },
+        {
+          "ms": 106.15,
+          "cpuMs": 52.504,
+          "commands": 8,
+          "rowsRead": 7243,
+          "responseBytes": 963017,
+          "commandBytes": 31202,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "pendingCards": 1000,
+      "p50Ms": 116.12,
+      "p95Ms": 123.02,
+      "samples": [
+        {
+          "ms": 115.39,
+          "cpuMs": 67.454,
+          "commands": 8,
+          "rowsRead": 8243,
+          "responseBytes": 1614091,
+          "commandBytes": 56702,
+          "catalogReads": 0
+        },
+        {
+          "ms": 116.12,
+          "cpuMs": 78.601,
+          "commands": 8,
+          "rowsRead": 8243,
+          "responseBytes": 1614091,
+          "commandBytes": 56702,
+          "catalogReads": 0
+        },
+        {
+          "ms": 121.53,
+          "cpuMs": 83.577,
+          "commands": 8,
+          "rowsRead": 8243,
+          "responseBytes": 1614091,
+          "commandBytes": 56702,
+          "catalogReads": 0
+        },
+        {
+          "ms": 123.02,
+          "cpuMs": 73.418,
+          "commands": 8,
+          "rowsRead": 8243,
+          "responseBytes": 1614091,
+          "commandBytes": 56702,
+          "catalogReads": 0
+        },
+        {
+          "ms": 119.75,
+          "cpuMs": 78.021,
+          "commands": 8,
+          "rowsRead": 8243,
+          "responseBytes": 1614091,
+          "commandBytes": 56702,
+          "catalogReads": 0
+        },
+        {
+          "ms": 110.9,
+          "cpuMs": 66.515,
+          "commands": 8,
+          "rowsRead": 8243,
+          "responseBytes": 1614091,
+          "commandBytes": 56702,
+          "catalogReads": 0
+        },
+        {
+          "ms": 112.57,
+          "cpuMs": 71.165,
+          "commands": 8,
+          "rowsRead": 8243,
+          "responseBytes": 1614091,
+          "commandBytes": 56702,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "pendingCards": 100,
+      "p50Ms": 5.06,
+      "p95Ms": 5.41,
+      "samples": [
+        {
+          "ms": 5.27,
+          "cpuMs": 5.572,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 5.41,
+          "cpuMs": 4.862,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 5.15,
+          "cpuMs": 4.579,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 5,
+          "cpuMs": 4.189,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 5.06,
+          "cpuMs": 6.025,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 4.68,
+          "cpuMs": 4.082,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 4.65,
+          "cpuMs": 4.243,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "pendingCards": 269,
+      "p50Ms": 9.87,
+      "p95Ms": 10.85,
+      "samples": [
+        {
+          "ms": 10.14,
+          "cpuMs": 9.868,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.32,
+          "cpuMs": 8.218,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.72,
+          "cpuMs": 9.154,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 10.85,
+          "cpuMs": 13.583,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 10.41,
+          "cpuMs": 8.98,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.87,
+          "cpuMs": 8.617,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.85,
+          "cpuMs": 8.627,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "pendingCards": 269,
+      "p50Ms": 9.5,
+      "p95Ms": 9.73,
+      "samples": [
+        {
+          "ms": 9.69,
+          "cpuMs": 8.994,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.73,
+          "cpuMs": 8.775,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.5,
+          "cpuMs": 8.5,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.61,
+          "cpuMs": 11.509,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.46,
+          "cpuMs": 10.3,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.13,
+          "cpuMs": 8.824,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.04,
+          "cpuMs": 13.635,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2855,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "pendingCards": 100,
+      "p50Ms": 95.64,
+      "p95Ms": 225.21,
+      "samples": [
+        {
+          "ms": 225.21,
+          "cpuMs": 40.092,
+          "commands": 8,
+          "rowsRead": 6712,
+          "responseBytes": 456193,
+          "commandBytes": 10795,
+          "catalogReads": 0
+        },
+        {
+          "ms": 92.04,
+          "cpuMs": 49.828,
+          "commands": 8,
+          "rowsRead": 6712,
+          "responseBytes": 456193,
+          "commandBytes": 10795,
+          "catalogReads": 0
+        },
+        {
+          "ms": 91.34,
+          "cpuMs": 26.747,
+          "commands": 8,
+          "rowsRead": 6712,
+          "responseBytes": 456193,
+          "commandBytes": 10795,
+          "catalogReads": 0
+        },
+        {
+          "ms": 90.95,
+          "cpuMs": 38.891,
+          "commands": 8,
+          "rowsRead": 6712,
+          "responseBytes": 456193,
+          "commandBytes": 10795,
+          "catalogReads": 0
+        },
+        {
+          "ms": 96.76,
+          "cpuMs": 42.014,
+          "commands": 8,
+          "rowsRead": 6712,
+          "responseBytes": 456193,
+          "commandBytes": 10795,
+          "catalogReads": 0
+        },
+        {
+          "ms": 97.42,
+          "cpuMs": 46.072,
+          "commands": 8,
+          "rowsRead": 6712,
+          "responseBytes": 456193,
+          "commandBytes": 10795,
+          "catalogReads": 0
+        },
+        {
+          "ms": 95.64,
+          "cpuMs": 29.084,
+          "commands": 8,
+          "rowsRead": 6712,
+          "responseBytes": 456193,
+          "commandBytes": 10795,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "pendingCards": 500,
+      "p50Ms": 109.73,
+      "p95Ms": 118.06,
+      "samples": [
+        {
+          "ms": 112.55,
+          "cpuMs": 65.57,
+          "commands": 8,
+          "rowsRead": 7512,
+          "responseBytes": 975491,
+          "commandBytes": 30941,
+          "catalogReads": 0
+        },
+        {
+          "ms": 111.2,
+          "cpuMs": 55.871,
+          "commands": 8,
+          "rowsRead": 7512,
+          "responseBytes": 975491,
+          "commandBytes": 30941,
+          "catalogReads": 0
+        },
+        {
+          "ms": 118.06,
+          "cpuMs": 57.128,
+          "commands": 8,
+          "rowsRead": 7512,
+          "responseBytes": 975491,
+          "commandBytes": 30941,
+          "catalogReads": 0
+        },
+        {
+          "ms": 107.26,
+          "cpuMs": 53.905,
+          "commands": 8,
+          "rowsRead": 7512,
+          "responseBytes": 975491,
+          "commandBytes": 30941,
+          "catalogReads": 0
+        },
+        {
+          "ms": 108.25,
+          "cpuMs": 49.336,
+          "commands": 8,
+          "rowsRead": 7512,
+          "responseBytes": 975491,
+          "commandBytes": 30941,
+          "catalogReads": 0
+        },
+        {
+          "ms": 103.4,
+          "cpuMs": 50.489,
+          "commands": 8,
+          "rowsRead": 7512,
+          "responseBytes": 975491,
+          "commandBytes": 30941,
+          "catalogReads": 0
+        },
+        {
+          "ms": 109.73,
+          "cpuMs": 60.178,
+          "commands": 8,
+          "rowsRead": 7512,
+          "responseBytes": 975491,
+          "commandBytes": 30941,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "pendingCards": 1000,
+      "p50Ms": 123.77,
+      "p95Ms": 134.04,
+      "samples": [
+        {
+          "ms": 134.04,
+          "cpuMs": 91.387,
+          "commands": 8,
+          "rowsRead": 8512,
+          "responseBytes": 1626565,
+          "commandBytes": 56441,
+          "catalogReads": 0
+        },
+        {
+          "ms": 128.97,
+          "cpuMs": 76.781,
+          "commands": 8,
+          "rowsRead": 8512,
+          "responseBytes": 1626565,
+          "commandBytes": 56441,
+          "catalogReads": 0
+        },
+        {
+          "ms": 124.34,
+          "cpuMs": 78.306,
+          "commands": 8,
+          "rowsRead": 8512,
+          "responseBytes": 1626565,
+          "commandBytes": 56441,
+          "catalogReads": 0
+        },
+        {
+          "ms": 123.77,
+          "cpuMs": 85.287,
+          "commands": 8,
+          "rowsRead": 8512,
+          "responseBytes": 1626565,
+          "commandBytes": 56441,
+          "catalogReads": 0
+        },
+        {
+          "ms": 120.62,
+          "cpuMs": 82.025,
+          "commands": 8,
+          "rowsRead": 8512,
+          "responseBytes": 1626565,
+          "commandBytes": 56441,
+          "catalogReads": 0
+        },
+        {
+          "ms": 121.46,
+          "cpuMs": 67.724,
+          "commands": 8,
+          "rowsRead": 8512,
+          "responseBytes": 1626565,
+          "commandBytes": 56441,
+          "catalogReads": 0
+        },
+        {
+          "ms": 118.82,
+          "cpuMs": 77.737,
+          "commands": 8,
+          "rowsRead": 8512,
+          "responseBytes": 1626565,
+          "commandBytes": 56441,
+          "catalogReads": 0
+        }
+      ]
+    }
+  ]
+}

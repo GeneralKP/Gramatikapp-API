@@ -1,6 +1,13 @@
 import type { UserProgress } from './progress.types.js';
-import { dateForStudyDay, GRADES, normalizeUnstudiedProgress, scheduleReview, studyDay, type Grade } from './scheduler.js';
+import { GRADES, dateForStudyDay, initialScheduler, normalizeUnstudiedProgress, scheduleReview, studyDay, type Grade } from './scheduler.js';
 export type StudyGrade = Grade | 'REVISIT';
+export const PHRASE_FIRST_INTERVALS = { AGAIN: 7, HARD: 30, GOOD: 180, EASY: 365 };
+// Minutes for learning steps; days for graduation and the lapse interval.
+export const PHRASE_SCHEDULING_PRESET = {
+  // Anki averages the first two steps for Hard: (7 + 53) / 2 = 30 days.
+  learningSteps: [7 * 1440, 53 * 1440], relearningSteps: [7 * 1440, 14 * 1440],
+  graduatingGood: 180, graduatingEasy: 365, minimumLapseInterval: 21,
+};
 export const effectiveDueDate = (progress: UserProgress) => progress.temporaryDueDate ?? progress.nextDueDate;
 /** Manual date changes preserve phase, interval, repetitions and review history. */
 export function rescheduleStudyCard(progress: UserProgress, due: Date, now = new Date()) {
@@ -29,17 +36,68 @@ export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, n
     // Completing the extra practice leaves interval, ease and regular due intact.
     return { ...progress, temporaryDueDate: undefined, totalReviews: (progress.totalReviews ?? 0) + 1, delaySeconds: Math.max(0, (progress.nextDueDate.getTime() - now.getTime()) / 1000) };
   }
-  if (progress.itemType === 'PHRASE' && progress.scheduler.phase === 'REVIEW') {
-    const interval = [7, 30, 180, 365][GRADES.indexOf(grade)];
-    const scheduler = { ...progress.scheduler, phase: 'REVIEW' as const, queue: 'DAY' as const, remainingSteps: 0, scheduledSeconds: 0, interval, lapses: (progress.lapses ?? 0) + (grade === 'AGAIN' ? 1 : 0) };
-    return { scheduler, interval, ease: progress.ease, repetitions: grade === 'AGAIN' ? 0 : progress.repetitions + 1,
-      lapses: (progress.lapses ?? 0) + (grade === 'AGAIN' ? 1 : 0), totalReviews: (progress.totalReviews ?? 0) + 1, isNew: false,
-      lastReviewed: now, nextDueDate: dateForStudyDay(studyDay(now, scheduler.timeZone, scheduler.rollover) + interval, scheduler.timeZone, scheduler.rollover), delaySeconds: interval * 86400 };
+  if (progress.itemType === 'PHRASE') {
+    const current = progress.scheduler ?? initialScheduler(progress);
+    const options = current.options;
+    const maximum = Math.max(1, options.maximumInterval);
+    const minimum = Math.min(maximum, Math.max(options.minimumLapseInterval, PHRASE_SCHEDULING_PRESET.minimumLapseInterval));
+    // The same adaptive engine starts phrases on week-sized steps. Stored deck
+    // settings stay intact; applying this preset never compounds a multiplier.
+    const effective = { ...options, ...PHRASE_SCHEDULING_PRESET,
+      learningSteps: PHRASE_SCHEDULING_PRESET.learningSteps.map(minutes => Math.min(minutes, maximum * 1440)),
+      relearningSteps: PHRASE_SCHEDULING_PRESET.relearningSteps.map(minutes => Math.min(minutes, maximum * 1440)),
+      graduatingGood: Math.max(options.graduatingGood, PHRASE_SCHEDULING_PRESET.graduatingGood),
+      graduatingEasy: Math.max(options.graduatingEasy, PHRASE_SCHEDULING_PRESET.graduatingEasy, options.graduatingGood + 1),
+      minimumLapseInterval: minimum };
+    // Legacy short review intervals need a floor so a 7-day Again step cannot
+    // follow a shorter Hard/Good choice. Preserve history, ease and repetitions.
+    const interval = current.phase === 'REVIEW' || current.phase === 'RELEARNING'
+      ? Math.min(maximum, Math.max(current.interval, minimum)) : current.interval;
+    // Successful first recall seeds mature review directly. Again/Hard keep
+    // the ordinary learning state; later ratings use the shared adaptive engine.
+    const firstReview = current.phase === 'NEW';
+    const schedulingOptions = firstReview && grade === 'GOOD' ? { ...effective, learningSteps: [] } : effective;
+    const next = scheduleReview({ ...progress, interval, scheduler: { ...current, interval, options: schedulingOptions } }, grade, now, earlyReview);
+    if (grade === 'AGAIN' && current.phase !== 'NEW' && current.phase !== 'LEARNING' && next.interval > interval) {
+      // Fuzz around the lapse floor must never reward forgetting with growth.
+      next.interval = interval; next.scheduler.interval = interval;
+    }
+    // Week-sized steps are calendar-day steps. DST can make the engine's
+    // elapsed-second rollover conversion one day short; use the shared calendar
+    // conversion with the nominal step instead.
+    if (next.scheduler.phase !== 'REVIEW') {
+      const days = Math.min(maximum, Math.round(next.scheduler.scheduledSeconds / 86400));
+      next.scheduler.queue = 'DAY'; next.delaySeconds = days * 86400;
+      next.nextDueDate = dateForStudyDay(studyDay(now, current.timeZone, current.rollover) + days, current.timeZone, current.rollover);
+    }
+    // Early recall with small caps can put Hard before the first Again step;
+    // relearning Easy can add a day above the cap. Apply the preset's bounds.
+    const bounded = Math.min(maximum, Math.max(Math.min(maximum, 7), next.interval));
+    if (next.scheduler.phase === 'REVIEW' && next.interval !== bounded) {
+      next.interval = bounded; next.scheduler.interval = bounded; next.delaySeconds = bounded * 86400;
+      next.nextDueDate = dateForStudyDay(studyDay(now, current.timeZone, current.rollover) + bounded, current.timeZone, current.rollover);
+    }
+    if (firstReview) {
+      // Exact owner-selected starting intervals are not fuzzed. Six months and
+      // one year mean 180/365 study days, consistent with interval labels.
+      const days = Math.min(maximum, PHRASE_FIRST_INTERVALS[grade]);
+      next.delaySeconds = days * 86400;
+      next.nextDueDate = dateForStudyDay(studyDay(now, current.timeZone, current.rollover) + days, current.timeZone, current.rollover);
+      next.scheduler.queue = 'DAY';
+      if (next.scheduler.phase === 'REVIEW') {
+        next.interval = days; next.scheduler.interval = days;
+      } else next.scheduler.scheduledSeconds = days * 86400;
+    }
+    return { ...next, scheduler: { ...next.scheduler, options }, temporaryDueDate: undefined };
   }
   return { ...scheduleReview(progress, grade, now, earlyReview), temporaryDueDate: undefined };
 }
 export function studyReviewOptions(progress: UserProgress, now = new Date(), earlyReview = false) {
   progress = normalizeUnstudiedProgress(progress, now);
-  const grades: StudyGrade[] = [...GRADES, ...(progress.itemType === 'WORD' && progress.scheduler.phase === 'REVIEW' && (progress.nextDueDate > now ? progress.nextDueDate : scheduleReview(progress, 'GOOD', now, earlyReview).nextDueDate).getTime() > now.getTime() + 86400000 ? ['REVISIT' as const] : [])];
+  // This is completion of extra practice, not a new scheduling decision. Keep
+  // accepting legacy queued grades, but offer one explicit completion action.
+  const completingRevisit = !!progress.temporaryDueDate && progress.nextDueDate > now;
+  const revisit: StudyGrade[] = progress.itemType === 'WORD' && progress.scheduler.phase === 'REVIEW' && (progress.nextDueDate > now ? progress.nextDueDate : scheduleReview(progress, 'GOOD', now, earlyReview).nextDueDate).getTime() > now.getTime() + 86400000 ? ['REVISIT'] : [];
+  const grades: StudyGrade[] = [...(completingRevisit ? ['GOOD' as const] : GRADES), ...revisit];
   return grades.map(grade => { const next = scheduleStudyReview(progress, grade, now, earlyReview); return { grade, delaySeconds: next.delaySeconds, nextDueDate: effectiveDueDate({ ...progress, ...next }).toISOString(), phase: next.scheduler.phase }; });
 }

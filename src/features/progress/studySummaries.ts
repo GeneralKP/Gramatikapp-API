@@ -30,8 +30,17 @@ export function isGraduatedStudyIdentity(row: StudyIdentity) {
   return 'graduated' in row ? row.graduated : isGraduatedStudyCard(row);
 }
 
-/** Fold known directional duplicates in the database; legacy phase inference
- * still uses the scheduler's existing code after transfer. No state is saved. */
+/** Fresh allocation exclusions need one typed relation identity, not both
+ * directional schedules. Hash grouping keeps legacy/null relation fallbacks. */
+export function newItemIdentityPipeline(query: object) {
+  return [
+    { $match: query },
+    { $group: { _id: { itemType: '$itemType', itemId: { $ifNull: ['$relationId', '$itemId'] } } } },
+    { $project: { _id: 0, itemType: '$_id.itemType', itemId: '$_id.itemId' } },
+  ];
+}
+
+/** Fold directional mastery identities; legacy phases retain code inference. */
 export function identitySummaryPipeline(query: object) {
   return [
     { $match: query },

@@ -1,0 +1,653 @@
+{
+  "environment": "isolated loopback Mongo replica set; actual catalog; same owner ID; synthetic late-course progress",
+  "report": [
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "pendingCards": 100,
+      "p50Ms": 99.24,
+      "p95Ms": 272.78,
+      "samples": [
+        {
+          "ms": 269.4,
+          "cpuMs": 100.233,
+          "commands": 9,
+          "rowsRead": 12685,
+          "responseBytes": 1052137,
+          "commandBytes": 10900,
+          "catalogReads": 0
+        },
+        {
+          "ms": 272.78,
+          "cpuMs": 72.569,
+          "commands": 9,
+          "rowsRead": 12685,
+          "responseBytes": 1052137,
+          "commandBytes": 10900,
+          "catalogReads": 0
+        },
+        {
+          "ms": 97.88,
+          "cpuMs": 62.738,
+          "commands": 9,
+          "rowsRead": 12685,
+          "responseBytes": 1052137,
+          "commandBytes": 10900,
+          "catalogReads": 0
+        },
+        {
+          "ms": 100.53,
+          "cpuMs": 73.77,
+          "commands": 9,
+          "rowsRead": 12685,
+          "responseBytes": 1052137,
+          "commandBytes": 10900,
+          "catalogReads": 0
+        },
+        {
+          "ms": 96.73,
+          "cpuMs": 64.141,
+          "commands": 9,
+          "rowsRead": 12685,
+          "responseBytes": 1052137,
+          "commandBytes": 10900,
+          "catalogReads": 0
+        },
+        {
+          "ms": 96.46,
+          "cpuMs": 64.029,
+          "commands": 9,
+          "rowsRead": 12685,
+          "responseBytes": 1052137,
+          "commandBytes": 10900,
+          "catalogReads": 0
+        },
+        {
+          "ms": 99.24,
+          "cpuMs": 72.52,
+          "commands": 9,
+          "rowsRead": 12685,
+          "responseBytes": 1052137,
+          "commandBytes": 10900,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "pendingCards": 500,
+      "p50Ms": 106.1,
+      "p95Ms": 114.95,
+      "samples": [
+        {
+          "ms": 108.89,
+          "cpuMs": 69.455,
+          "commands": 9,
+          "rowsRead": 13485,
+          "responseBytes": 1569349,
+          "commandBytes": 31250,
+          "catalogReads": 0
+        },
+        {
+          "ms": 112.92,
+          "cpuMs": 91.888,
+          "commands": 9,
+          "rowsRead": 13485,
+          "responseBytes": 1569349,
+          "commandBytes": 31250,
+          "catalogReads": 0
+        },
+        {
+          "ms": 114.95,
+          "cpuMs": 87.404,
+          "commands": 9,
+          "rowsRead": 13485,
+          "responseBytes": 1569349,
+          "commandBytes": 31250,
+          "catalogReads": 0
+        },
+        {
+          "ms": 106.1,
+          "cpuMs": 69.449,
+          "commands": 9,
+          "rowsRead": 13485,
+          "responseBytes": 1569349,
+          "commandBytes": 31250,
+          "catalogReads": 0
+        },
+        {
+          "ms": 104.75,
+          "cpuMs": 83.432,
+          "commands": 9,
+          "rowsRead": 13485,
+          "responseBytes": 1569349,
+          "commandBytes": 31250,
+          "catalogReads": 0
+        },
+        {
+          "ms": 104.85,
+          "cpuMs": 79.266,
+          "commands": 9,
+          "rowsRead": 13485,
+          "responseBytes": 1569349,
+          "commandBytes": 31250,
+          "catalogReads": 0
+        },
+        {
+          "ms": 104.66,
+          "cpuMs": 68.599,
+          "commands": 9,
+          "rowsRead": 13485,
+          "responseBytes": 1569349,
+          "commandBytes": 31250,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "pendingCards": 1000,
+      "p50Ms": 137.52,
+      "p95Ms": 140.94,
+      "samples": [
+        {
+          "ms": 137.52,
+          "cpuMs": 113.009,
+          "commands": 9,
+          "rowsRead": 14485,
+          "responseBytes": 2215923,
+          "commandBytes": 56750,
+          "catalogReads": 0
+        },
+        {
+          "ms": 137.85,
+          "cpuMs": 108.686,
+          "commands": 9,
+          "rowsRead": 14485,
+          "responseBytes": 2215923,
+          "commandBytes": 56750,
+          "catalogReads": 0
+        },
+        {
+          "ms": 136.79,
+          "cpuMs": 111.384,
+          "commands": 9,
+          "rowsRead": 14485,
+          "responseBytes": 2215923,
+          "commandBytes": 56750,
+          "catalogReads": 0
+        },
+        {
+          "ms": 136.83,
+          "cpuMs": 104.098,
+          "commands": 9,
+          "rowsRead": 14485,
+          "responseBytes": 2215923,
+          "commandBytes": 56750,
+          "catalogReads": 0
+        },
+        {
+          "ms": 139.83,
+          "cpuMs": 107.04,
+          "commands": 9,
+          "rowsRead": 14485,
+          "responseBytes": 2215923,
+          "commandBytes": 56750,
+          "catalogReads": 0
+        },
+        {
+          "ms": 140.94,
+          "cpuMs": 101.378,
+          "commands": 9,
+          "rowsRead": 14485,
+          "responseBytes": 2215923,
+          "commandBytes": 56750,
+          "catalogReads": 0
+        },
+        {
+          "ms": 136.37,
+          "cpuMs": 103.645,
+          "commands": 9,
+          "rowsRead": 14485,
+          "responseBytes": 2215923,
+          "commandBytes": 56750,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "pendingCards": 100,
+      "p50Ms": 5.36,
+      "p95Ms": 8.03,
+      "samples": [
+        {
+          "ms": 8.03,
+          "cpuMs": 8.611,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 5.94,
+          "cpuMs": 6.618,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 5.26,
+          "cpuMs": 4.641,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 4.74,
+          "cpuMs": 4.306,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 5.36,
+          "cpuMs": 4.361,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 6.65,
+          "cpuMs": 6.388,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 5.03,
+          "cpuMs": 4.244,
+          "commands": 5,
+          "rowsRead": 470,
+          "responseBytes": 107448,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "pendingCards": 269,
+      "p50Ms": 10.22,
+      "p95Ms": 20.57,
+      "samples": [
+        {
+          "ms": 19.56,
+          "cpuMs": 15.488,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 20.57,
+          "cpuMs": 13.008,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 18.92,
+          "cpuMs": 10.738,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.48,
+          "cpuMs": 8.513,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 10.22,
+          "cpuMs": 11.61,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 10.21,
+          "cpuMs": 9.383,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 9.56,
+          "cpuMs": 9.585,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "pendingCards": 269,
+      "p50Ms": 18.82,
+      "p95Ms": 32.57,
+      "samples": [
+        {
+          "ms": 23.02,
+          "cpuMs": 14.162,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 18.82,
+          "cpuMs": 12.329,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 31.6,
+          "cpuMs": 12.083,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 32.57,
+          "cpuMs": 10.996,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 13.11,
+          "cpuMs": 13.44,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 14.12,
+          "cpuMs": 10.843,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        },
+        {
+          "ms": 15.34,
+          "cpuMs": 11.047,
+          "commands": 5,
+          "rowsRead": 808,
+          "responseBytes": 263604,
+          "commandBytes": 2664,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "pendingCards": 100,
+      "p50Ms": 122.98,
+      "p95Ms": 352.94,
+      "samples": [
+        {
+          "ms": 237.37,
+          "cpuMs": 65.339,
+          "commands": 9,
+          "rowsRead": 12954,
+          "responseBytes": 1066125,
+          "commandBytes": 10843,
+          "catalogReads": 0
+        },
+        {
+          "ms": 237.29,
+          "cpuMs": 77.67,
+          "commands": 9,
+          "rowsRead": 12954,
+          "responseBytes": 1066125,
+          "commandBytes": 10843,
+          "catalogReads": 0
+        },
+        {
+          "ms": 122.98,
+          "cpuMs": 64.582,
+          "commands": 9,
+          "rowsRead": 12954,
+          "responseBytes": 1066125,
+          "commandBytes": 10843,
+          "catalogReads": 0
+        },
+        {
+          "ms": 104.19,
+          "cpuMs": 82.886,
+          "commands": 9,
+          "rowsRead": 12954,
+          "responseBytes": 1066125,
+          "commandBytes": 10843,
+          "catalogReads": 0
+        },
+        {
+          "ms": 116.48,
+          "cpuMs": 66.637,
+          "commands": 9,
+          "rowsRead": 12954,
+          "responseBytes": 1066125,
+          "commandBytes": 10843,
+          "catalogReads": 0
+        },
+        {
+          "ms": 352.94,
+          "cpuMs": 213.279,
+          "commands": 9,
+          "rowsRead": 12954,
+          "responseBytes": 1066125,
+          "commandBytes": 10843,
+          "catalogReads": 0
+        },
+        {
+          "ms": 101,
+          "cpuMs": 67.286,
+          "commands": 9,
+          "rowsRead": 12954,
+          "responseBytes": 1066125,
+          "commandBytes": 10843,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "pendingCards": 500,
+      "p50Ms": 146.3,
+      "p95Ms": 243.34,
+      "samples": [
+        {
+          "ms": 107,
+          "cpuMs": 68.944,
+          "commands": 9,
+          "rowsRead": 13754,
+          "responseBytes": 1581859,
+          "commandBytes": 30989,
+          "catalogReads": 0
+        },
+        {
+          "ms": 112.85,
+          "cpuMs": 89.29,
+          "commands": 9,
+          "rowsRead": 13754,
+          "responseBytes": 1581859,
+          "commandBytes": 30989,
+          "catalogReads": 0
+        },
+        {
+          "ms": 146.3,
+          "cpuMs": 88.842,
+          "commands": 9,
+          "rowsRead": 13754,
+          "responseBytes": 1581859,
+          "commandBytes": 30989,
+          "catalogReads": 0
+        },
+        {
+          "ms": 150.18,
+          "cpuMs": 81.09,
+          "commands": 9,
+          "rowsRead": 13754,
+          "responseBytes": 1581859,
+          "commandBytes": 30989,
+          "catalogReads": 0
+        },
+        {
+          "ms": 146.07,
+          "cpuMs": 92.739,
+          "commands": 9,
+          "rowsRead": 13754,
+          "responseBytes": 1581859,
+          "commandBytes": 30989,
+          "catalogReads": 0
+        },
+        {
+          "ms": 243.34,
+          "cpuMs": 92.094,
+          "commands": 9,
+          "rowsRead": 13754,
+          "responseBytes": 1581859,
+          "commandBytes": 30989,
+          "catalogReads": 0
+        },
+        {
+          "ms": 214.34,
+          "cpuMs": 96.54,
+          "commands": 9,
+          "rowsRead": 13754,
+          "responseBytes": 1581859,
+          "commandBytes": 30989,
+          "catalogReads": 0
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "pendingCards": 1000,
+      "p50Ms": 229.81,
+      "p95Ms": 307.77,
+      "samples": [
+        {
+          "ms": 179.44,
+          "cpuMs": 113.627,
+          "commands": 9,
+          "rowsRead": 14754,
+          "responseBytes": 2228433,
+          "commandBytes": 56489,
+          "catalogReads": 0
+        },
+        {
+          "ms": 227.14,
+          "cpuMs": 119.436,
+          "commands": 9,
+          "rowsRead": 14754,
+          "responseBytes": 2228433,
+          "commandBytes": 56489,
+          "catalogReads": 0
+        },
+        {
+          "ms": 268.54,
+          "cpuMs": 117.333,
+          "commands": 9,
+          "rowsRead": 14754,
+          "responseBytes": 2228433,
+          "commandBytes": 56489,
+          "catalogReads": 0
+        },
+        {
+          "ms": 206.18,
+          "cpuMs": 114.877,
+          "commands": 9,
+          "rowsRead": 14754,
+          "responseBytes": 2228433,
+          "commandBytes": 56489,
+          "catalogReads": 0
+        },
+        {
+          "ms": 283.74,
+          "cpuMs": 107.983,
+          "commands": 9,
+          "rowsRead": 14754,
+          "responseBytes": 2228433,
+          "commandBytes": 56489,
+          "catalogReads": 0
+        },
+        {
+          "ms": 307.77,
+          "cpuMs": 118.14,
+          "commands": 9,
+          "rowsRead": 14754,
+          "responseBytes": 2228433,
+          "commandBytes": 56489,
+          "catalogReads": 0
+        },
+        {
+          "ms": 229.81,
+          "cpuMs": 149.551,
+          "commands": 9,
+          "rowsRead": 14754,
+          "responseBytes": 2228433,
+          "commandBytes": 56489,
+          "catalogReads": 0
+        }
+      ]
+    }
+  ]
+}

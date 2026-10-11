@@ -5,7 +5,7 @@ export const isNewCard = (p: UserProgress) => p.scheduler ? p.scheduler.phase ==
 const position = (p: UserProgress) => p.anki?.due ?? 0;
 
 /** Keep introductions together, while using the original Anki position between words. */
-export function newCardGroups(progress: UserProgress[], candidates: UserProgress[]): UserProgress[][] {
+export function newCardGroups(progress: UserProgress[], candidates: UserProgress[], compare?: (a: UserProgress, b: UserProgress) => number): UserProgress[][] {
   const notes = new Map<string, UserProgress[]>();
   for (const p of progress) if (isWordCard(p)) {
     const key = p.card!.sourceNoteGuid;
@@ -29,7 +29,7 @@ export function newCardGroups(progress: UserProgress[], candidates: UserProgress
     } else if (typing && eligible.has(typing.itemId.toString())) groups.push([typing]);
     else if (reading && eligible.has(reading.itemId.toString())) groups.push([reading]);
   }
-  return groups.sort((a, b) => Math.min(...a.map(position)) - Math.min(...b.map(position)) || a[0].itemId.toString().localeCompare(b[0].itemId.toString()));
+  return groups.sort((a, b) => (compare?.(a[0], b[0]) ?? 0) || Math.min(...a.map(position)) - Math.min(...b.map(position)) || a[0].itemId.toString().localeCompare(b[0].itemId.toString()));
 }
 
 export function isIntroductionFollowup(current: UserProgress, sibling: UserProgress) {

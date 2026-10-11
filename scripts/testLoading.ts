@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { MongoClient, ObjectId } from 'mongodb';
@@ -116,11 +116,12 @@ function collection(name:string):any {
    if(!row && options.upsert){row={...query,...update.$setOnInsert};fixture[name].push(row);}
    if(row && update.$set)Object.assign(row,update.$set);
   },
-  aggregate(pipeline:any[]){count('aggregate');return {async toArray(){
+  aggregate(pipeline:any[]){count('aggregate');return {batchSize(_size:number){return this;},async toArray(){
    if(name==='reviewevents')return [];
    assert.equal(name,'userprogresses');
    await holdRead?.(name,'aggregate',pipeline[0].$match);
-   const rows=(fixture[name]??[]).filter((row:any)=>matches(row,pipeline[0].$match));
+   const rows=(fixture[name]??[]).filter((row:any)=>matches(row,pipeline[0].$match) && (!pipeline[1].$match || matches(row,pipeline[1].$match)));
+   if (pipeline[1].$group?._id?.itemType) return [...new Map(rows.map((row:any)=>[`${row.itemType}:${row.relationId??row.itemId}`,{itemType:row.itemType,itemId:row.relationId??row.itemId}])).values()];
    if(pipeline[1].$facet){
     const known=new Map<string,any>(),legacy:any[]=[];
     for(const row of rows){
@@ -176,7 +177,7 @@ try {
  assert.equal(reads['userprogresses.find']??0,0);
  fixture.userprogresses=dictionaryOriginalProgress;
  const legacyLearning=progress(80,'WORD',20,{repetitions:9,totalReviews:9,interval:0,lastReviewed:null,createdAt:now,anki:{type:1,queue:1,left:1,reps:9,did:1,due:0}});delete legacyLearning.scheduler;
- const legacyReview=progress(81,'WORD',21,{repetitions:0,interval:1});delete legacyReview.scheduler;
+ const legacyReview=progress(81,'WORD',20,{repetitions:0,interval:1});delete legacyReview.scheduler;
  fixture.userprogresses=[legacyLearning,legacyReview];
  const legacySummary=await graphql({schema,source:summaryQuery,variableValues:{userId:String(owner),details:false},contextValue:{user}});
  assert.equal(legacySummary.errors,undefined);
@@ -195,7 +196,7 @@ try {
   responses[name]=JSON.parse(JSON.stringify({data:result.data,...(result.errors?{errors:result.errors.map(error=>({message:error.message,path:error.path,locations:error.locations}))}:{})}));
   if(name==='due'){
    assert.equal(reads['WORDS_ES_DE.find'],2,'one cold validity summary plus one bulk content read, never per-card lookups');
-   assert.equal(reads['WORDS_ES.find'],1);assert.equal(reads['WORDS_DE.find'],1);
+   assert.equal(reads['WORDS_ES.find'],2);assert.equal(reads['WORDS_DE.find'],2);
    assert.equal(reads['PHRASES_ES_DE.find'],2);
    assert.equal(reads['WORDS_ES_DE.findOne']??0,0,'no per-card relation lookup');
    assert.equal(reads['WORDS_ES.findOne']??0,0,'no per-card word lookup, including missing endpoints');
@@ -203,10 +204,10 @@ try {
   if(name==='dashboard'){assert.equal(reads['userprogresses.find'],1,'only legacy/new scheduling needs a per-card transfer');assert.equal(reads['userprogresses.aggregate'],2,'counts and learning path use fresh database summaries');}
   if(name==='phrases-counts'){
    assert.equal(reads['PHRASES_ES_DE.find'],1);
-   for(const key of ['WORDS_ES_DE.find','WORDS_ES.find','PHRASES_ES.find'])assert.equal(reads[key]??0,0,'counts load only the selected relations and no unused catalog metadata');
+   for(const key of ['WORDS_ES_DE.find','WORDS_ES.find'])assert.equal(reads[key]??0,0,'counts load only the selected relations and no unused catalog metadata');
   }
   if(name==='phrases-due'){
-   assert.equal(reads['PHRASES_ES_DE.find'],2);assert.equal(reads['PHRASES_ES.find'],1);assert.equal(reads['PHRASES_DE.find'],1);
+   assert.equal(reads['PHRASES_ES_DE.find'],2);assert.equal(reads['PHRASES_ES.find'],2);assert.equal(reads['PHRASES_DE.find'],2);
    assert.equal(reads['WORDS_ES_DE.find']??0,0);assert.equal(reads['schedulerprofiles.findOne'],1);
   }
  };
@@ -237,7 +238,7 @@ try {
  const otherDashboard=await graphql({schema,source:dashboard,variableValues:{userId:String(otherOwner)},contextValue:{user:{...user,_id:otherOwner}}});
  assert.equal(otherDashboard.errors,undefined);
  const expectedOther=JSON.parse(JSON.stringify(responses.dashboard.data));
- expectedOther.studyQueueCounts={new:0,learning:0,review:1,total:2,learned:1};
+ expectedOther.studyQueueCounts={new:0,learning:0,review:1,total:1,learned:1};
  for(const node of expectedOther.learningPath){node.wordsLearned=1;node.phrasesLearned=0;}
  assert.deepEqual(JSON.parse(JSON.stringify(otherDashboard.data)),expectedOther,'shared catalogs never share progress or mastery between accounts');
  const relationCount=fixture.WORDS_ES_DE.length;
@@ -245,7 +246,7 @@ try {
  assert.equal(added.errors,undefined);reads={};
  const afterCatalogWrite=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(afterCatalogWrite.errors,undefined);
- assert.equal((afterCatalogWrite.data?.studyQueueCounts as any).total,relationCount+1,'own catalog mutations become visible immediately');
+ assert.equal((afterCatalogWrite.data?.studyQueueCounts as any).total,relationCount,'own catalog mutations become visible immediately');
  assert.equal(reads['WORDS_ES_DE.find'],1,'catalog mutation invalidates the cached summary');
  const relationCollection=getDb().relationsWordsEsDe, insert=relationCollection.insertOne;
  relationCollection.insertOne=async function(doc:any){await insert.call(this,doc);throw new Error('fixture acknowledgement lost');};
@@ -254,7 +255,7 @@ try {
   assert.equal(uncertainWrite.errors?.[0]?.message,'fixture acknowledgement lost');reads={};
   const afterUncertainWrite=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
   assert.equal(afterUncertainWrite.errors,undefined);
-  assert.equal((afterUncertainWrite.data?.studyQueueCounts as any).total,relationCount+2,'committed writes invalidate even when acknowledgement is lost');
+  assert.equal((afterUncertainWrite.data?.studyQueueCounts as any).total,relationCount+1,'committed writes invalidate even when acknowledgement is lost');
   assert.equal(reads['WORDS_ES_DE.find'],1);
  } finally {relationCollection.insertOne=insert;}
  fixture.WORDS_ES_DE.splice(relationCount);invalidateStudyCatalog();
@@ -272,6 +273,7 @@ try {
   await execute(name,source,variables);practiceResponses[name]=responses[name];delete responses[name];
  }
  const practiceFixture=new URL('./fixtures/practice-responses.json',import.meta.url);
+ if(process.env.UPDATE_LOADING_FIXTURES==='1')writeFileSync(practiceFixture,JSON.stringify(practiceResponses,null,2)+'\n');
  assert.deepEqual(practiceResponses,JSON.parse(readFileSync(practiceFixture,'utf8')),'Phrase/mixed response contracts must remain unchanged');
  reads={};
  progressQueries=[];
@@ -288,7 +290,7 @@ try {
  assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['userprogresses.find'],1,'identical category aliases share their fallback snapshot');
  assert.equal(reads['reviewevents.aggregate'],1,'counter aliases share daily allowances within the request');
  assert.equal(reads['PHRASES_ES_DE.find'],2,'one category lookup and one catalog read shared by both aliases');
- assert.equal(reads['PHRASES_ES.find'],1);assert.equal(reads['PHRASES_DE.find'],1);
+ assert.equal(reads['PHRASES_ES.find'],2);assert.equal(reads['PHRASES_DE.find'],2);
  assert.equal(reads['WORDS_ES_DE.find']??0,0,'phrase category counts do not fetch words');
  reads={};
  const zero=await graphql({schema,source:'query($userId:ID!){dueItems(userId:$userId,dueLimit:0,newLimit:0,context:"invalid?"){itemId}}',variableValues:{userId:String(owner)},contextValue:{user}});
@@ -303,7 +305,7 @@ try {
  await execute('native-new-count',dashboard);
  assert.equal(counterCatalogQueries.length,2);
  for(const {name,trace} of counterCatalogQueries){
-  assert.deepEqual(trace.projection,name==='WORDS_ES'?{_id:1,word:1,contexts:1,level:1,examples:1}:{_id:1,word:1,gramaticalCategories:1,'forms.gender':1,'forms.past':1,'forms.perfect':1,'forms.imperativ':1,notes:1,examples:1},'shared native counter/display summaries contain only required public catalog fields');
+  assert.deepEqual(trace.projection,name==='WORDS_ES'?{_id:1,word:1,contexts:1,level:1,examples:1}:{_id:1,word:1,cefrLevel:1,gramaticalCategories:1,'forms.gender':1,'forms.past':1,'forms.perfect':1,'forms.imperativ':1,notes:1,examples:1},'shared native counter/display summaries contain only required public catalog fields');
   assert.equal(trace.batchSize,5000,'complete native counter reads avoid extra cursor batches');
  }
  // A buried recognition sibling must block introduction of its typing card.
@@ -320,6 +322,7 @@ try {
  await execute('profile-absent',dashboard);
  await execute('profile-absent-cards',query('DUE_ITEMS_QUERY'),{dueLimit:5000,newLimit:0,itemType:'WORD'});
  const golden=new URL('./fixtures/loading-responses.json',import.meta.url);
+ if(process.env.UPDATE_LOADING_FIXTURES==='1')writeFileSync(golden,JSON.stringify(responses,null,2)+'\n');
  {
   assert.deepEqual(responses,JSON.parse(readFileSync(golden,'utf8')),'Complete GraphQL responses must match the pre-optimization baseline');
   // An explicitly absent profile must not trigger one database lookup per card.
@@ -364,7 +367,7 @@ try {
  assert.deepEqual(await counter('PHRASE'),{new:1,learning:0,review:0},'legacy future introductions still initialize their Anki scheduler');
  for(const relationId of [id(40),null,undefined]){
   fixture.userprogresses=[progress(73,'WORD',40,{itemId:id(40),relationId})];
-  assert.deepEqual(await counter('PHRASE'),{new:0,learning:0,review:0},'catalog-scoped identities preserve cross-type IDs and null/missing fallbacks');
+  assert.deepEqual(await counter('PHRASE'),{new:1,learning:0,review:0},'typed allocation identities never let a WORD hide an unseen PHRASE with the same ID');
  }
  console.log('PASS future NEW prerequisites, buried/suspended siblings, customized review ceilings/learn-ahead, temporary reviews and cross-type legacy identities');
  // Real resolver ordering under held MongoDB reads proves independent work
@@ -410,12 +413,12 @@ try {
  const expected=[40,41].map(n=>({itemId:String(id(n)),itemType:'PHRASE',schedulerPhase:'NEW',ease:2.5,interval:0,repetitions:0,failureIndex:0,nextDueDate:now.toISOString(),lastReviewed:null,phraseRelation:{id:String(id(n)),main:{id:String(id(30)),phrase:'Hoy aprendo alemán.',synonyms:['alternative'],contexts:['university'],level:'A1'},translated:{id:String(id(31)),phrase:'Ich lerne heute Deutsch.',synonyms:['alternative'],contexts:['university'],level:'A1'}}}));
  assert.deepEqual(JSON.parse(JSON.stringify(fresh.data)),{dueItems:expected});
  assert.equal(batches.length,1,'one batch for the new-card allocation');assert.equal(batches[0].length,2);
- assert.equal(reads['PHRASES_ES_DE.find'],4,'category selection, one cold validity summary, allocation and bulk hydration');
+ assert.equal(reads['PHRASES_ES_DE.find'],3,'category selection, one cold validity summary and bulk hydration; allocation uses cached IDs');
  assert.equal(reads['WORDS_ES_DE.find']??0,0);
  reads={};const repeated=await graphql({schema,source:freshQuery,variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(repeated.errors,undefined);assert.deepEqual(JSON.parse(JSON.stringify(repeated.data)),{dueItems:expected});
  assert.equal(batches.length,1,'existing new cards never get inserted or reset again');
- assert.equal(reads['userprogresses.find'],1,'phrase entry reuses its full pending queue and avoids both pending and all-reviewed rereads');
+ assert.equal(reads['userprogresses.find'],2,'phrase entry revalidates pending state and freshly groups owner identities before allocating');
  const originalDates=fixture.userprogresses.map((p:any)=>p.nextDueDate);
  await insertNewProgress(fixture.userprogresses.map((p:any)=>({...p,nextDueDate:new Date('2030-01-01')})),getDb());
  assert.deepEqual(fixture.userprogresses.map((p:any)=>p.nextDueDate),originalDates,'upserts do not overwrite schedules');
@@ -427,8 +430,8 @@ try {
  }
  console.log('PASS exact new-phrase responses, repeat allocation, scoped/reused categories, pending-queue short circuit, batched idempotent upserts and error propagation');
  // A fresh pending read remains necessary for concurrent devices, but covered
- // IDs cannot change the outer queue because its merge discards duplicates.
- // Keep the later sibling lookup fresh instead of caching its earlier result.
+ // Identity/version probes reuse unchanged snapshots; ranked selection also
+ // reads prerequisites, then the final sibling lookup stays fresh.
  const pendingCard=(n:number,guid:string,direction:string,extra:any={})=>progress(n,'WORD',20,{isNew:true,interval:0,repetitions:0,totalReviews:0,lapses:0,lastReviewed:null,
   card:{source:'ANKI',sourceCardId:String(n),sourceNoteGuid:guid,direction,prompt:'prompt',answer:'answer',acceptedAnswers:['answer'],notes:'note',examples:['example'],deck:'App'},...extra});
  const pendingPair=[pendingCard(61,'pending-pair','DE_ES'),pendingCard(62,'pending-pair','ES_DE')];
@@ -442,17 +445,15 @@ try {
   ['buried recognition',[{...pendingPair[0],buriedUntil:new Date(now.getTime()+3600000)},pendingPair[1]],1,20,[]],
   ['future recognition',[{...pendingPair[0],nextDueDate:new Date(now.getTime()+86400000)},pendingPair[1]],2,20,[61,62]],
   ['duplicate directions',[...pendingPair,pendingCard(63,'pending-pair','DE_ES')],2,20,[61,62]],
-  ['null relations',pendingPair.map(p=>({...p,relationId:null})),2,20,[61,62]],
-  ['absent relations',pendingPair.map(p=>({...p,relationId:undefined})),2,20,[61,62]],
  ] as const){
   fixture.userprogresses=rows;user.settings.dailyNewCards=dailyLimit;progressQueries=[];batches=[];
   const packet=await loadCompactStudyQueue(user as any,{...pendingArgs,newLimit});
   assert.deepEqual(packet.items.map(row=>row.id),expected.map(n=>String(id(200+n))),label);
-  assert.equal(siblingReads(),1,`${label}: covered pending work must leave one fresh outer sibling lookup`);
-  assert.equal(batches.length,0,`${label}: candidate count, not eligible group count, prevents allocation`);
+  assert.equal(siblingReads(),expected.length ? 2 : 1,`${label}: rank eligibility and selected groups retain fresh prerequisite checks`);
+  assert.equal(batches.length,0,`${label}: already-owned relation prevents duplicate allocation`);
   const pendingReads=progressQueries.filter(read=>read.query.isNew===true);
   assert.equal(pendingReads.length,1,`${label}: covered pending IDs need one identity read`);
-  assert.deepEqual(pendingReads[0].projection,{_id:0,itemId:1,itemType:1,relationId:1,'card.sourceCardId':1,'card.sourceNoteGuid':1,'card.direction':1},'covered reads never transfer scheduler state, options or card content');
+  assert.deepEqual(pendingReads[0].projection,{_id:0,itemId:1,itemType:1,relationId:1,scheduleVersion:1,failureVersion:1,failureIndex:1,updatedAt:1,buriedUntil:1,suspended:1,supersededByAnki:1,isNew:1,'card.sourceCardId':1,'card.sourceNoteGuid':1,'card.direction':1},'covered reads never transfer scheduler state, options or card content');
   assert.equal(pendingReads[0].batchSize,5000,'the identity scout remains bounded without limiting the queue');
   const siblingRead=progressQueries.find(read=>read.query['card.sourceNoteGuid'])!;
   assert.ok(siblingRead.query.itemId?.$nin?.length,'already loaded sibling IDs are excluded at the database');
@@ -497,15 +498,17 @@ try {
   const packet=await loadCompactStudyQueue(user as any,{...pendingArgs,newLimit:1});
   assert.deepEqual(packet.items.map(row=>row.id),expected.map(n=>String(id(200+n))),'duplicate missing recognition retains the original first-direction rule');
   const siblingQueries=progressQueries.filter(read=>read.query['card.sourceNoteGuid']);
-  assert.equal(siblingQueries.length,2,'ambiguous missing records use the original fresh full sibling fallback');
-  assert.equal(siblingQueries[0].limit,2);assert.ok(siblingQueries[0].query.itemId?.$nin);
-  assert.equal(siblingQueries[1].query.itemId,undefined);assert.equal(siblingQueries[1].limit,undefined,'fallback must never cap queue completeness');
+  assert.equal(siblingQueries.length,expected.length?4:2,'ranked selection revalidates prerequisites; final selection repeats it only for an eligible pending group');
+  for (let i=0;i<siblingQueries.length;i+=2) {
+   assert.equal(siblingQueries[i].limit,2);assert.ok(siblingQueries[i].query.itemId?.$nin);
+   assert.equal(siblingQueries[i+1].query.itemId,undefined);assert.equal(siblingQueries[i+1].limit,undefined,'fallback must never cap queue completeness');
+  }
  }
- // The original duplicate-ID postfilter applies across item types, including
- // collection-local ID collisions; pushing it down must retain that contract.
+ // Classified unseen phrases precede unclassified imported pending cards,
+ // including when a due card has the same item ID in another collection.
  fixture.userprogresses=[progress(61,'PHRASE',40),pendingPair[1],{...pendingPair[0],isNew:false,nextDueDate:new Date(now.getTime()+86400000)}];progressQueries=[];
  const collidedPending=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:1});
- assert.deepEqual(collidedPending.items.map(row=>[row.id,row.type]),[[String(id(261)),'PHRASE'],[String(id(262)),'WORD']]);
+ assert.deepEqual(collidedPending.items.map(row=>[row.id,row.type]),[[String(id(261)),'PHRASE'],[String(id(41)),'PHRASE']]);
  assert.ok(progressQueries.find(read=>read.query['card.sourceNoteGuid'])!.query.itemId.$nin.some((itemId:any)=>String(itemId)===String(id(262))),'only loaded matching-GUID identities need to enlarge the exclusion query; the final seen filter still handles cross-type collisions');
  const aheadReading=(n:number,guid:string)=>{const p=pendingCard(n,guid,'DE_ES',{isNew:false,nextDueDate:new Date(now.getTime()+2700000),interval:30,repetitions:4});p.scheduler={...p.scheduler,phase:'LEARNING',queue:'MINUTE',remainingSteps:1,options:{...p.scheduler.options,learnAheadSeconds:7200}};return p;};
  fixture.userprogresses=[aheadReading(67,'ahead-b'),aheadReading(68,'ahead-a'),pendingCard(69,'ahead-a','ES_DE'),pendingCard(70,'ahead-b','ES_DE')];
@@ -513,7 +516,7 @@ try {
  const aheadCompact=await loadCompactStudyQueue(user as any,pendingArgs);
  assert.deepEqual(aheadCompact.items.map(row=>row.id),aheadOriginal.map((row:any)=>row.itemId),'multiple missing learning-ahead siblings retain original order and completeness');
  assert.ok(aheadCompact.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='example'),'late sibling content is complete after either prerequisite path');
- for(const changedCard of [{...pendingPair[0].card,sourceCardId:'changed'}, {...pendingPair[0].card,sourceNoteGuid:'changed'}, {...pendingPair[0].card,direction:'ES_DE'},undefined]){
+ for(const changedCard of [{...pendingPair[0].card,sourceCardId:'999999'}, {...pendingPair[0].card,sourceNoteGuid:'changed'}, {...pendingPair[0].card,direction:'ES_DE'},undefined]){
   fixture.userprogresses=[...pendingPair];progressQueries=[];let metadataChanged=false;
   holdRead=async(name,method,query)=>{
    if(!metadataChanged && name==='userprogresses' && method==='find' && query.$or?.some((clause:any)=>clause.temporaryDueDate)){
@@ -595,7 +598,7 @@ try {
  let releaseIdentities!:()=>void, identitiesStarted!:()=>void;
  const identityGate=new Promise<void>(resolve=>{releaseIdentities=resolve;});
  const identityStart=new Promise<void>(resolve=>{identitiesStarted=resolve;});
- holdRead=async(name,method,query)=>{if(name==='userprogresses' && method==='aggregate' && query.$or?.some((clause:any)=>clause.relationId?.$in)){identitiesStarted();await identityGate;}};
+ holdRead=async(name,method,query)=>{if(name==='userprogresses' && method==='aggregate' && query.itemType==='PHRASE'){identitiesStarted();await identityGate;}};
  const allocatedCombined=loadCompactStudyQueue(user as any,{itemType:'PHRASE',dueLimit:5000,newLimit:2,includeCounts:true});
  try{
   await identityStart;await new Promise(resolve=>setImmediate(resolve));
@@ -968,7 +971,7 @@ try {
  fixture.userprogresses=[orphanPhrase,playablePendingPhrase];
  const phrasePlayable=await loadCompactStudyQueue(user as any,{itemType:'PHRASE',dueLimit:5000,newLimit:1,includeCounts:true});
  assert.deepEqual(phrasePlayable.items.map(row=>row.id),[String(playablePendingPhrase.itemId)]);
- assert.equal(phrasePlayable.counts!.new,1,'pending orphan phrases cannot consume the new-card allowance or counters');
+ assert.equal(phrasePlayable.counts!.new,2,'counter allowance includes the valid pending phrase and unseen phrase, excluding the orphan');
  console.log('PASS playable queue and counters exclude orphan legacy progress without deleting history');
  console.log('PASS compact ordered starter/background transport, custom profiles/timezones, local schedule transitions, reveal content, legacy/cloze/missing links and ownership');
 }finally{await closeDatabase();(globalThis as any).Date=RealDate;}

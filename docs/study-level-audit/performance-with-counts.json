@@ -1,0 +1,516 @@
+{
+  "environment": "isolated loopback Mongo replica set; actual catalog; same owner ID; synthetic late-course progress",
+  "operation": "loadCompactStudyQueue",
+  "request": {
+    "dueLimit": 50,
+    "newLimit": 20,
+    "cardLimit": 20,
+    "includeCounts": true
+  },
+  "samplesPerCase": 3,
+  "warmupPerCase": 1,
+  "limitation": "Three local samples per case; sample maximum is not a production p95; local host contention may affect timings.",
+  "assertions": [
+    "20 playable cards per response",
+    "Counters equal all eligible pending cards up to1000 daily budget",
+    "Zero warm catalog reads",
+    "No request-time lookup aggregation"
+  ],
+  "report": [
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "requestedPending": 100,
+      "pendingCards": 100,
+      "p50Ms": 123.44,
+      "sampleMaxMs": 228.4,
+      "samples": [
+        {
+          "ms": 228.4,
+          "cpuMs": 102.643,
+          "commands": 12,
+          "rowsRead": 12705,
+          "responseBytes": 761218,
+          "commandBytes": 13235,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23166
+        },
+        {
+          "ms": 119.33,
+          "cpuMs": 67.009,
+          "commands": 12,
+          "rowsRead": 12705,
+          "responseBytes": 761218,
+          "commandBytes": 13235,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23166
+        },
+        {
+          "ms": 123.44,
+          "cpuMs": 77.362,
+          "commands": 12,
+          "rowsRead": 12705,
+          "responseBytes": 761218,
+          "commandBytes": 13235,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23166
+        }
+      ]
+    },
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "requestedPending": 500,
+      "pendingCards": 500,
+      "p50Ms": 151.66,
+      "sampleMaxMs": 157.57,
+      "samples": [
+        {
+          "ms": 157.57,
+          "cpuMs": 101.448,
+          "commands": 12,
+          "rowsRead": 13505,
+          "responseBytes": 1281765,
+          "commandBytes": 33585,
+          "catalogReads": 0,
+          "counts": {
+            "new": 500,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23150
+        },
+        {
+          "ms": 151.66,
+          "cpuMs": 97.431,
+          "commands": 12,
+          "rowsRead": 13505,
+          "responseBytes": 1281765,
+          "commandBytes": 33585,
+          "catalogReads": 0,
+          "counts": {
+            "new": 500,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23150
+        },
+        {
+          "ms": 148.56,
+          "cpuMs": 87.057,
+          "commands": 12,
+          "rowsRead": 13505,
+          "responseBytes": 1281765,
+          "commandBytes": 33585,
+          "catalogReads": 0,
+          "counts": {
+            "new": 500,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23150
+        }
+      ]
+    },
+    {
+      "type": "WORD",
+      "ownerCards": 12753,
+      "requestedPending": 1000,
+      "pendingCards": 1000,
+      "p50Ms": 179.11,
+      "sampleMaxMs": 183.97,
+      "samples": [
+        {
+          "ms": 183.97,
+          "cpuMs": 129.987,
+          "commands": 12,
+          "rowsRead": 14505,
+          "responseBytes": 1933000,
+          "commandBytes": 59085,
+          "catalogReads": 0,
+          "counts": {
+            "new": 1000,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23090
+        },
+        {
+          "ms": 173.95,
+          "cpuMs": 112.334,
+          "commands": 12,
+          "rowsRead": 14505,
+          "responseBytes": 1933000,
+          "commandBytes": 59085,
+          "catalogReads": 0,
+          "counts": {
+            "new": 1000,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23090
+        },
+        {
+          "ms": 179.11,
+          "cpuMs": 136.277,
+          "commands": 12,
+          "rowsRead": 14505,
+          "responseBytes": 1933000,
+          "commandBytes": 59085,
+          "catalogReads": 0,
+          "counts": {
+            "new": 1000,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23090
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "requestedPending": 100,
+      "pendingCards": 100,
+      "p50Ms": 9.41,
+      "sampleMaxMs": 10.8,
+      "samples": [
+        {
+          "ms": 10.8,
+          "cpuMs": 8.407,
+          "commands": 8,
+          "rowsRead": 759,
+          "responseBytes": 122347,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        },
+        {
+          "ms": 9.41,
+          "cpuMs": 9.089,
+          "commands": 8,
+          "rowsRead": 759,
+          "responseBytes": 122347,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        },
+        {
+          "ms": 8.97,
+          "cpuMs": 7.117,
+          "commands": 8,
+          "rowsRead": 759,
+          "responseBytes": 122347,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "requestedPending": 500,
+      "pendingCards": 269,
+      "p50Ms": 14.04,
+      "sampleMaxMs": 14.89,
+      "samples": [
+        {
+          "ms": 14.89,
+          "cpuMs": 11.385,
+          "commands": 8,
+          "rowsRead": 1097,
+          "responseBytes": 278503,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 269,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        },
+        {
+          "ms": 14.04,
+          "cpuMs": 12.22,
+          "commands": 8,
+          "rowsRead": 1097,
+          "responseBytes": 278503,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 269,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        },
+        {
+          "ms": 13.96,
+          "cpuMs": 14.305,
+          "commands": 8,
+          "rowsRead": 1097,
+          "responseBytes": 278503,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 269,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        }
+      ]
+    },
+    {
+      "type": "PHRASE",
+      "ownerCards": 12753,
+      "requestedPending": 1000,
+      "pendingCards": 269,
+      "p50Ms": 14.9,
+      "sampleMaxMs": 15.74,
+      "samples": [
+        {
+          "ms": 14.88,
+          "cpuMs": 12.078,
+          "commands": 8,
+          "rowsRead": 1097,
+          "responseBytes": 278503,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 269,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        },
+        {
+          "ms": 15.74,
+          "cpuMs": 12.823,
+          "commands": 8,
+          "rowsRead": 1097,
+          "responseBytes": 278503,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 269,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        },
+        {
+          "ms": 14.9,
+          "cpuMs": 15.331,
+          "commands": 8,
+          "rowsRead": 1097,
+          "responseBytes": 278503,
+          "commandBytes": 4973,
+          "catalogReads": 0,
+          "counts": {
+            "new": 269,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 18156
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "requestedPending": 100,
+      "pendingCards": 100,
+      "p50Ms": 126.96,
+      "sampleMaxMs": 260.44,
+      "samples": [
+        {
+          "ms": 260.44,
+          "cpuMs": 154.016,
+          "commands": 12,
+          "rowsRead": 13243,
+          "responseBytes": 789194,
+          "commandBytes": 13159,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23166
+        },
+        {
+          "ms": 126.96,
+          "cpuMs": 84.802,
+          "commands": 12,
+          "rowsRead": 13243,
+          "responseBytes": 789194,
+          "commandBytes": 13159,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23166
+        },
+        {
+          "ms": 121.28,
+          "cpuMs": 60.665,
+          "commands": 12,
+          "rowsRead": 13243,
+          "responseBytes": 789194,
+          "commandBytes": 13159,
+          "catalogReads": 0,
+          "counts": {
+            "new": 100,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23166
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "requestedPending": 500,
+      "pendingCards": 500,
+      "p50Ms": 154.59,
+      "sampleMaxMs": 157.94,
+      "samples": [
+        {
+          "ms": 157.94,
+          "cpuMs": 109.489,
+          "commands": 12,
+          "rowsRead": 14043,
+          "responseBytes": 1308227,
+          "commandBytes": 33305,
+          "catalogReads": 0,
+          "counts": {
+            "new": 500,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23150
+        },
+        {
+          "ms": 146.59,
+          "cpuMs": 89.636,
+          "commands": 12,
+          "rowsRead": 14043,
+          "responseBytes": 1308227,
+          "commandBytes": 33305,
+          "catalogReads": 0,
+          "counts": {
+            "new": 500,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23150
+        },
+        {
+          "ms": 154.59,
+          "cpuMs": 88.687,
+          "commands": 12,
+          "rowsRead": 14043,
+          "responseBytes": 1308227,
+          "commandBytes": 33305,
+          "catalogReads": 0,
+          "counts": {
+            "new": 500,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23150
+        }
+      ]
+    },
+    {
+      "type": "MIXED",
+      "ownerCards": 12753,
+      "requestedPending": 1000,
+      "pendingCards": 1000,
+      "p50Ms": 190.33,
+      "sampleMaxMs": 198.55,
+      "samples": [
+        {
+          "ms": 174.05,
+          "cpuMs": 118.585,
+          "commands": 12,
+          "rowsRead": 15043,
+          "responseBytes": 1959360,
+          "commandBytes": 58805,
+          "catalogReads": 0,
+          "counts": {
+            "new": 1000,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23283
+        },
+        {
+          "ms": 198.55,
+          "cpuMs": 119.917,
+          "commands": 12,
+          "rowsRead": 15043,
+          "responseBytes": 1959360,
+          "commandBytes": 58805,
+          "catalogReads": 0,
+          "counts": {
+            "new": 1000,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23283
+        },
+        {
+          "ms": 190.33,
+          "cpuMs": 151.991,
+          "commands": 12,
+          "rowsRead": 15043,
+          "responseBytes": 1959360,
+          "commandBytes": 58805,
+          "catalogReads": 0,
+          "counts": {
+            "new": 1000,
+            "learning": 0,
+            "review": 0
+          },
+          "packetBytes": 23283
+        }
+      ]
+    }
+  ]
+}

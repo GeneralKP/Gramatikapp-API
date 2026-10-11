@@ -40,10 +40,11 @@ export async function ensureNativeWordPairs(progress: UserProgress[]): Promise<U
     db.wordsES.find({ _id: { $in: relations.map(r => r.main) } }).toArray(),
     db.wordsDE.find({ _id: { $in: relations.map(r => r.translated) } }).toArray(),
   ]);
+  const relationMap = new Map(relations.map(r => [String(r._id), r])), esMap = new Map(spanish.map(w => [String(w._id), w])), deMap = new Map(german.map(w => [String(w._id), w]));
   const additions: UserProgress[] = [], replacements = new Map<string, UserProgress>();
   for (const candidate of candidates) {
-    const relation = relations.find(r => r._id.equals(candidate.relationId ?? candidate.itemId));
-    const es = relation && spanish.find(w => w._id.equals(relation.main)), de = relation && german.find(w => w._id.equals(relation.translated));
+    const relation = relationMap.get(String(candidate.relationId ?? candidate.itemId));
+    const es = relation && esMap.get(String(relation.main)), de = relation && deMap.get(String(relation.translated));
     if (!es || !de) continue;
     const session = getDatabaseClient().startSession();
     try {

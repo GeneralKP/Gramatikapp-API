@@ -1,0 +1,255 @@
+{
+  "auditDate": "2026-10-11",
+  "environment": "Disposable MongoDB replica-set databases on loopback port 27019; actual catalog with synthetic late-course progress. Both databases dropped after testing.",
+  "ownerCards": 12753,
+  "identitySanitization": "Owner IDs, card IDs, GUID values, vocabulary, credentials and connection secrets are omitted.",
+  "candidateIndex": {
+    "userId": 1,
+    "card.sourceNoteGuid": 1,
+    "itemType": 1,
+    "card.direction": 1
+  },
+  "measurement": {
+    "samplesPerCase": 9,
+    "warmupPerCase": 1,
+    "timing": "Local sequential before/after samples; median and sample maximum; host contention and warmup can affect timings. These are not production latency guarantees.",
+    "normalQueueIdentityComparison": "Exact returned IDs and ordering matched for WORD and MIXED at 100, 500 and 1000 pending cards."
+  },
+  "measurements": [
+    {
+      "pendingCards": 100,
+      "missingSiblingProbe": {
+        "before": {
+          "medianMs": 10.867,
+          "sampleMaxMs": 49.042,
+          "returned": 0,
+          "documentsExamined": 12484,
+          "keysExamined": 12484,
+          "indexes": [
+            "userId_1_itemType_1_failureIndex_-1"
+          ]
+        },
+        "after": {
+          "medianMs": 0.584,
+          "sampleMaxMs": 4.235,
+          "returned": 0,
+          "documentsExamined": 100,
+          "keysExamined": 145,
+          "indexes": [
+            "study_guid_benchmark_index"
+          ]
+        }
+      },
+      "wordQueue": {
+        "before": {
+          "medianMs": 71.88,
+          "sampleMaxMs": 151.958,
+          "medianCpuMs": 38.758,
+          "readCommands": 8,
+          "rowsTransferred": 6443,
+          "responseBytes": 442197
+        },
+        "after": {
+          "medianMs": 55.355,
+          "sampleMaxMs": 162.323,
+          "medianCpuMs": 34.458,
+          "readCommands": 8,
+          "rowsTransferred": 6443,
+          "responseBytes": 442197
+        }
+      },
+      "mixedQueue": {
+        "before": {
+          "medianMs": 77.262,
+          "sampleMaxMs": 141.592,
+          "medianCpuMs": 42.119,
+          "readCommands": 8,
+          "rowsTransferred": 6712,
+          "responseBytes": 456185
+        },
+        "after": {
+          "medianMs": 52.85,
+          "sampleMaxMs": 161.407,
+          "medianCpuMs": 32.985,
+          "readCommands": 8,
+          "rowsTransferred": 6712,
+          "responseBytes": 456185
+        }
+      }
+    },
+    {
+      "pendingCards": 500,
+      "missingSiblingProbe": {
+        "before": {
+          "medianMs": 18.588,
+          "sampleMaxMs": 24.131,
+          "returned": 0,
+          "documentsExamined": 12484,
+          "keysExamined": 12484,
+          "indexes": [
+            "userId_1_itemType_1_failureIndex_-1"
+          ]
+        },
+        "after": {
+          "medianMs": 1.117,
+          "sampleMaxMs": 1.405,
+          "returned": 0,
+          "documentsExamined": 500,
+          "keysExamined": 727,
+          "indexes": [
+            "study_guid_benchmark_index"
+          ]
+        }
+      },
+      "wordQueue": {
+        "before": {
+          "medianMs": 112.991,
+          "sampleMaxMs": 126.561,
+          "medianCpuMs": 56.086,
+          "readCommands": 8,
+          "rowsTransferred": 7243,
+          "responseBytes": 963009
+        },
+        "after": {
+          "medianMs": 67.161,
+          "sampleMaxMs": 69.869,
+          "medianCpuMs": 46.136,
+          "readCommands": 8,
+          "rowsTransferred": 7243,
+          "responseBytes": 963009
+        }
+      },
+      "mixedQueue": {
+        "before": {
+          "medianMs": 88.965,
+          "sampleMaxMs": 92.082,
+          "medianCpuMs": 47.302,
+          "readCommands": 8,
+          "rowsTransferred": 7512,
+          "responseBytes": 976997
+        },
+        "after": {
+          "medianMs": 71.003,
+          "sampleMaxMs": 81.223,
+          "medianCpuMs": 50.981,
+          "readCommands": 8,
+          "rowsTransferred": 7512,
+          "responseBytes": 976997
+        }
+      }
+    },
+    {
+      "pendingCards": 1000,
+      "missingSiblingProbe": {
+        "before": {
+          "medianMs": 11.978,
+          "sampleMaxMs": 12.389,
+          "returned": 0,
+          "documentsExamined": 12484,
+          "keysExamined": 12484,
+          "indexes": [
+            "userId_1_itemType_1_failureIndex_-1"
+          ]
+        },
+        "after": {
+          "medianMs": 2.954,
+          "sampleMaxMs": 21.972,
+          "returned": 0,
+          "documentsExamined": 1000,
+          "keysExamined": 1458,
+          "indexes": [
+            "study_guid_benchmark_index"
+          ]
+        }
+      },
+      "wordQueue": {
+        "before": {
+          "medianMs": 105.139,
+          "sampleMaxMs": 105.988,
+          "medianCpuMs": 63.09,
+          "readCommands": 8,
+          "rowsTransferred": 8243,
+          "responseBytes": 1614083
+        },
+        "after": {
+          "medianMs": 90.803,
+          "sampleMaxMs": 105.199,
+          "medianCpuMs": 65.261,
+          "readCommands": 8,
+          "rowsTransferred": 8243,
+          "responseBytes": 1614083
+        }
+      },
+      "mixedQueue": {
+        "before": {
+          "medianMs": 105.814,
+          "sampleMaxMs": 112.725,
+          "medianCpuMs": 66.132,
+          "readCommands": 8,
+          "rowsTransferred": 8512,
+          "responseBytes": 1628071
+        },
+        "after": {
+          "medianMs": 86.845,
+          "sampleMaxMs": 94.616,
+          "medianCpuMs": 64.027,
+          "readCommands": 8,
+          "rowsTransferred": 8512,
+          "responseBytes": 1628071
+        }
+      }
+    }
+  ],
+  "duplicateDirectionChecks": [
+    {
+      "case": "Equal failure counts",
+      "sameQueueIdsAndOrder": true,
+      "sameFirstRecognition": true,
+      "sameSiblingOrder": true,
+      "before": {
+        "firstRecognitionPhase": "NEW",
+        "productionIncluded": false,
+        "index": [
+          "userId_1_itemType_1_failureIndex_-1"
+        ]
+      },
+      "after": {
+        "firstRecognitionPhase": "NEW",
+        "productionIncluded": false,
+        "index": [
+          "study_guid_benchmark_index"
+        ]
+      }
+    },
+    {
+      "case": "Original buried NEW recognition has zero failures; introduced duplicate REVIEW recognition has seven failures",
+      "sameQueueIdsAndOrder": false,
+      "sameFirstRecognition": false,
+      "sameSiblingOrder": false,
+      "before": {
+        "firstRecognitionPhase": "REVIEW",
+        "productionIncluded": true,
+        "index": [
+          "userId_1_itemType_1_failureIndex_-1"
+        ]
+      },
+      "after": {
+        "firstRecognitionPhase": "NEW",
+        "productionIncluded": false,
+        "index": [
+          "study_guid_benchmark_index"
+        ]
+      }
+    }
+  ],
+  "decision": "Do not add the candidate index in this task.",
+  "reason": "Compact missing-sibling probes and normal queues became faster, but the new index changed the first unsorted duplicate recognition from REVIEW to buried NEW and removed production from the queue. Retain the current compact probe until duplicate-direction selection has explicit deterministic semantics.",
+  "appliedToProduction": false,
+  "productionSourceOrIndexDeclarationsChanged": false,
+  "finalCounterPerformanceReview": {
+    "planner": "Retrieval and read-only counters share the same ordered pending/unseen allocation budget, then apply existing deck ceilings through the final queue selector.",
+    "constructionBound": "Only selected bare introductions are converted to virtual word pairs; retained pairs can exceed an odd allowance by one prerequisite partner.",
+    "complexity": "Cached rank generation; O(catalog) fresh typed-identity filtering, O(pending log pending) grouping, linear frontier merge, and bounded selected virtual construction.",
+    "database": "Fresh owner-scoped grouped exclusions, request-shared metadata, bulk selection and cached catalog metadata. No per-card level queries, request-time catalog joins/sorts, or counter writes."
+  }
+}
