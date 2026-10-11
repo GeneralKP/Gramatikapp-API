@@ -61,6 +61,12 @@ ARCHIVE COMMIT SHA256`; its source is `deploy-release.sh`. It verifies the archi
 installs locked production dependencies in a bounded build service, switches the
 Gramatik release, and restores the previous one if local readiness fails. Automatic main releases use the separate pull-based mechanism below; the manual
 command remains available. Neither mechanism reuses Hope's deployment tunnel or pipeline.
+Readiness allows up to 90 probes, each with a one-second connection timeout,
+a two-second request timeout and a one-second delay. On 11 October 2026, the API
+became ready after about 32 seconds while the former 30-probe window was ending;
+the helper rolled back a successfully starting release. The longer bounded
+window still requires the exact candidate commit and preserves rollback on
+failure. Install the updated privileged helper separately before retrying.
 Record release IDs and retain the previous release. Restore its current symlink
 and restart only `gramatik-api` if a new release fails its local health check.
 

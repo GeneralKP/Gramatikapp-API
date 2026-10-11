@@ -2,6 +2,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import subprocess
 import tarfile
@@ -108,6 +109,50 @@ class IdentityTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(ValueError):
                 self.verify()
             self.run[field] = original
+
+
+class ReadinessTests(unittest.TestCase):
+    """Run the helper's real readiness block with fixture HTTP/time commands."""
+
+    def probe(self, ready_after, response_release):
+        source = (ROOT / "deploy-release.sh").read_text()
+        block = source[source.index("ready=false\n"):source.index("trap - ERR HUP INT TERM")]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            curl = root / "curl"
+            curl.write_text("#!/usr/bin/python3\n" +
+                            "import json, os, pathlib, sys\n" +
+                            "p = pathlib.Path(os.environ['PROBE_COUNT'])\n" +
+                            "n = int(p.read_text()) + 1 if p.exists() else 1\n" +
+                            "p.write_text(str(n))\n" +
+                            "if n < int(os.environ['READY_AFTER']): sys.exit(7)\n" +
+                            "print(json.dumps({'status': 'ok', 'release': os.environ['RESPONSE_RELEASE']}))\n")
+            curl.chmod(0o700)
+            sleep = root / "sleep"
+            sleep.write_text("#!/bin/sh\nexit 0\n")
+            sleep.chmod(0o700)
+            env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'],
+                       PROBE_COUNT=str(root / "count"), READY_AFTER=str(ready_after),
+                       RESPONSE_RELEASE=response_release)
+            result = subprocess.run(["bash", "-c", "set -euo pipefail\nrelease_id=" + "a" * 40 + "\n" + block],
+                                    env=env, capture_output=True, text=True, timeout=45)
+            return result, int((root / "count").read_text())
+
+    def test_catalog_warmup_longer_than_thirty_seconds_can_become_ready(self):
+        result, attempts = self.probe(40, "a" * 40)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(attempts, 40)
+
+    def test_unavailable_release_still_exhausts_a_bounded_window(self):
+        result, attempts = self.probe(100, "a" * 40)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(attempts, 90)
+        self.assertIn("restoring its previous release", result.stderr)
+
+    def test_healthy_previous_commit_cannot_pass_readiness(self):
+        result, attempts = self.probe(1, "b" * 40)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(attempts, 90)
 
 
 class PullIntegrationTests(unittest.TestCase):

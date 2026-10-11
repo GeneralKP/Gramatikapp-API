@@ -76,7 +76,9 @@ mv -Tf -- "$base/current.next" "$base/current"
 activated=true
 systemctl restart gramatik-api.service
 ready=false
-for attempt in $(seq 1 30); do
+# Atlas connection/index setup and catalog warmup exceeded 30 probes on the
+# production VPS. Keep a bounded window without accepting a previous commit.
+for attempt in $(seq 1 90); do
   if curl -fsS --connect-timeout 1 --max-time 2 http://127.0.0.1:4000/health | /usr/bin/python3 -c 'import json,sys; assert json.load(sys.stdin)["release"] == sys.argv[1]' "$release_id" 2>/dev/null; then ready=true; break; fi
   sleep 1
 done
