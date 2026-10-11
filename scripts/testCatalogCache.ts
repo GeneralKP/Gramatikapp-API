@@ -6,6 +6,7 @@ import type { Database } from "../src/lib/database.js";
 import { CATALOG_SUMMARY_REFRESH_MS, startStudyCatalogRefresh, stopStudyCatalogRefresh } from "../src/features/progress/studyLoading.js";
 import { studyTextCatalog } from "../src/features/progress/studyTextCatalog.js";
 import { saveReviewedEntry } from "../src/features/translations/translations.service.js";
+import { createPhraseGrammarIndex } from "../src/features/phrases/phraseGrammar.js";
 
 let now = 0;
 const cache = createCatalogSummaryCache(() => now), db = {} as Database, secondDb = {} as Database;
@@ -111,11 +112,11 @@ const display = await studyTextCatalog(undefined, displayDb);
 assert.equal(displayReads.length, 4);
 assert.deepEqual(displayReads.find(read => read.collection === "wordsES")!.projection, { _id: 1, word: 1, contexts: 1, level: 1, examples: 1 });
 assert.deepEqual(displayReads.find(read => read.collection === "wordsDE")!.projection, { _id: 1, word: 1, cefrLevel: 1, gramaticalCategories: 1, "forms.gender": 1, "forms.past": 1, "forms.perfect": 1, "forms.imperativ": 1, notes: 1, examples: 1 });
-assert.deepEqual(displayReads.find(read => read.collection === "phrasesDE")!.projection, { _id: 1, phrase: 1, cefrLevel: 1, synonyms: 1 });
+assert.deepEqual(displayReads.find(read => read.collection === "phrasesDE")!.projection, { _id: 1, phrase: 1, cefrLevel: 1, synonyms: 1, words: 1 });
 assert.deepEqual(Object.keys(display.wordsES[0]).sort(), ["_id", "word", "contexts", "level", "examples"].sort());
 assert.deepEqual(Object.keys(display.wordsDE[0]).sort(), ["_id", "word", "gramaticalCategories", "forms", "notes", "examples"].sort());
 assert.deepEqual(Object.keys(display.wordsDE[0].forms!).sort(), ["gender", "past", "perfect", "imperativ"].sort());
-assert.deepEqual(Object.keys(display.phrasesDE[0]).sort(), ["_id", "phrase", "synonyms"].sort());
+assert.deepEqual(Object.keys(display.phrasesDE[0]).sort(), ["_id", "phrase", "synonyms", "words"].sort());
 assert.throws(() => { display.wordsDE[0].forms!.past = "mutated"; }, TypeError);
 assert.throws(() => display.wordsDE[0].gramaticalCategories.push("VERB" as any), TypeError);
 assert.throws(() => display.phrasesDE[0].synonyms.push("mutated"), TypeError);
@@ -167,7 +168,7 @@ assert.notEqual(await catalogSummaryCache.read(partialDb, "words", async () => [
 
 // The reviewed dictionary writer is also used by emergency translations. Its
 // catalog generations are invalidated on successful or uncertain transactions,
-// while SURFACE-only translations leave shared catalog snapshots untouched.
+// while SURFACE-only translations invalidate only their category projection.
 const reviewed = {
   kind: "LEXEME", word: "lernen", key: "lernen", lemma: "lernen", translation: "aprender", form: "dictionary form", category: "VERB", cefrLevel: "A1.1",
   forms: { past: "lernte", perfect: "gelernt", imperativ: "Lerne!" },
@@ -195,8 +196,13 @@ for (const outcome of ["success", "transaction rejection", "uncertain commit", "
 }
 uncertainCommit = false; rejectTransaction = false; rejectCleanup = false;
 const beforeSurface = await catalogSummaryCache.read(reviewedDb, "wordTextDe", async () => []);
+const beforeGrammar = await catalogSummaryCache.read(reviewedDb, "grammarSurfaceDe", async () => []);
+assert.deepEqual(createPhraseGrammarIndex([], beforeGrammar).forPhrase('lernte'), { lernte: ['UNKNOWN'] });
 const catalogWritesBeforeSurface = catalogWrites;
 assert.equal((await boundedReviewedSave({ ...reviewed, kind: "SURFACE", word: "lernte", key: "lernte", form: "past singular" }))?.source, "TRANSLATIONS");
 assert.equal(await catalogSummaryCache.read(reviewedDb, "wordTextDe", async () => []), beforeSurface);
+const afterGrammar = await catalogSummaryCache.read(reviewedDb, "grammarSurfaceDe", async () => [{ key: 'lernte', category: 'VERB' }]);
+assert.notEqual(afterGrammar, beforeGrammar, 'a SURFACE save invalidates its category projection immediately');
+assert.deepEqual(createPhraseGrammarIndex([], afterGrammar).forPhrase('lernte'), { lernte: ['VERB'] });
 assert.equal(catalogWrites, catalogWritesBeforeSurface); assert.equal(surfaceWrites, 1); assert.equal(endedSessions, 5);
 console.log("PASS immutable catalog summaries, database isolation, singleflight, atomic refresh, hard expiry, retryable loads, generation-safe invalidation, timer lifecycle, shared display/feedback and seed/dictionary writers");

@@ -13,6 +13,8 @@ import type { Phrase } from "../phrases/phrases.types.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
 import { readCardEdits } from "./cardEdits.js";
 import type { CardEdit, CardFlag } from "./cardEdits.types.js";
+import { phraseGrammarCatalog } from '../phrases/phraseGrammarCatalog.js';
+import type { WordCategories } from '../phrases/wordBankGrammar.js';
 
 // Selection/state inputs only. Rich prompts, notes/examples and append-only
 // failure/import history are fetched only for playable cards after selection.
@@ -47,6 +49,7 @@ export interface CompactStudyShell {
   type: UserProgress["itemType"];
   german: string;
   spanish: string;
+  wordCategories?: WordCategories;
   contexts: string[];
   failureIndex: number;
   failureVersion: number;
@@ -58,6 +61,7 @@ export interface CompactStudyShell {
 export interface CompactStudyItem extends Omit<CompactStudyShell, "card"> {
   card: Pick<StudyCard, "sourceNoteGuid" | "direction" | "prompt" | "answer" | "acceptedAnswers" | "notes" | "examples"> | null;
   gramaticalCategories?: string[];
+  wordCategories?: WordCategories;
   forms?: Pick<NonNullable<Word["forms"]>, "past" | "perfect" | "imperativ"> & { article?: string };
   synonyms?: string[];
   wordNotes?: string;
@@ -137,7 +141,10 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
     if (previous.scheduler.phase === "NEW" && following.scheduler.phase === "NEW" && previous.card?.direction === "DE_ES" && following.card?.direction === "ES_DE" && previous.card.sourceNoteGuid === following.card.sourceNoteGuid) cardLimit++;
   }
   const selected = progress.slice(0, cardLimit);
-  const [pairs, edits] = await Promise.all([languagePairs(progress, db), readCardEdits(progress[0]?.userId, undefined, progress.map(p => p.relationId ?? p.itemId), db)]);
+  const [pairs, edits, phraseGrammar] = await Promise.all([
+    languagePairs(progress, db), readCardEdits(progress[0]?.userId, undefined, progress.map(p => p.relationId ?? p.itemId), db),
+    progress.some(p => p.itemType === 'PHRASE') ? phraseGrammarCatalog(db) : undefined,
+  ]);
   const editMap = new Map(edits.map(edit => [`${edit.itemType}:${edit.relationId}`, edit]));
   const playable = await playableItems(selected, pairs, db, capturedContent);
   const manifest: CompactStudyShell[] = progress.map(p => {
@@ -146,8 +153,10 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
     let profile = profileIndexes.get(key);
     if (profile === undefined) { profile = profiles.length; profiles.push(options); profileIndexes.set(key, profile); }
     const pair = pairs.get(`${p.itemType}:${p.relationId || p.itemId}`);
+    const german = pair ? (p.itemType === "WORD" ? (pair.translated as Word).word : (pair.translated as Phrase).phrase) : "";
     return {
-      id: String(p.itemId), type: p.itemType, german: pair ? (p.itemType === "WORD" ? (pair.translated as Word).word : (pair.translated as Phrase).phrase) : "",
+      id: String(p.itemId), type: p.itemType, german,
+      ...(phraseGrammar ? { wordCategories: phraseGrammar.forPhrase(german, p.itemType === 'PHRASE' ? (pair?.translated as Phrase)?.words : [], true) } : {}),
       spanish: pair ? (p.itemType === "WORD" ? (pair.main as Word).word : (pair.main as Phrase).phrase) : "", contexts: pair?.main.contexts ?? [], failureIndex: p.failureIndex ?? 0,
       failureVersion: p.failureVersion ?? 0, edit: { relationId: String(p.relationId ?? p.itemId), version: editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`)?.version ?? 0, flag: editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`)?.flag ?? null },
       card: p.card ? { sourceNoteGuid: p.card.sourceNoteGuid, direction: p.card.direction } : null,
@@ -170,6 +179,8 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
         examples: playable.legacyTranslated.get(String(pair.translated._id))?.examples ?? [], spanishExamples: playable.legacyMain.get(String(pair.main._id))?.examples ?? [] } : {}),
     };
     const result = applyPersonalContent(item, editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`));
+    if (phraseGrammar) result.wordCategories = phraseGrammar.forPhrase(result.german,
+      p.itemType === 'PHRASE' && result.german === (pair?.translated as Phrase)?.phrase ? (pair?.translated as Phrase)?.words : [], p.itemType !== 'PHRASE');
     if (result.card ? !result.card.prompt?.trim() || !result.card.answer?.trim()
       || !Array.isArray(result.card.acceptedAnswers) || !result.card.acceptedAnswers.length
       || result.card.acceptedAnswers.some(answer => typeof answer !== "string" || !answer.trim())

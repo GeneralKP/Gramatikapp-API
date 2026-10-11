@@ -1,0 +1,713 @@
+{
+  "snapshotAt": "2026-10-11T08:30:18.200Z",
+  "verifiedAt": "2026-10-11T08:33:40.800Z",
+  "review": {
+    "reviewedAt": "2026-10-11",
+    "sources": [
+      "https://www.duden.de/sprachwissen/fuer-lernende/wortarten-numerale",
+      "https://grammis.ids-mannheim.de/systematische-grammatik/279",
+      "https://grammis.ids-mannheim.de/systematische-grammatik/563",
+      "https://dle.rae.es/",
+      "https://www.asale.org/damer/quiubo/"
+    ],
+    "policy": "Prefer stored phrase-linked senses. Retain legitimate multiple roles. Fill missing forms from this manual review; augment German particles. Proper names belong to NOUN. These are lexical roles, not a claim of syntactic parsing."
+  },
+  "languages": {
+    "de": {
+      "phrases": 269,
+      "tokenOccurrences": 5202,
+      "unresolved": [],
+      "combinations": {
+        "ADVERB": 177,
+        "VERB": 1257,
+        "ARTICLE": 561,
+        "NOUN": 990,
+        "PRONOUN": 574,
+        "INTERJECTION": 3,
+        "NUMERAL": 17,
+        "PREPOSITION": 393,
+        "CONJUNCTION": 281,
+        "ADJECTIVE": 414,
+        "NOUN+PARTICLE": 1,
+        "PREPOSITION+ADVERB+PARTICLE": 69,
+        "NOUN+ADVERB+PARTICLE": 2,
+        "ADVERB+PARTICLE": 75,
+        "CONJUNCTION+PARTICLE": 3,
+        "PARTICLE": 3,
+        "CONJUNCTION+ADVERB+PARTICLE": 1,
+        "ADJECTIVE+NUMERAL": 1,
+        "VERB+NOUN": 2,
+        "ARTICLE+PRONOUN": 27,
+        "PRONOUN+VERB": 5,
+        "ADJECTIVE+ADVERB": 5,
+        "CONJUNCTION+ADVERB": 1,
+        "PREPOSITION+CONJUNCTION": 3
+      },
+      "reviewedEntries": [
+        {
+          "word": "zehn",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "drei",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "vier",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "sechzig",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "zwei",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "acht",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "neunzig",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "erster",
+          "categories": [
+            "ADJECTIVE",
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "tiefe",
+          "categories": [
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "deutschen",
+          "categories": [
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "moderne",
+          "categories": [
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "gefallen",
+          "categories": [
+            "VERB"
+          ]
+        },
+        {
+          "word": "fragen",
+          "categories": [
+            "VERB"
+          ]
+        },
+        {
+          "word": "treffen",
+          "categories": [
+            "VERB"
+          ]
+        },
+        {
+          "word": "Glauben",
+          "categories": [
+            "VERB",
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Gorgias",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Cialdini",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Zajonc",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Diomedes",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Díaz",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Anna",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Freud",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Milgram",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Hamburg",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Köln",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "dar",
+          "categories": [
+            "PARTICLE"
+          ]
+        },
+        {
+          "word": "zu",
+          "categories": [
+            "PREPOSITION",
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "nicht",
+          "categories": [
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "nur",
+          "categories": [
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "auch",
+          "categories": [
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "eben",
+          "categories": [
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "schon",
+          "categories": [
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "wohl",
+          "categories": [
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "mal",
+          "categories": [
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "doch",
+          "categories": [
+            "CONJUNCTION",
+            "ADVERB",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "denn",
+          "categories": [
+            "CONJUNCTION",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "ja",
+          "categories": [
+            "INTERJECTION",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "nein",
+          "categories": [
+            "INTERJECTION",
+            "PARTICLE"
+          ],
+          "augment": true
+        },
+        {
+          "word": "halt",
+          "categories": [
+            "PARTICLE"
+          ],
+          "augment": true
+        }
+      ]
+    },
+    "es": {
+      "phrases": 269,
+      "tokenOccurrences": 5380,
+      "unresolved": [],
+      "combinations": {
+        "ADVERB": 278,
+        "VERB": 1249,
+        "ARTICLE": 528,
+        "NOUN": 1088,
+        "PREPOSITION": 588,
+        "PRONOUN": 424,
+        "NUMERAL": 20,
+        "CONJUNCTION": 359,
+        "NOUN+ADVERB": 3,
+        "PRONOUN+ADVERB": 6,
+        "ADJECTIVE": 413,
+        "NOUN+ADJECTIVE": 10,
+        "PREPOSITION+ADVERB": 7,
+        "INTERJECTION": 4,
+        "VERB+NOUN": 2,
+        "VERB+NOUN+ADJECTIVE": 6,
+        "PREPOSITION+NOUN": 1,
+        "PRONOUN+CONJUNCTION": 3,
+        "VERB+ADJECTIVE": 5,
+        "PREPOSITION+VERB+NOUN+ADJECTIVE+ADVERB": 3,
+        "NOUN+NUMERAL": 2
+      },
+      "reviewedEntries": [
+        {
+          "word": "diez",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "tres",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "cuatro",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "sesenta",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "ciento",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "dos",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "ocho",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "cero",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "noventa",
+          "categories": [
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "cientos",
+          "categories": [
+            "NOUN",
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "millones",
+          "categories": [
+            "NOUN",
+            "NUMERAL"
+          ]
+        },
+        {
+          "word": "tarde",
+          "categories": [
+            "ADVERB",
+            "NOUN"
+          ]
+        },
+        {
+          "word": "aunque",
+          "categories": [
+            "CONJUNCTION"
+          ]
+        },
+        {
+          "word": "GPS",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "responsabilidad",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "sostenibilidad",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "salud",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "valor",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Bahn",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "klingon",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Gorgias",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Cialdini",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Zajonc",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Diomedes",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Díaz",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Dunning-Kruger",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Anna",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Freud",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Overton",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Milgram",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Hamburgo",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "Colonia",
+          "categories": [
+            "NOUN"
+          ]
+        },
+        {
+          "word": "presentes",
+          "categories": [
+            "NOUN",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "político",
+          "categories": [
+            "NOUN",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "paciente",
+          "categories": [
+            "NOUN",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "hasta",
+          "categories": [
+            "PREPOSITION",
+            "ADVERB"
+          ]
+        },
+        {
+          "word": "sin",
+          "categories": [
+            "PREPOSITION"
+          ]
+        },
+        {
+          "word": "con",
+          "categories": [
+            "PREPOSITION"
+          ]
+        },
+        {
+          "word": "contra",
+          "categories": [
+            "PREPOSITION",
+            "NOUN"
+          ]
+        },
+        {
+          "word": "nota",
+          "categories": [
+            "VERB",
+            "NOUN"
+          ]
+        },
+        {
+          "word": "acusado",
+          "categories": [
+            "VERB",
+            "NOUN",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "imposible",
+          "categories": [
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "difícil",
+          "categories": [
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "tecnológico",
+          "categories": [
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "democrático",
+          "categories": [
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "estable",
+          "categories": [
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "ignorar",
+          "categories": [
+            "VERB"
+          ]
+        },
+        {
+          "word": "cómo",
+          "categories": [
+            "ADVERB"
+          ]
+        },
+        {
+          "word": "probablemente",
+          "categories": [
+            "ADVERB"
+          ]
+        },
+        {
+          "word": "reservado",
+          "categories": [
+            "VERB",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "experimentado",
+          "categories": [
+            "VERB",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "contigo",
+          "categories": [
+            "PRONOUN"
+          ]
+        },
+        {
+          "word": "conmigo",
+          "categories": [
+            "PRONOUN"
+          ]
+        },
+        {
+          "word": "bajo",
+          "categories": [
+            "PREPOSITION",
+            "VERB",
+            "NOUN",
+            "ADJECTIVE",
+            "ADVERB"
+          ]
+        },
+        {
+          "word": "medida",
+          "categories": [
+            "VERB",
+            "NOUN",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "extraña",
+          "categories": [
+            "VERB",
+            "NOUN",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "Deutsche",
+          "categories": [
+            "NOUN",
+            "ADJECTIVE"
+          ]
+        },
+        {
+          "word": "quiubo",
+          "categories": [
+            "INTERJECTION"
+          ]
+        }
+      ]
+    }
+  }
+}

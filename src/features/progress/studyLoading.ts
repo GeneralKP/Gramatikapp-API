@@ -8,6 +8,7 @@ import type { User } from "../auth/auth.types.js";
 import { dailyCounts, type SchedulerProfile } from "./reviews.js";
 import { catalogSummaryCache, type CatalogPart } from "./catalogSummaryCache.js";
 import { studySpanishWords, studySpanishPhrases, studyTextCatalog } from "./studyTextCatalog.js";
+import { phraseGrammarCatalog } from '../phrases/phraseGrammarCatalog.js';
 import { counterFallback, counterSummaryPipeline, identitySummaryPipeline, type StudyIdentity } from './studySummaries.js';
 
 // These reads already consume every result; larger batches remove the default
@@ -153,12 +154,12 @@ export async function studyCatalog(context: object, itemType?: string, includeMe
 }
 
 /** Prepare immutable summaries before accepting the first browser request. */
-export async function warmStudyCatalog() { await Promise.all([studyCatalog({}), studyTextCatalog()]); }
+export async function warmStudyCatalog() { await Promise.all([studyCatalog({}), studyTextCatalog(), phraseGrammarCatalog()]); }
 
 export const CATALOG_SUMMARY_REFRESH_MS = 15_000;
 let catalogRefreshTimer: ReturnType<typeof setInterval> | undefined;
 async function refreshStudyCatalog() {
-  await Promise.all([studyCatalog({}, undefined, true, true), studyTextCatalog(undefined, getDb(), true)]);
+  await Promise.all([studyCatalog({}, undefined, true, true), studyTextCatalog(undefined, getDb(), true), phraseGrammarCatalog(getDb(), true)]);
 }
 export function startStudyCatalogRefresh() {
   if (catalogRefreshTimer) return;

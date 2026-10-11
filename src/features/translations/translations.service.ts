@@ -144,8 +144,8 @@ export async function saveReviewedEntry(db: Database, client: MongoClient, rawEn
     });
   } finally {
     // Commit errors can follow successful catalog writes. Invalidate every
-    // dictionary outcome; SURFACE translations never modify this catalog.
-    if (entry.kind === "LEXEME") invalidateStudyCatalog(db);
+    // dictionary outcome. SURFACE writes affect only derived phrase categories.
+    invalidateStudyCatalog(db, entry.kind === "SURFACE" ? "grammarSurfaceDe" : undefined);
     await session.endSession();
   }
 }

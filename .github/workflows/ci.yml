@@ -11,7 +11,7 @@ jobs:
     services:
       mongo:
         image: mongo:8
-        ports: ['27017:27017']
+        ports: ['27017:27017', '27037:27017']
         options: >-
           --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
           --health-interval 10s --health-timeout 5s --health-retries 5
@@ -30,6 +30,10 @@ jobs:
       - run: npx tsx scripts/testReviewedWordContent.ts
       - run: npx tsx scripts/testReviewedTranslationText.ts
       - run: npm run test:catalog-cache
+      - run: npm run test:phrase-grammar
+      - run: npm run test:phrase-grammar-integration
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27037/phrase_grammar_fixture
       - run: npm run test:auth
       - run: npm run test:anki
       - run: npm run test:scheduler

@@ -4,7 +4,7 @@ import { getDb, type Database } from "../../lib/database.js";
 // Catalog summaries contain no user/progress data. External catalog imports are
 // visible within this short TTL; in-process catalog writes invalidate at once.
 export const CATALOG_SUMMARY_TTL_MS = 30_000;
-export type CatalogPart = "words" | "phrases" | "wordMeta" | "phraseMeta" | "wordTextDe" | "phraseTextDe";
+export type CatalogPart = "words" | "phrases" | "wordMeta" | "phraseMeta" | "wordTextDe" | "phraseTextDe" | "grammarSurfaceDe";
 type Entry = { expiresAt: number; promise: Promise<unknown[]>; refresh?: Promise<unknown[]> };
 
 function immutableCopy(value: any): any {
@@ -55,9 +55,12 @@ export function createCatalogSummaryCache(clock: () => number = Date.now) {
       }
       return current.refresh as Promise<T[]>;
     },
-    invalidate(db: Database) { databases.delete(db); },
+    invalidate(db: Database, part?: CatalogPart) {
+      if (part) databases.get(db)?.delete(part);
+      else databases.delete(db);
+    },
   };
 }
 
 export const catalogSummaryCache = createCatalogSummaryCache();
-export function invalidateStudyCatalog(db: Database = getDb()) { catalogSummaryCache.invalidate(db); }
+export function invalidateStudyCatalog(db: Database = getDb(), part?: CatalogPart) { catalogSummaryCache.invalidate(db, part); }

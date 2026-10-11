@@ -67,7 +67,11 @@
     "test:study-curriculum-simulation": "tsx scripts/testStudyLevelSimulation.ts",
     "test:study-curriculum-browser": "tsx scripts/testStudyCurriculumBrowser.ts",
     "audit:study-curriculum-snapshot": "tsx scripts/snapshotStudyLevelAudit.ts",
-    "audit:study-curriculum-performance": "tsx scripts/benchmarkStudyCurriculum.ts"
+    "audit:study-curriculum-performance": "tsx scripts/benchmarkStudyCurriculum.ts",
+    "test:phrase-grammar": "tsx scripts/testWordBankGrammar.ts && tsx scripts/testPhraseGrammar.ts",
+    "generate:word-bank-grammar": "node scripts/generateWordBankGrammar.mjs",
+    "test:phrase-grammar-integration": "tsx scripts/testPhraseGrammarIntegration.ts",
+    "check:word-bank-grammar": "node scripts/generateWordBankGrammar.mjs --check"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",
