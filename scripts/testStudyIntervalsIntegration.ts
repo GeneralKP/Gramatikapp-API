@@ -51,14 +51,15 @@ try {
   const tomorrow = saved.temporaryDueDate;
   assert.equal(selectStudyQueue([saved], new Map(), new Date(+tomorrow - 1), 10, 0).length, 0, 'Revisit is unavailable before its exact due instant');
   assert.equal(selectStudyQueue([saved], new Map(), tomorrow, 10, 0).length, 1);
-  assert.deepEqual(studyReviewOptions(saved, tomorrow).filter(o => o.grade !== 'REVISIT').map(o => o.grade), ['GOOD']);
+  assert.deepEqual(studyReviewOptions(saved, tomorrow).filter(o => o.grade !== 'REVISIT').map(o => o.grade), ['AGAIN', 'HARD', 'GOOD', 'EASY']);
   const completeId = randomUUID();
   const completion = { ...revisit, id: completeId, grade: 'GOOD', expectedVersion: saved.scheduleVersion, occurredAt: tomorrow.toISOString() };
   assert.ok((await syncStudy(userId, [completion])).results[0].success);
   assert.ok((await syncStudy(userId, [completion])).results[0].success);
   const completed = await db.progress.findOne({ _id: saved._id });
-  assert.equal(completed.nextDueDate.toISOString(), saved.nextDueDate.toISOString());
-  assert.equal(completed.interval, saved.interval);
+  const expectedCompletion = scheduleStudyReview(saved, 'GOOD', tomorrow);
+  assert.equal(completed.nextDueDate.toISOString(), expectedCompletion.nextDueDate.toISOString());
+  assert.equal(completed.interval, expectedCompletion.interval);
   assert.equal(completed.temporaryDueDate, undefined);
   assert.ok((await undoReview(userId, completeId)).progress.temporaryDueDate);
   assert.equal((await db.progress.findOne({ _id: saved._id })).failureIndex, saved.failureIndex, 'Undo preserves lifetime mistakes');

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { ObjectId } from 'mongodb';
-import { DEFAULT_OPTIONS, initialScheduler, studyDay } from '../src/features/progress/scheduler.js';
+import { DEFAULT_OPTIONS, initialScheduler, studyDay, scheduleReview, GRADES } from '../src/features/progress/scheduler.js';
 import { effectiveDueDate, scheduleStudyReview, studyReviewOptions } from '../src/features/progress/studyScheduling.js';
 import type { UserProgress } from '../src/features/progress/progress.types.js';
 import { reviewDelayLabels } from '../src/features/progress/reviewPresentation.js';
@@ -39,17 +39,18 @@ console.log('PASS word/phrase phases, ascending ordinary ratings, maximum interv
 const revisited = { ...card(), ...scheduleStudyReview(card(), 'REVISIT', now) };
 const tomorrow = revisited.temporaryDueDate!;
 const completion = studyReviewOptions(revisited, tomorrow);
-assert.deepEqual(completion.filter(option => option.grade !== 'REVISIT').map(option => option.grade), ['GOOD'], 'Extra-practice completion must expose one Continue action, not identical rating choices');
+assert.deepEqual(completion.filter(option => option.grade !== 'REVISIT').map(option => option.grade), GRADES, 'Temporary reviews retain all ordinary recall choices');
 assert.ok(completion.some(option => option.grade === 'REVISIT'), 'Repeat extra practice tomorrow remains available when it precedes the regular review');
 const completed = { ...revisited, ...scheduleStudyReview(revisited, 'GOOD', tomorrow) };
-assert.equal(completed.nextDueDate.toISOString(), revisited.nextDueDate.toISOString());
-assert.equal(completed.interval, revisited.interval);
-assert.equal(completed.ease, revisited.ease);
+const earlyGood = scheduleReview(revisited, 'GOOD', tomorrow, true);
+assert.equal(completed.nextDueDate.toISOString(), earlyGood.nextDueDate.toISOString());
+assert.equal(completed.interval, earlyGood.interval);
+assert.equal(completed.ease, earlyGood.ease);
 assert.equal(completed.temporaryDueDate, undefined);
 assert.equal(completed.totalReviews, revisited.totalReviews! + 1);
 const expired = { ...revisited, nextDueDate: tomorrow };
 assert.equal(studyReviewOptions(expired, tomorrow).filter(option => option.grade !== 'REVISIT').length, 4, 'An overdue regular review must use ordinary ratings');
-console.log('PASS one extra-practice completion action, regular schedule preservation and expired-regular-review fallback');
+console.log('PASS all temporary-review ratings, shared early-review scheduling and expired-regular-review fallback');
 
 for (const delays of [[361, 365, 366, 370], [32, 33, 34], [36500, 36500]]) {
   const options = delays.map((days, index) => ({ grade: String(index), delaySeconds: days * 86400 }));

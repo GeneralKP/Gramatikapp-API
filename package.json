@@ -71,7 +71,8 @@
     "test:phrase-grammar": "tsx scripts/testWordBankGrammar.ts && tsx scripts/testPhraseGrammar.ts",
     "generate:word-bank-grammar": "node scripts/generateWordBankGrammar.mjs",
     "test:phrase-grammar-integration": "tsx scripts/testPhraseGrammarIntegration.ts",
-    "check:word-bank-grammar": "node scripts/generateWordBankGrammar.mjs --check"
+    "check:word-bank-grammar": "node scripts/generateWordBankGrammar.mjs --check",
+    "test:temporary-review-ratings": "tsx scripts/testTemporaryReviewRatings.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

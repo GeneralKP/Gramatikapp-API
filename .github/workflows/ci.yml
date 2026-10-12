@@ -40,6 +40,19 @@ jobs:
       - run: npm run test:study-curriculum
       - run: npm run test:study-scheduling
       - run: npm run test:study-sync-validation
+      - name: Start isolated review transaction fixture
+        run: |
+          docker run --rm -d --name temporary-review-mongo --network host mongo:8 mongod --replSet temporaryReviews --bind_ip 127.0.0.1 --port 27019
+          for i in $(seq 1 30); do
+            docker exec temporary-review-mongo mongosh --port 27019 --quiet --eval 'db.adminCommand({ping:1})' && break || sleep 1
+          done
+          docker exec temporary-review-mongo mongosh --port 27019 --quiet --eval 'rs.initiate({_id:"temporaryReviews",members:[{_id:0,host:"127.0.0.1:27019"}]})'
+          for i in $(seq 1 30); do
+            docker exec temporary-review-mongo mongosh --port 27019 --quiet --eval 'if (!db.hello().isWritablePrimary) quit(1)' && break || sleep 1
+          done
+      - run: npm run test:temporary-review-ratings
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27019/temporary_review_fixture
       - run: npm run test:card-edits
       - run: npm run test:contexts
       - run: npm run test:reading-validation

@@ -24,7 +24,11 @@ for (const fixture of fixtures) {
       nextDueDate: effectiveDueDate({ ...progress, ...next }).toISOString(), scheduleVersion: (fixture.item.info.scheduleVersion ?? 0) + 1,
       schedulerPhase: next.scheduler.phase, learningQueue: next.scheduler.queue, suspended: !!progress.suspended || leech }];
   }));
-  if (progress.itemType === 'WORD') assert.equal(JSON.stringify({ options: fixture.options, outcomes: fixture.outcomes }), original, 'Phrase policy must leave word golden outcomes unchanged');
+  const correctedReminder = !!progress.temporaryDueDate && progress.nextDueDate > now;
+  if (progress.itemType === 'WORD' && !correctedReminder)
+    assert.equal(JSON.stringify({ options: fixture.options, outcomes: fixture.outcomes }), original, 'Ordinary word golden outcomes must stay unchanged');
+  if (correctedReminder)
+    assert.deepEqual(fixture.options.slice(0, 4).map((option: { grade: string }) => option.grade), ['AGAIN', 'HARD', 'GOOD', 'EASY']);
 }
 await writeFile(path, JSON.stringify(fixtures, null, 2) + '\n');
-console.log(`Generated ${fixtures.length} authoritative API preview fixtures; word outcomes unchanged`);
+console.log(`Generated ${fixtures.length} authoritative API preview fixtures; ordinary word outcomes unchanged, temporary reminders retain all grades`);
