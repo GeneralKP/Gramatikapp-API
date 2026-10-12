@@ -32,10 +32,9 @@ export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, n
     if (regularDue <= temporaryDueDate) throw new Error('The regular review is already due sooner than tomorrow. Choose an ordinary rating.');
     return { ...progress, ...regular, temporaryDueDate, totalReviews: (progress.totalReviews ?? 0) + 1, delaySeconds: 86400 };
   }
-  if (progress.temporaryDueDate && progress.nextDueDate > now) {
-    // Completing the extra practice leaves interval, ease and regular due intact.
-    return { ...progress, temporaryDueDate: undefined, totalReviews: (progress.totalReviews ?? 0) + 1, delaySeconds: Math.max(0, (progress.nextDueDate.getTime() - now.getTime()) / 1000) };
-  }
+  // A temporary reminder never replaces the learner's recall rating. Review
+  // the regular schedule with the shared early-review rules, then clear it.
+  earlyReview ||= !!progress.temporaryDueDate && progress.nextDueDate > now;
   if (progress.itemType === 'PHRASE') {
     const current = progress.scheduler ?? initialScheduler(progress);
     const options = current.options;
@@ -94,10 +93,7 @@ export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, n
 }
 export function studyReviewOptions(progress: UserProgress, now = new Date(), earlyReview = false) {
   progress = normalizeUnstudiedProgress(progress, now);
-  // This is completion of extra practice, not a new scheduling decision. Keep
-  // accepting legacy queued grades, but offer one explicit completion action.
-  const completingRevisit = !!progress.temporaryDueDate && progress.nextDueDate > now;
   const revisit: StudyGrade[] = progress.itemType === 'WORD' && progress.scheduler.phase === 'REVIEW' && (progress.nextDueDate > now ? progress.nextDueDate : scheduleReview(progress, 'GOOD', now, earlyReview).nextDueDate).getTime() > now.getTime() + 86400000 ? ['REVISIT'] : [];
-  const grades: StudyGrade[] = [...(completingRevisit ? ['GOOD' as const] : GRADES), ...revisit];
+  const grades: StudyGrade[] = [...GRADES, ...revisit];
   return grades.map(grade => { const next = scheduleStudyReview(progress, grade, now, earlyReview); return { grade, delaySeconds: next.delaySeconds, nextDueDate: effectiveDueDate({ ...progress, ...next }).toISOString(), phase: next.scheduler.phase }; });
 }
