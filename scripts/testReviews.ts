@@ -95,9 +95,9 @@ try {
   const anotherNew = { ...p, itemId: new ObjectId() };
   assert.equal(selectStudyQueue([p, anotherNew], new Map(), now, 50, 10).length, 1, "the review allowance also bounds new-card gathering");
   const learning = { ...p, isNew: false, nextDueDate: new Date(now.getTime() + 60000), scheduler: { ...p.scheduler, phase: "LEARNING" as const, queue: "MINUTE" as const } };
-  assert.equal(selectStudyQueue([learning], new Map([["App", { new: 2, review: 1 }]]), now, 50, 0).length, 1, "learning ahead is available after daily reviews are exhausted");
+  assert.equal(selectStudyQueue([learning], new Map([["App", { new: 2, review: 1 }]]), now, 50, 0).length, 0, "exhausted daily reviews must not make future learning immediately available");
   assert.equal(selectStudyQueue([learning, dayCard], new Map(), now, 50, 0)[0].itemId.toString(), dayCard.itemId.toString(), "future learning cannot jump ahead of ready reviews");
-  console.log("PASS daily limits, queue ordering, and learning ahead");
+  console.log("PASS daily limits, queue ordering, and exact future-learning eligibility");
 } finally {
   await db.reviewEvents.deleteMany({ userId });
   await db.progress.deleteMany({ userId });

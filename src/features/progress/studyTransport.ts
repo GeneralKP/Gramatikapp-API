@@ -220,7 +220,7 @@ export async function loadCompactStudyQueue(user: User, input: any = {}, prepare
   const capturedContent = input.cardLimit === undefined && !scope.context;
   const projection = capturedContent ? COMPLETE_STUDY_SELECTION : COMPACT_STUDY_SELECTION;
   if (input.includeCounts !== undefined && typeof input.includeCounts !== "boolean") throw new Error("Invalid includeCounts");
-  const args = { ...scope, dueLimit: bounded(input.dueLimit, 5000, 5000, "dueLimit"), newLimit: bounded(input.newLimit, 20, 1000, "newLimit"), includeLearningAhead: true };
+  const args = { ...scope, dueLimit: bounded(input.dueLimit, 5000, 5000, "dueLimit"), newLimit: bounded(input.newLimit, 20, 1000, "newLimit") };
   const context = { user };
   if (prepared) seedStudyMetadata(context, prepared.userId, prepared.profile);
   if (input.includeCounts) {

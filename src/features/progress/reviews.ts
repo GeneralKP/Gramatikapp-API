@@ -53,8 +53,12 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
       const stored = await db.progress.findOne({ userId, itemId }, { session });
       if (!stored || stored.itemType !== itemType || stored.supersededByAnki || stored.suspended) throw new Error("Study card not found or unavailable");
       if (expectedVersion !== undefined && (stored.scheduleVersion ?? 0) !== expectedVersion) throw new ReviewConflict("This card was reviewed in another session. Its latest saved review has been kept.", stored, "STALE_CARD");
-      const profile = await db.schedulerProfiles.findOne({ _id: userId }, { session });
-      const current = await withScheduler(stored, profile);
+      const initialized = stored.scheduler ? normalizeUnstudiedProgress(stored) : undefined;
+      // Established cards already carry their scheduling options/timezone.
+      // Only legacy initialization and NEW quota baselines need the profile.
+      const profile = !initialized || initialized.scheduler.phase === "NEW"
+        ? await db.schedulerProfiles.findOne({ _id: userId }, { session }) : null;
+      const current = initialized ?? await withScheduler(stored, profile);
       if (current.itemType === "WORD" && current.card?.direction === "ES_DE" && isNewCard(current)) {
         const recognition = await db.progress.findOne({ userId, itemType: "WORD", "card.sourceNoteGuid": current.card.sourceNoteGuid,
           "card.direction": "DE_ES", supersededByAnki: { $ne: true } }, { session });
@@ -117,7 +121,11 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
         commandId(attemptId);
         await db.progress.updateOne({ _id: stored._id, failureAttemptIds: { $ne: attemptId } }, { $inc: { failureIndex: 1 }, $addToSet: { failureAttemptIds: attemptId }, $set: { lastFailedAt: now } }, { session });
       }
-      return { reviewId, progress: { ...await db.progress.findOne({ _id: stored._id }, { session }), extraPractice: earlyReview } };
+      // This transaction has the stored row and its exact scheduling write.
+      // Revisit's independent mistake update still needs its authoritative read.
+      const saved: UserProgress = { ...stored, ...snapshot(after), scheduleVersion: after.scheduleVersion, updatedAt: now };
+      for (const key of schedulingFields) if (after[key] === undefined) delete saved[key];
+      return { reviewId, progress: { ...(grade === "REVISIT" ? await db.progress.findOne({ _id: stored._id }, { session }) : saved), extraPractice: earlyReview } };
     });
   } finally { await session.endSession(); }
 }

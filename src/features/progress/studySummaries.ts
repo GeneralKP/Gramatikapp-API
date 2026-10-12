@@ -12,15 +12,11 @@ export const counterFallback = { $or: [
 export function counterSummaryPipeline(query: object, eligible: object, now: Date) {
   const phase = '$scheduler.phase';
   const due = { $ifNull: ['$temporaryDueDate', '$nextDueDate'] };
-  const learningCutoff = { $cond: [
-    { $eq: ['$scheduler.queue', 'MINUTE'] },
-    { $add: [now, { $multiply: [{ $ifNull: ['$scheduler.options.learnAheadSeconds', 0] }, 1000] }] }, now,
-  ] };
   return [
     { $match: { ...query, $and: [{ $nor: [counterFallback] }, eligible] } },
     { $group: { _id: null,
       review: { $sum: { $cond: [{ $and: [{ $eq: [phase, 'REVIEW'] }, { $lte: [due, now] }] }, 1, 0] } },
-      learning: { $sum: { $cond: [{ $and: [{ $in: [phase, ['LEARNING', 'RELEARNING']] }, { $lte: ['$nextDueDate', learningCutoff] }] }, 1, 0] } },
+      learning: { $sum: { $cond: [{ $and: [{ $in: [phase, ['LEARNING', 'RELEARNING']] }, { $lte: [due, now] }] }, 1, 0] } },
     } },
   ];
 }

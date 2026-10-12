@@ -16,7 +16,7 @@ const mix = <T>(first: T[], second: T[]) => {
 export function selectStudyQueue(progress: UserProgress[], counts: Map<string, { new: number; review: number }>, now: Date, dueLimit: number, newLimit: number, allowPartialIntroduction = false, compareNew?: (a: UserProgress, b: UserProgress) => number) {
   const available = progress.filter(p => !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= now));
   const temporary = available.filter(p => p.temporaryDueDate && p.temporaryDueDate <= now).sort((a,b) => effectiveDueDate(a).getTime() - effectiveDueDate(b).getTime());
-  const minute = available.filter(p => p.scheduler.queue === "MINUTE" && p.nextDueDate <= now).sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
+  const minute = available.filter(p => !p.temporaryDueDate && p.scheduler.queue === "MINUTE" && p.nextDueDate <= now).sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
   const reserved = new Map<string, { new: number; review: number }>();
   const fits = (p: UserProgress, isNew: boolean, budget = reserved) => deckAncestors(deckName(p)).every(deck => {
     const used = counts.get(deck) ?? { new: 0, review: 0 }, selected = budget.get(deck) ?? { new: 0, review: 0 };
@@ -51,8 +51,7 @@ export function selectStudyQueue(progress: UserProgress[], counts: Map<string, {
   const dueGroups = orderedDue.map(p => [p]);
   const result = (options?.newMix === 1 ? [...dueGroups, ...selectedNew] : options?.newMix === 2 ? [...selectedNew, ...dueGroups] : mix(dueGroups, selectedNew)).flat();
   const ready = [...temporary.slice(0, dueLimit), ...minute.slice(0, Math.max(0, dueLimit - temporary.length)), ...result];
-  if (ready.length) return ready;
-  // Learn ahead only after the ready review/new queues have been exhausted.
-  return available.filter(p => p.scheduler.queue === "MINUTE" && p.nextDueDate.getTime() <= now.getTime() + p.scheduler.options.learnAheadSeconds * 1000)
-    .sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime()).slice(0, dueLimit);
+  // Automatic practice shares one exact due boundary across every study mode.
+  // Early practice is an explicit studyMore request, not an empty-queue fallback.
+  return ready;
 }

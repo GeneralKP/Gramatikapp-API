@@ -4,7 +4,9 @@ import io
 import json
 import os
 from pathlib import Path
+import shlex
 import subprocess
+import sys
 import tarfile
 import tempfile
 import unittest
@@ -117,16 +119,19 @@ class ReadinessTests(unittest.TestCase):
     def probe(self, ready_after, response_release):
         source = (ROOT / "deploy-release.sh").read_text()
         block = source[source.index("ready=false\n"):source.index("trap - ERR HUP INT TERM")]
+        # Run identical Python checks with the current test interpreter rather
+        # than repeatedly starting macOS's slower /usr/bin/python3 launcher.
+        block = block.replace("/usr/bin/python3", shlex.quote(sys.executable))
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             curl = root / "curl"
-            curl.write_text("#!/usr/bin/python3\n" +
+            curl.write_text("#!/bin/sh\nexec " + shlex.quote(sys.executable) + " - \"$@\" <<'PY'\n" +
                             "import json, os, pathlib, sys\n" +
                             "p = pathlib.Path(os.environ['PROBE_COUNT'])\n" +
                             "n = int(p.read_text()) + 1 if p.exists() else 1\n" +
                             "p.write_text(str(n))\n" +
                             "if n < int(os.environ['READY_AFTER']): sys.exit(7)\n" +
-                            "print(json.dumps({'status': 'ok', 'release': os.environ['RESPONSE_RELEASE']}))\n")
+                            "print(json.dumps({'status': 'ok', 'release': os.environ['RESPONSE_RELEASE']}))\nPY\n")
             curl.chmod(0o700)
             sleep = root / "sleep"
             sleep.write_text("#!/bin/sh\nexit 0\n")
@@ -134,8 +139,10 @@ class ReadinessTests(unittest.TestCase):
             env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'],
                        PROBE_COUNT=str(root / "count"), READY_AFTER=str(ready_after),
                        RESPONSE_RELEASE=response_release)
+            # Ninety probes start up to 180 Python processes. Keep the fixture
+            # watchdog tolerant of host load; the exact probe bound is asserted.
             result = subprocess.run(["bash", "-c", "set -euo pipefail\nrelease_id=" + "a" * 40 + "\n" + block],
-                                    env=env, capture_output=True, text=True, timeout=45)
+                                    env=env, capture_output=True, text=True, timeout=120)
             return result, int((root / "count").read_text())
 
     def test_catalog_warmup_longer_than_thirty_seconds_can_become_ready(self):

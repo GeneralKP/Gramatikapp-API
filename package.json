@@ -72,7 +72,9 @@
     "generate:word-bank-grammar": "node scripts/generateWordBankGrammar.mjs",
     "test:phrase-grammar-integration": "tsx scripts/testPhraseGrammarIntegration.ts",
     "check:word-bank-grammar": "node scripts/generateWordBankGrammar.mjs --check",
-    "test:temporary-review-ratings": "tsx scripts/testTemporaryReviewRatings.ts"
+    "test:temporary-review-ratings": "tsx scripts/testTemporaryReviewRatings.ts",
+    "test:practice-consistency": "tsx scripts/testCrossModeDue.ts && tsx scripts/testReviewHotPath.ts",
+    "test:practice-consistency-integration": "tsx scripts/testPracticeConsistencyIntegration.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

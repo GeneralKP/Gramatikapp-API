@@ -132,7 +132,7 @@ function collection(name:string):any {
     return [{known:[...known.values()],legacy}];
    }
    return [{review:rows.filter((row:any)=>row.scheduler.phase==='REVIEW'&&(row.temporaryDueDate??row.nextDueDate)<=now).length,
-    learning:rows.filter((row:any)=>['LEARNING','RELEARNING'].includes(row.scheduler.phase)&&row.nextDueDate.getTime()<=now.getTime()+(row.scheduler.queue==='MINUTE'?row.scheduler.options.learnAheadSeconds*1000:0)).length}];
+    learning:rows.filter((row:any)=>['LEARNING','RELEARNING'].includes(row.scheduler.phase)&&(row.temporaryDueDate??row.nextDueDate)<=now).length}];
   }};},
  };
  collections.set(name,result);return result;
@@ -147,6 +147,24 @@ const query=(name:string)=>queries[name];
 const dashboard='query($userId:ID!){studyQueueCounts(userId:$userId,itemType:"WORD"){new learning review total learned} learningPath(userId:$userId){id name level isUnlocked wordsTotal wordsLearned phrasesTotal phrasesLearned}}';
 try {
  const schema=makeExecutableSchema({typeDefs,resolvers});
+ const originalProgressForDue=fixture.userprogresses, originalNewAllowance=user.settings.dailyNewCards;
+ user.settings.dailyNewCards=0;
+ for(const grade of ['AGAIN','HARD','GOOD'] as const){
+  const fresh=progress(900,'WORD',20,{isNew:true,interval:0,repetitions:0,totalReviews:0,lapses:0,lastReviewed:null,nextDueDate:now});
+  const reviewed={...fresh,...scheduleStudyReview(fresh,grade,now)};
+  fixture.userprogresses=[reviewed];
+  for(const itemType of ['WORD',undefined]){
+   const automatic=await resolvers.Query.dueItems(null,{userId:String(owner),itemType,dueLimit:50,newLimit:0},{user} as any);
+   assert.deepEqual(automatic,[],`${grade}: switching word practice to mixed must honor the saved future due date`);
+   const packet=await loadCompactStudyQueue(user as any,{itemType,dueLimit:50,newLimit:0,includeCounts:true});
+   assert.deepEqual(packet.items,[],`${grade}: compact automatic queue never returns a future learning card`);
+   assert.deepEqual(packet.counts,{new:0,learning:0,review:0},`${grade}: automatic counters and queue share the exact due boundary`);
+  }
+  const futureManifest=await resolvers.Query.dueItems(null,{userId:String(owner),dueLimit:50,newLimit:0,includeLearningAhead:true},{user} as any);
+  assert.equal(futureManifest.length,1,'explicit future-manifest requests retain compatibility');
+ }
+ fixture.userprogresses=originalProgressForDue;user.settings.dailyNewCards=originalNewAllowance;
+ console.log('PASS rated words stay future-due across word/mixed GraphQL, compact starters and counters; explicit future manifests remain compatible');
  const dictionaryProgressQuery='query($userId:ID!,$relationIds:[ID!]){allProgress(userId:$userId,relationIds:$relationIds){id itemId relationId itemType ease interval repetitions nextDueDate lastReviewed schedulerPhase card{prompt answer}}}';
  const dictionaryOriginalProgress=fixture.userprogresses;
  fixture.userprogresses=[...dictionaryOriginalProgress.map((row:any,index:number)=>index===0?{...row,temporaryDueDate:new Date('2026-10-10T10:00:00Z')}:row),progress(8,'WORD',20,{relationId:undefined,itemId:id(20)})];
@@ -357,7 +375,7 @@ try {
  const aheadPhrase=progress(71,'PHRASE',40,{nextDueDate:new Date(now.getTime()+7200_000)});
  aheadPhrase.scheduler={...aheadPhrase.scheduler,phase:'LEARNING',queue:'MINUTE',options:{...aheadPhrase.scheduler.options,learnAheadSeconds:7200}};
  fixture.userprogresses=[aheadPhrase];
- assert.deepEqual(await counter('PHRASE'),{new:0,learning:1,review:0},'future minute learning retains customized learn-ahead boundary');
+ assert.deepEqual(await counter('PHRASE'),{new:0,learning:0,review:0},'future learning stays unavailable despite a customized learn-ahead window');
  fixture.userprogresses=[{...aheadPhrase,nextDueDate:new Date(now.getTime()+7200_001)}];
  assert.deepEqual(await counter('PHRASE'),{new:0,learning:0,review:0},'one millisecond beyond learn-ahead stays unavailable');
  fixture.userprogresses=[progress(72,'PHRASE',40,{nextDueDate:new Date('2026-10-09T10:00:00Z'),temporaryDueDate:new Date(now.getTime()-1000)})];
@@ -512,9 +530,12 @@ try {
  assert.ok(progressQueries.find(read=>read.query['card.sourceNoteGuid'])!.query.itemId.$nin.some((itemId:any)=>String(itemId)===String(id(262))),'only loaded matching-GUID identities need to enlarge the exclusion query; the final seen filter still handles cross-type collisions');
  const aheadReading=(n:number,guid:string)=>{const p=pendingCard(n,guid,'DE_ES',{isNew:false,nextDueDate:new Date(now.getTime()+2700000),interval:30,repetitions:4});p.scheduler={...p.scheduler,phase:'LEARNING',queue:'MINUTE',remainingSteps:1,options:{...p.scheduler.options,learnAheadSeconds:7200}};return p;};
  fixture.userprogresses=[aheadReading(67,'ahead-b'),aheadReading(68,'ahead-a'),pendingCard(69,'ahead-a','ES_DE'),pendingCard(70,'ahead-b','ES_DE')];
- const aheadOriginal=await resolvers.Query.dueItems(null,{userId:String(owner),...pendingArgs,includeLearningAhead:true},{user} as any);
+ const aheadOriginal=await resolvers.Query.dueItems(null,{userId:String(owner),...pendingArgs},{user} as any);
  const aheadCompact=await loadCompactStudyQueue(user as any,pendingArgs);
- assert.deepEqual(aheadCompact.items.map(row=>row.id),aheadOriginal.map((row:any)=>row.itemId),'multiple missing learning-ahead siblings retain original order and completeness');
+ assert.deepEqual(aheadCompact.items.map(row=>row.id),aheadOriginal.map((row:any)=>row.itemId),'multiple missing future-learning prerequisites preserve automatic due order');
+ assert.ok(!aheadCompact.items.some(row=>[67,68].some(n=>row.id===String(id(200+n)))),'future recognition prerequisite state must not enter automatic practice');
+ const explicitAhead=await resolvers.Query.dueItems(null,{userId:String(owner),...pendingArgs,includeLearningAhead:true},{user} as any);
+ assert.ok(explicitAhead.some((row:any)=>row.itemId===String(id(267))),'explicit future manifests remain available for compatible consumers');
  assert.ok(aheadCompact.items.every(row=>row.card?.notes==='note' && row.card.examples[0]==='example'),'late sibling content is complete after either prerequisite path');
  for(const changedCard of [{...pendingPair[0].card,sourceCardId:'999999'}, {...pendingPair[0].card,sourceNoteGuid:'changed'}, {...pendingPair[0].card,direction:'ES_DE'},undefined]){
   fixture.userprogresses=[...pendingPair];progressQueries=[];let metadataChanged=false;
@@ -579,7 +600,7 @@ try {
  }
  const onlyAhead=await combinedCase('future count-only learning',[longAhead],{itemType:'PHRASE'});
  assert.deepEqual(onlyAhead.items,[],'a two-hour counter candidate never leaks into the fixed twenty-minute due snapshot');
- assert.equal(onlyAhead.counts.learning,1);
+ assert.equal(onlyAhead.counts.learning,0,'future learning is not a ready counter even with custom learn-ahead');
  await combinedCase('one millisecond past custom learn-ahead',[{...longAhead,nextDueDate:new Date(now.getTime()+7200001)}],{itemType:'PHRASE'});
  await combinedCase('future legacy absent scheduler',[futureLegacy],{itemType:'PHRASE'});
  await combinedCase('future legacy null scheduler',[{...futureLegacy,scheduler:null}],{itemType:'PHRASE'});
@@ -660,11 +681,11 @@ try {
  compactCases[7].scheduler={...compactCases[7].scheduler,phase:'LEARNING',queue:'MINUTE',remainingSteps:1,options:{...DEFAULT_OPTIONS,learnAheadSeconds:7200},timeZone:'America/New_York',rollover:2};
  compactCases[2].scheduler.options={...compactCases[2].scheduler.options,relearningSteps:[3,17],buryReviews:true,leechThreshold:4};
  fixture.userprogresses=[...compactCases,progress(90,'WORD',20,{userId:otherOwner})];
- const compactArgs={dueLimit:5000,newLimit:0,includeLearningAhead:true};
+ const compactArgs={dueLimit:5000,newLimit:0};
  const oldRaw=await resolvers.Query.dueItems(null,{userId:String(owner),...compactArgs},{user} as any);
  progressQueries=[];
  const compact=JSON.parse(JSON.stringify(await loadCompactStudyQueue(user as any,{...compactArgs,cardLimit:2})));
- assert.deepEqual(compact.manifest.map((row:any)=>row.id),oldRaw.map((row:any)=>row.itemId),'starter hydration must preserve the full due/new/ahead order');
+ assert.deepEqual(compact.manifest.map((row:any)=>row.id),oldRaw.map((row:any)=>row.itemId),'starter hydration must preserve the full due/new order');
  assert.equal(compact.items.length,2);assert.equal(compact.remaining,compact.manifest.length-2);assert.equal(compact.complete,false);
  assert.ok(progressQueries.some(read=>read.projection?.scheduler && read.projection?.['card.direction'] && !read.projection.card && !read.projection.failureAttemptIds),'selection excludes rich cards and history');
  const remainder=JSON.parse(JSON.stringify(await loadCompactStudyCards(user as any,{itemIds:compact.manifest.slice(2).map((row:any)=>row.id)})));
@@ -700,7 +721,7 @@ try {
  const changedDuringPending=async(cardLimit?:number,originalGraphQL=false)=>{
   fixture.userprogresses=[...pendingPair];progressQueries=[];let changed=false;
   holdRead=async(name,method,query)=>{if(!changed && name==='userprogresses' && method==='find' && query.isNew===true){changed=true;fixture.userprogresses=fixture.userprogresses.map((p:any)=>({...p,card:{...p.card,prompt:'edited prompt',answer:'edited answer',acceptedAnswers:['edited answer'],notes:'edited note',examples:['edited example']}}));}};
-  try{return originalGraphQL ? await resolvers.Query.dueItems(null,{userId:String(owner),...pendingArgs,includeLearningAhead:true},{user} as any) : await loadCompactStudyQueue(user as any,{...pendingArgs,includeCounts:true,...(cardLimit===undefined?{}:{cardLimit})});}
+  try{return originalGraphQL ? await resolvers.Query.dueItems(null,{userId:String(owner),...pendingArgs},{user} as any) : await loadCompactStudyQueue(user as any,{...pendingArgs,includeCounts:true,...(cardLimit===undefined?{}:{cardLimit})});}
   finally{holdRead=undefined;}
  };
  const originalCaptured=await changedDuringPending(undefined,true),fullCaptured=await changedDuringPending();
@@ -828,7 +849,7 @@ try {
  // Actual new native-word allocation is exercised only against this mock store.
  const freshNative=()=>progress(91,'WORD',20,{isNew:true,interval:0,repetitions:0,totalReviews:0,lapses:0,lastReviewed:null});
  fixture.userprogresses=[freshNative()];
- const oldNative=await resolvers.Query.dueItems(null,{userId:String(owner),dueLimit:5000,newLimit:2,itemType:'WORD',includeLearningAhead:true},{user} as any);
+ const oldNative=await resolvers.Query.dueItems(null,{userId:String(owner),dueLimit:5000,newLimit:2,itemType:'WORD'},{user} as any);
  fixture.userprogresses=[freshNative()];
  const compactNative=await loadCompactStudyQueue(user as any,{dueLimit:5000,newLimit:2,itemType:'WORD',cardLimit:1,includeCounts:true});
  assert.deepEqual((compactNative.manifest.length?compactNative.manifest:compactNative.items).map(row=>row.id),oldNative.map((row:any)=>row.itemId));

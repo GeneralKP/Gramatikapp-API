@@ -73,7 +73,7 @@ assert.ok(scheduleStudyReview(overdue, 'GOOD', now).interval > scheduleStudyRevi
 const learning = { ...card('WORD', 0), ...scheduleStudyReview(card('WORD', 0), 'GOOD', now) };
 const nominal = studyReviewOptions(card('WORD', 0), now).find(o => o.grade === 'GOOD')!;
 assert.ok(+learning.nextDueDate >= +now + nominal.delaySeconds * 1000 && +learning.nextDueDate < +now + nominal.delaySeconds * 1250, 'Intraday jitter stays inside the Anki bound');
-assert.equal(selectStudyQueue([learning], new Map(), now, 10, 0).length, 1, 'The configured learn-ahead window deliberately permits early reappearance');
+assert.equal(selectStudyQueue([learning], new Map(), now, 10, 0).length, 0, 'Automatic practice honors the due date despite configured learn-ahead');
 for (const time of [new Date('2026-03-28T22:00:00Z'), new Date('2026-10-24T22:00:00Z')]) {
   const p = card();
   for (const option of studyReviewOptions(p, time)) {
@@ -83,4 +83,4 @@ for (const time of [new Date('2026-03-28T22:00:00Z'), new Date('2026-10-24T22:00
 }
 const matchedWord = card('WORD', 0), longerPhrase = card('PHRASE', 0);
 assert.ok(scheduleStudyReview(longerPhrase, 'GOOD', now).delaySeconds > scheduleStudyReview(matchedWord, 'GOOD', now).delaySeconds, 'Phrases use a longer adaptive preset');
-console.log('PASS rollover ties, configured caps, early/late recall, learn-ahead, minute jitter, DST and adaptive phrase scheduling');
+console.log('PASS rollover ties, configured caps, early/late recall, exact due boundaries, minute jitter, DST and adaptive phrase scheduling');

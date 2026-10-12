@@ -319,7 +319,7 @@ export async function loadStudyQueueCounts(
     newCards = selectStudyQueue(applyDailyLimit(candidates, limit), counts, now, 0, availableNew, true, curriculum.compare).filter(p=>p.scheduler.phase === "NEW").length;
   }
   const summary = { new: newCards,
-    learning: ready.learning + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>["LEARNING","RELEARNING"].includes(p.scheduler.phase) && p.nextDueDate.getTime() <= now.getTime() + (p.scheduler.queue === "MINUTE" ? p.scheduler.options.learnAheadSeconds * 1000 : 0)).length,
+    learning: ready.learning + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>["LEARNING","RELEARNING"].includes(p.scheduler.phase) && effectiveDueDate(p) <= now).length,
     review: ready.review + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>p.scheduler.phase === "REVIEW" && effectiveDueDate(p) <= now).length };
   if (prepared?.countersOnly) return summary;
   const catalogIds: ObjectId[] = [];

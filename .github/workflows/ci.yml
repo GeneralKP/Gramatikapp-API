@@ -24,6 +24,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run test:loading
+      - run: npm run test:practice-consistency
       - run: npm run test:dashboard-performance
       - run: npx tsx scripts/testDictionaryCatalog.ts
       - run: npx tsx scripts/testReviewedDictionaryCatalog.ts
@@ -53,6 +54,9 @@ jobs:
       - run: npm run test:temporary-review-ratings
         env:
           MONGODB_URI: mongodb://127.0.0.1:27019/temporary_review_fixture
+      - run: npm run test:practice-consistency-integration
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27019/practice_consistency_fixture
       - run: npm run test:card-edits
       - run: npm run test:contexts
       - run: npm run test:reading-validation
