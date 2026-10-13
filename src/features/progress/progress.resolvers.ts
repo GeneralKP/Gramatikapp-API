@@ -1,5 +1,5 @@
 import { loadStudyRelations, studyCountSnapshot, summarizedStudyCounts, studyIdentities, studyDailyCounts, studyCatalog, studyMetadata, insertNewProgress, STUDY_CONTENT_BATCH_SIZE, STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
-import { counterEligibility, isGraduatedStudyIdentity, newItemIdentityPipeline } from './studySummaries.js';
+import { isGraduatedStudyIdentity, newItemIdentityPipeline, unpackNewItemIdentities, type PackedNewItemIdentity } from './studySummaries.js';
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { UserProgress } from "./progress.types.js";
@@ -17,6 +17,7 @@ import { introducedToday, applyDailyLimit } from "./dailyLimit.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
 import { studyCurriculum, planCurriculumIntroductions } from "./studyCurriculum.js";
 import { isDueStudyCandidate, hasStudyReference, studyReferenceIds } from "./studyCandidates.js";
+import { readPackedStudyCandidates } from './studyCandidatePacking.js';
 import { selectedFields } from "../levels/catalogProjection.js";
 import { isGraduatedStudyCard, normalizedStudyPhase, STUDY_STATUS_PROJECTION } from "./studyStatus.js";
 import type { GraphQLResolveInfo } from "graphql";
@@ -69,7 +70,7 @@ async function withNewWordSiblings(db: ReturnType<typeof getDb>, userId: ObjectI
     const loadedIds = progress.filter(p => p.card && selectedGuids.has(p.card.sourceNoteGuid)).map(p => p.itemId);
     const missing = await db.progress.find({ ...query, itemId: { $nin: loadedIds } })
       .project<UserProgress>(projection).limit(2).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
-    siblings = missing.length < 2 ? missing : await db.progress.find(query).project<UserProgress>(projection).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+    siblings = missing.length < 2 ? missing : await readPackedStudyCandidates(db.progress, query, projection, STUDY_CONTENT_BATCH_SIZE);
   } else {
     siblings = await db.progress.find(query).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
   }
@@ -78,7 +79,9 @@ async function withNewWordSiblings(db: ReturnType<typeof getDb>, userId: ObjectI
 }
 
 async function freshPendingRows(db: ReturnType<typeof getDb>, query: object, projection?: Record<string, number>, existing?: UserProgress[]) {
-  if (!projection || !existing) return (projection ? db.progress.find(query).project<UserProgress>(projection) : db.progress.find(query)).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+  if (!projection || !existing) return projection
+    ? readPackedStudyCandidates(db.progress, query, projection, STUDY_CONTENT_BATCH_SIZE)
+    : db.progress.find(query).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
   // A compact freshness probe avoids transferring scheduling/content twice in
   // starter/full queues. Identity, versions and update/deferral state must match;
   // missing or changed cards fall back to a complete fresh pending read.
@@ -93,7 +96,7 @@ async function freshPendingRows(db: ReturnType<typeof getDb>, query: object, pro
     return previous && keys.every(key => same(row[key], previous[key])) && !!row.card === !!previous.card
       && (['sourceCardId', 'sourceNoteGuid', 'direction'] as const).every(key => same(row.card?.[key], previous.card?.[key]));
   })) return rows.map(row => byId.get(String(row.itemId))!);
-  return db.progress.find(query).project<UserProgress>(projection).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
+  return readPackedStudyCandidates(db.progress, query, projection, STUDY_CONTENT_BATCH_SIZE);
 }
 
 async function fetchNewItems(
@@ -113,7 +116,7 @@ async function fetchNewItems(
   // state afresh so another device, a deferral or an import cannot skip a level.
   const [curriculum, identities, pendingRows] = await Promise.all([
     studyCurriculum({}, itemType),
-    db.progress.aggregate<{ itemId: ObjectId; itemType: string; relationId?: ObjectId }>(newItemIdentityPipeline(identityQuery)).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray(),
+    db.progress.aggregate<PackedNewItemIdentity>(newItemIdentityPipeline(identityQuery)).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray().then(unpackNewItemIdentities),
     freshPendingRows(db, pendingQuery, projection, existingProgress),
   ]);
   const seen = new Set(identities.map(p => `${p.itemType}:${p.relationId ?? p.itemId}`));
@@ -166,8 +169,8 @@ export async function loadDueStudyProgress(
     const query: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, suspended: { $ne: true }, supersededByAnki: { $ne: true },
       $or: [{ temporaryDueDate: { $lte: now } }, { temporaryDueDate: null, nextDueDate: { $lte: new Date(now.getTime() + 1200000) } }, { isNew: true }] };
     if (itemType) query.itemType = itemType;
-    const read = db.progress.find(query);
-    return (projection ? read.project<UserProgress>(projection) : read).batchSize(projection ? STUDY_SUMMARY_BATCH_SIZE : STUDY_CONTENT_BATCH_SIZE).toArray();
+    return projection ? readPackedStudyCandidates(db.progress, query, projection, STUDY_SUMMARY_BATCH_SIZE)
+      : db.progress.find(query).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
   };
   const [{limit, profile}, counts, selectedCategoryIds, existing, catalog, curriculum] = await Promise.all([
     studyMetadata(context,userObjectId), studyDailyCounts(context,userObjectId,now), categoryRequest,
@@ -273,7 +276,7 @@ export async function loadStudyQueueCounts(
   const categoryRequest = categoryRelations(category,itemType,context);
   const snapshotRequest = prepared
     ? Promise.all([studyMetadata(context,id),prepared.progress]).then(([account,progress])=>({...account,progress,summary:{review:0,learning:0}}))
-    : Promise.all([catalogRequest,categoryRequest]).then(([catalog,categoryIds])=>summarizedStudyCounts(context,id,now,itemType as UserProgress['itemType'] | undefined,counterEligibility(now,categoryIds,catalog),category));
+    : Promise.all([catalogRequest,categoryRequest]).then(([catalog,categoryIds])=>summarizedStudyCounts(context,id,now,itemType as UserProgress['itemType'] | undefined,catalog,categoryIds,category));
   const [{profile, progress: scoped, limit, summary: ready}, initialSeen, catalog, categoryIds, counts, curriculum] = await Promise.all([
     snapshotRequest, prepared?.countersOnly ? undefined : readIdentities(), catalogRequest, categoryRequest, studyDailyCounts(context,id,now), curriculumRequest,
   ]);
@@ -299,7 +302,7 @@ export async function loadStudyQueueCounts(
     // Match retrieval's rank/allocation budget before applying deck ceilings.
     // A few blocked/later pending cards must not hide earlier unseen cards.
     // Typed exclusions are fresh; only selected virtual pairs are constructed.
-    const identities = initialSeen ?? await db.progress.aggregate<{ itemId: ObjectId; itemType: string; relationId?: ObjectId }>(newItemIdentityPipeline({ userId: id, ...(itemType ? { itemType } : {}) })).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
+    const identities = initialSeen ?? await db.progress.aggregate<PackedNewItemIdentity>(newItemIdentityPipeline({ userId: id, ...(itemType ? { itemType } : {}) })).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray().then(unpackNewItemIdentities);
     const seen = new Set(identities.map(p => `${p.itemType}:${p.relationId ?? p.itemId}`));
     const available = progress.filter(p => !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= now));
     const groups = newCardGroups(progress, available, curriculum.compare);

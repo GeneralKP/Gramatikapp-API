@@ -4,7 +4,7 @@ import { getDb } from "../../lib/database.js";
 import { CEFR_LEVELS } from "../levels/levels.js";
 import type { UserProgress } from "../progress/progress.types.js";
 import { WRITING_LEVELS, type WritingFocus, type WritingLevel, type WritingVocabulary } from "./writing.types.js";
-import { dictionaryWord } from "../words/reviewedWordContent.js";
+import { dictionaryWord, reviewedWordContentExpression } from "../words/reviewedWordContent.js";
 
 export const REINFORCEMENT_CREDIT = 0.25;
 export const activeDifficulty = (card: Pick<UserProgress, "failureIndex" | "writingReinforcementCredit">) =>
@@ -18,7 +18,7 @@ export function writingFocus(value: string): WritingFocus {
   return value;
 }
 const allowedLevels = (level: WritingLevel) => CEFR_LEVELS.filter(entry => WRITING_LEVELS.indexOf(entry.split(".")[0] as WritingLevel) <= WRITING_LEVELS.indexOf(level));
-const usable = (word: WritingVocabulary) => !!word.german?.trim() && !!word.spanish?.trim() && word.german.length <= 80 && word.german.trim().split(/\s+/u).length <= 6;
+const usable = (word: Pick<WritingVocabulary, "german" | "spanish">) => !!word.german?.trim() && !!word.spanish?.trim() && word.german.length <= 80 && word.german.trim().split(/\s+/u).length <= 6;
 const joinVocabulary = [
   { $lookup: { from: "WORDS_ES_DE", localField: "_id", foreignField: "_id", as: "relation" } }, { $unwind: "$relation" },
   { $lookup: { from: "WORDS_DE", localField: "relation.translated", foreignField: "_id", as: "german" } }, { $unwind: "$german" },
@@ -31,44 +31,91 @@ function reviewedVocabulary({ study, ...word }: WritingVocabulary & { study?: un
   const es = dictionaryWord({ word: word.spanish }, study, "ES")!;
   return { ...word, german: de.word, spanish: es.word, forms: de.forms, notes: de.notes };
 }
+type VocabularyCandidate = Pick<WritingVocabulary, "id" | "german" | "spanish"> & Partial<Pick<WritingVocabulary, "cefrLevel" | "failureIndex" | "difficultyScore">>;
+const effectiveLabels = {
+  german: { $cond: [reviewedWordContentExpression, "$study.german", "$german.word"] },
+  spanish: { $cond: [reviewedWordContentExpression, "$study.spanish", "$spanish.word"] },
+};
 
-async function practicedWords(userId: ObjectId, level: WritingLevel, focus: WritingFocus, ids?: string[]) {
-  const rows = await getDb().progress.aggregate<WritingVocabulary & { study?: unknown }>([
+function practicedWords(userId: ObjectId, level: WritingLevel, focus: WritingFocus, limit: number, ids?: string[], positiveDifficulty?: boolean): Promise<WritingVocabulary[]>;
+function practicedWords(userId: ObjectId, level: WritingLevel, focus: WritingFocus, limit: number, ids: string[] | undefined, positiveDifficulty: boolean, minimal: true): Promise<VocabularyCandidate[]>;
+async function practicedWords(userId: ObjectId, level: WritingLevel, focus: WritingFocus, limit: number, ids?: string[], positiveDifficulty = false, minimal = false): Promise<VocabularyCandidate[]> {
+  const cursor = getDb().progress.aggregate<WritingVocabulary & { study?: unknown }>([
     { $match: { userId, itemType: "WORD", suspended: { $ne: true }, supersededByAnki: { $ne: true },
       $or: [{ lastReviewed: { $ne: null } }, { failureIndex: { $gt: 0 } }] } },
     { $set: { relationKey: { $ifNull: ["$relationId", "$itemId"] } } },
     ...(ids ? [{ $match: { relationKey: { $in: ids.map(id => new ObjectId(id)) } } }] : []),
     { $group: { _id: "$relationKey", failureIndex: { $sum: { $ifNull: ["$failureIndex", 0] } },
       difficultyScore: { $sum: { $max: [0, { $subtract: [{ $ifNull: ["$failureIndex", 0] }, { $ifNull: ["$writingReinforcementCredit", 0] }] }] } }, lastReviewed: { $max: "$lastReviewed" } } },
-    ...joinVocabulary, { $match: { "german.cefrLevel": { $in: allowedLevels(level) } } },
+    ...(positiveDifficulty ? [{ $match: { difficultyScore: { $gt: 0 } } }] : []),
+    // All ordering keys are grouped progress fields; filtering joins keep that order.
     { $sort: focus === "DIFFICULT" ? { difficultyScore: -1, failureIndex: -1, lastReviewed: -1, _id: 1 } : { lastReviewed: -1, failureIndex: -1, _id: 1 } },
-    { $project: vocabularyFields },
-  ]).toArray();
-  return rows.map(reviewedVocabulary).filter(usable);
+    ...joinVocabulary, { $match: { "german.cefrLevel": { $in: allowedLevels(level) } } },
+    ...(minimal ? [
+      { $set: { study: "$relation.study" } },
+      { $project: { _id: 0, id: { $toString: "$_id" }, ...effectiveLabels, cefrLevel: "$german.cefrLevel",
+        failureIndex: vocabularyFields.failureIndex, difficultyScore: vocabularyFields.difficultyScore } },
+    ] : [{ $project: vocabularyFields }]),
+  ]).batchSize(minimal ? 100 : limit);
+  const words: VocabularyCandidate[] = [];
+  try {
+    for await (const row of cursor) {
+      const word = minimal ? row : reviewedVocabulary(row);
+      if (usable(word)) words.push(word);
+      // A raw-row limit could discard usable reviewed corrections or underfill a selection.
+      if (words.length === limit) break;
+    }
+    return words;
+  } finally { await cursor.close(); }
+}
+
+async function hydrateVocabulary(ranked: VocabularyCandidate[], level: WritingLevel, limit: number, preserveScores = false): Promise<WritingVocabulary[]> {
+  const chosen: WritingVocabulary[] = [];
+  // Hydrate only winners in rank order, with the full reviewed forms/notes reader.
+  // If an edit makes a winner unavailable between reads, continue with the remaining ranks.
+  for (let offset = 0; chosen.length < limit && offset < ranked.length;) {
+    const candidates = ranked.slice(offset, offset + limit - chosen.length);
+    offset += candidates.length;
+    const rows = await getDb().relationsWordsEsDe.aggregate<WritingVocabulary & { study?: unknown }>([
+      { $match: { _id: { $in: candidates.map(word => new ObjectId(word.id)) } } },
+      ...joinVocabulary, { $match: { "german.cefrLevel": { $in: allowedLevels(level) } } },
+      { $project: vocabularyFields },
+    ]).toArray();
+    const hydrated = new Map(rows.map(row => { const word = reviewedVocabulary(row); return [word.id, word] as const; }));
+    for (const candidate of candidates) {
+      const word = hydrated.get(candidate.id);
+      if (word && usable(word)) chosen.push(preserveScores ? { ...word, failureIndex: candidate.failureIndex!, difficultyScore: candidate.difficultyScore! } : word);
+    }
+  }
+  return chosen;
 }
 export async function difficultWritingWords(userId: ObjectId, levelValue: string, limit = 8) {
   const level = writingLevel(levelValue);
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error("Choose between 1 and 50 words");
-  return (await practicedWords(userId, level, "DIFFICULT")).filter(word => word.difficultyScore > 0).slice(0, limit);
+  return practicedWords(userId, level, "DIFFICULT", limit, undefined, true);
 }
 export async function chooseWritingWords(userId: ObjectId, seed: ObjectId, level: WritingLevel, focus: WritingFocus, selectedIds: string[] = []) {
   const maximum = level === "A1" ? 2 : 4;
   if (selectedIds.length > maximum || new Set(selectedIds).size !== selectedIds.length || selectedIds.some(id => !ObjectId.isValid(id)))
     throw new Error(`Choose up to ${maximum} different words for this level`);
-  const practiced = await practicedWords(userId, level, focus, selectedIds.length ? selectedIds : undefined);
   if (selectedIds.length) {
+    const practiced = await practicedWords(userId, level, focus, selectedIds.length, selectedIds);
     if (practiced.length !== selectedIds.length) throw new Error("A selected word is unavailable or above the chosen level. Refresh the list.");
     return selectedIds.map(id => practiced.find(word => word.id === id)!);
   }
-  const rank = (word: WritingVocabulary) => createHash("sha256").update(`${seed}:${word.id}`).digest("hex");
-  if (focus === "RECENT") practiced.splice(0, practiced.length, ...practiced.slice(0, 180).sort((a, b) => rank(a).localeCompare(rank(b))));
-  const chosen = practiced.slice(0, maximum);
+  const rank = (word: Pick<WritingVocabulary, "id">) => createHash("sha256").update(`${seed}:${word.id}`).digest("hex");
+  // RECENT ranks the same first 180 usable words, without transferring their rich content.
+  const chosen = focus === "RECENT"
+    ? await hydrateVocabulary((await practicedWords(userId, level, focus, 180, undefined, false, true)).sort((a, b) => rank(a).localeCompare(rank(b))), level, maximum, true)
+    : await practicedWords(userId, level, focus, maximum);
   if (chosen.length < maximum) {
-    const fallback = await getDb().relationsWordsEsDe.aggregate<WritingVocabulary & { study?: unknown }>([
+    const fallback = await getDb().relationsWordsEsDe.aggregate<Pick<WritingVocabulary, "id" | "german" | "spanish">>([
       ...joinVocabulary, { $match: { "german.cefrLevel": { $in: allowedLevels(level) }, _id: { $nin: chosen.map(word => new ObjectId(word.id)) } } },
-      { $project: vocabularyFields },
+      { $set: { study: "$relation.study" } },
+      { $project: { _id: 0, id: { $toString: "$_id" }, ...effectiveLabels } },
     ]).toArray();
-    chosen.push(...fallback.map(reviewedVocabulary).filter(usable).sort((a, b) => rank(a).localeCompare(rank(b))).slice(0, maximum - chosen.length));
+    const ranked = fallback.filter(usable).sort((a, b) => rank(a).localeCompare(rank(b)));
+    chosen.push(...await hydrateVocabulary(ranked, level, maximum - chosen.length));
   }
   if (!chosen.length) throw new Error("No German-Spanish words are available at this level. Add vocabulary or choose a higher level.");
   return chosen;

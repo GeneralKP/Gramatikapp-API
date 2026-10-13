@@ -1,21 +1,16 @@
 import { getDb, type Database } from "../../lib/database.js";
 import type { Word } from "../words/words.types.js";
 import type { Phrase } from "../phrases/phrases.types.js";
-import { catalogSummaryCache } from "./catalogSummaryCache.js";
+import { readCatalogPart } from "./catalogPartSource.js";
 
-const TEXT_BATCH_SIZE = 5000;
 export function studyGermanWords(db: Database, refresh = false): Promise<Word[]> {
-  return catalogSummaryCache[refresh ? "refresh" : "read"](db, "wordTextDe", () => db.wordsDE.find({})
-    .project<Word>({ _id: 1, word: 1, cefrLevel: 1, gramaticalCategories: 1, "forms.gender": 1,
-      "forms.past": 1, "forms.perfect": 1, "forms.imperativ": 1, notes: 1, examples: 1 }).batchSize(TEXT_BATCH_SIZE).toArray());
+  return readCatalogPart<Word>(db, "wordTextDe", refresh);
 }
 export function studySpanishWords(db: Database, refresh = false): Promise<Word[]> {
-  return catalogSummaryCache[refresh ? "refresh" : "read"](db, "wordMeta", () => db.wordsES.find({})
-    .project<Word>({ _id: 1, word: 1, contexts: 1, level: 1, examples: 1 }).batchSize(TEXT_BATCH_SIZE).toArray());
+  return readCatalogPart<Word>(db, "wordMeta", refresh);
 }
 export function studySpanishPhrases(db: Database, refresh = false): Promise<Phrase[]> {
-  return catalogSummaryCache[refresh ? "refresh" : "read"](db, "phraseMeta", () => db.phrasesES.find({})
-    .project<Phrase>({ _id: 1, phrase: 1, contexts: 1, level: 1 }).batchSize(TEXT_BATCH_SIZE).toArray());
+  return readCatalogPart<Phrase>(db, "phraseMeta", refresh);
 }
 
 /** Shared catalog text/display/legacy feedback uses one bounded immutable
@@ -25,8 +20,7 @@ export async function studyTextCatalog(itemType?: string, db: Database = getDb()
     itemType !== "PHRASE" ? studySpanishWords(db, refresh) : [] as Word[],
     itemType !== "PHRASE" ? studyGermanWords(db, refresh) : [] as Word[],
     itemType !== "WORD" ? studySpanishPhrases(db, refresh) : [] as Phrase[],
-    itemType !== "WORD" ? catalogSummaryCache[refresh ? "refresh" : "read"](db, "phraseTextDe", () => db.phrasesDE.find({})
-      .project<Phrase>({ _id: 1, phrase: 1, cefrLevel: 1, synonyms: 1, words: 1 }).batchSize(TEXT_BATCH_SIZE).toArray()) : [] as Phrase[],
+    itemType !== "WORD" ? readCatalogPart<Phrase>(db, "phraseTextDe", refresh) : [] as Phrase[],
   ]);
   return { wordsES, wordsDE, phrasesES, phrasesDE };
 }

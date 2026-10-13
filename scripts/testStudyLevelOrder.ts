@@ -8,7 +8,7 @@ import { CEFR_LEVELS } from '../src/features/levels/levels.js';
 import { loadStudyQueueCounts, loadMoreStudyProgress, loadDueStudyProgress } from '../src/features/progress/progress.resolvers.js';
 import { scheduleStudyReview, studyReviewOptions } from '../src/features/progress/studyScheduling.js';
 import { syncStudy } from '../src/features/progress/studySync.js';
-import { newItemIdentityPipeline } from '../src/features/progress/studySummaries.js';
+import { newItemIdentityPipeline, unpackNewItemIdentities } from '../src/features/progress/studySummaries.js';
 import { nativeWordPair } from '../src/features/progress/nativeWordPairs.js';
 import { DEFAULT_OPTIONS, initialScheduler } from '../src/features/progress/scheduler.js';
 import { loadCompactStudyQueue, COMPACT_STUDY_SELECTION } from '../src/features/progress/studyTransport.js';
@@ -102,7 +102,7 @@ try {
   await db.progress.deleteMany({ userId });
   const firstPhrase = phrases.find(r => rank.get(String(r._id)) === 'A1.1')!;
   await db.progress.insertOne({ ...pending(firstPhrase._id, 'WORD'), isNew: false, nextDueDate: new Date(now.getTime() + 86400000),
-    card: { source: 'ANKI', sourceNoteGuid: 'cross-type-fixture', sourceCardId: 'cross-type-fixture', direction: 'DE_ES', deck: 'Other', prompt: 'import', answer: 'import', acceptedAnswers: ['import'], tags: [] } } as never);
+    card: { source: 'ANKI', sourceNoteGuid: 'cross-type-fixture', sourceCardId: '910000', direction: 'DE_ES', deck: 'Other', prompt: 'import', answer: 'import', acceptedAnswers: ['import'], tags: [] } } as never);
   const typedCount = await loadStudyQueueCounts({ userId: String(userId), itemType: 'PHRASE' }, { user: counterUser } as never);
   assert.equal(typedCount.new, 12, 'A WORD identity collision cannot hide an unseen PHRASE relation');
   const typedQueue = await loadDueStudyProgress({ userId: String(userId), itemType: 'PHRASE', dueLimit: 0, newLimit: 20 }, { user: counterUser } as never);
@@ -116,7 +116,7 @@ try {
   await db.schedulerProfiles.insertOne({ _id: userId, timeZone: 'Europe/Berlin', rollover: 4, defaultOptions: { ...DEFAULT_OPTIONS, reviewsPerDay: 2 } } as never);
   const imported = Array.from({ length: 20 }, (_, index) => {
     const p = pending(new ObjectId(), 'PHRASE') as any;
-    p.card = { source: 'ANKI', sourceNoteGuid: `deck-fixture-${index}`, sourceCardId: `deck-fixture-${index}`, direction: 'ES_DE', deck: 'Other', prompt: 'import', answer: 'import', acceptedAnswers: ['import'], tags: [] };
+    p.card = { source: 'ANKI', sourceNoteGuid: `deck-fixture-${index}`, sourceCardId: String(920000 + index), direction: 'ES_DE', deck: 'Other', prompt: 'import', answer: 'import', acceptedAnswers: ['import'], tags: [] };
     p.scheduler = initialScheduler(p, { ...DEFAULT_OPTIONS, reviewsPerDay: 100 });
     return p;
   });
@@ -144,12 +144,12 @@ try {
   ].map(p => ({ ...p, _id: new ObjectId(), userId: identityOwner }));
   await db.progress.insertMany(identityCases);
   for (const type of [undefined, 'WORD', 'PHRASE']) {
-    const actual = await db.progress.aggregate<any>(newItemIdentityPipeline({ userId: identityOwner, ...(type ? { itemType: type } : {}) })).toArray();
+    const actual = unpackNewItemIdentities(await db.progress.aggregate<any>(newItemIdentityPipeline({ userId: identityOwner, ...(type ? { itemType: type } : {}) })).toArray());
     const expected = identityCases.filter(p => !type || p.itemType === type);
     assert.deepEqual(new Set(actual.map(p => `${p.itemType}:${p.itemId}`)), new Set(expected.map(p => `${p.itemType}:${p.relationId ?? p.itemId}`)), 'Grouped exclusions retain null/missing relations, both directions, cross-type IDs, legacy and suspended/superseded state');
   }
   const rawIdentities = await db.progress.find({ userId }).project({ itemId: 1, relationId: 1, itemType: 1 }).toArray();
-  const grouped = await db.progress.aggregate<any>(newItemIdentityPipeline({ userId })).toArray();
+  const grouped = unpackNewItemIdentities(await db.progress.aggregate<any>(newItemIdentityPipeline({ userId })).toArray());
   assert.deepEqual(new Set(grouped.map(p => `${p.itemType}:${p.itemId}`)), new Set(rawIdentities.map(p => `${p.itemType}:${p.relationId ?? p.itemId}`)), 'Grouped fresh identities preserve typed allocation exclusions');
   const bounded = await loadDueStudyProgress({ userId: String(userId), itemType: 'WORD', dueLimit: 50, newLimit: 2 }, { user } as never, COMPACT_STUDY_SELECTION);
   assert.deepEqual(bounded.map(p => rank.get(String(p.relationId ?? p.itemId))), ['A1.1', 'A1.1']);

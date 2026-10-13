@@ -6,10 +6,11 @@ import type { Phrase, PhraseRelation } from "../phrases/phrases.types.js";
 import { DEFAULT_OPTIONS, studyDay } from "./scheduler.js";
 import type { User } from "../auth/auth.types.js";
 import { dailyCounts, type SchedulerProfile } from "./reviews.js";
-import { catalogSummaryCache, type CatalogPart } from "./catalogSummaryCache.js";
+import { readCatalogPart } from "./catalogPartSource.js";
 import { studySpanishWords, studySpanishPhrases, studyTextCatalog } from "./studyTextCatalog.js";
 import { phraseGrammarCatalog } from '../phrases/phraseGrammarCatalog.js';
-import { counterFallback, counterSummaryPipeline, identitySummaryPipeline, type StudyIdentity } from './studySummaries.js';
+import { counterFallback, identitySummaryPipeline, unpackStudyIdentities, type PackedStudyIdentities, type StudyIdentity } from './studySummaries.js';
+import { accountCounterTotals, studyAccountCounterBuckets, type CounterCatalog } from './studyAccountSummary.js';
 
 // These reads already consume every result; larger batches remove the default
 // 101-document first-batch round trip without imposing a result limit.
@@ -50,7 +51,7 @@ export function studyMetadata(context: object, userId: ObjectId, knownUser?: Pic
 
 // Share only within one GraphQL request. Never cache account state across requests.
 const snapshots = new WeakMap<object, Map<string, ReturnType<typeof loadCountSnapshot>>>();
-async function loadCountSnapshot(context: object, userId: ObjectId, now: Date, itemType?: UserProgress["itemType"], eligible?: object) {
+async function loadCountSnapshot(context: object, userId: ObjectId, now: Date, itemType?: UserProgress["itemType"], catalog?: CounterCatalog, categoryIds: ObjectId[] | null = null) {
   const db = getDb();
   const query = { userId, ...(itemType ? { itemType } : {}), $or: [
     { nextDueDate: { $lte: now } }, { temporaryDueDate: { $lte: now } },
@@ -58,7 +59,7 @@ async function loadCountSnapshot(context: object, userId: ObjectId, now: Date, i
   ] };
   const [account, progress, summary] = await Promise.all([
     studyMetadata(context, userId),
-    db.progress.find({ ...query, ...(eligible ? { $and: [counterFallback] } : {}) }).project<UserProgress>({
+    db.progress.find({ ...query, ...(catalog ? { $and: [counterFallback] } : {}) }).project<UserProgress>({
       _id: 1, userId: 1, itemId: 1, itemType: 1, relationId: 1,
       isNew: 1, suspended: 1, supersededByAnki: 1, buriedUntil: 1,
       // Only counter/selection inputs, never a serialized or persisted scheduler.
@@ -73,9 +74,9 @@ async function loadCountSnapshot(context: object, userId: ObjectId, now: Date, i
       "card.direction": 1, "card.sourceNoteGuid": 1,
       "card.sourceCardId": 1, "card.deck": 1,
     }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray(),
-    eligible ? db.progress.aggregate<{ review: number; learning: number }>(counterSummaryPipeline(query, eligible, now)).toArray() : [],
+    catalog ? studyAccountCounterBuckets(context, userId, now, itemType).then(rows => accountCounterTotals(rows, catalog, categoryIds)) : { review: 0, learning: 0 },
   ]);
-  return { ...account, progress, summary: summary[0] ?? { review: 0, learning: 0 } };
+  return { ...account, progress, summary };
 }
 
 export function studyCountSnapshot(context: object, userId: ObjectId, now: Date, itemType?: UserProgress["itemType"]) {
@@ -89,12 +90,12 @@ export function studyCountSnapshot(context: object, userId: ObjectId, now: Date,
 
 /** Fresh database totals avoid transferring reviewed cards to render a dashboard. */
 const summarySnapshots = new WeakMap<object, Map<string, ReturnType<typeof loadCountSnapshot>>>();
-export function summarizedStudyCounts(context: object, userId: ObjectId, now: Date, itemType: UserProgress['itemType'] | undefined, eligible: object, category?: string) {
+export function summarizedStudyCounts(context: object, userId: ObjectId, now: Date, itemType: UserProgress['itemType'] | undefined, catalog: CounterCatalog, categoryIds: ObjectId[] | null, category?: string) {
   let requests = summarySnapshots.get(context);
   if (!requests) summarySnapshots.set(context, requests = new Map());
   const key = `${userId}:${itemType ?? 'ALL'}:${category?.trim().toLowerCase().replace(/[\s-]+/g, '_') ?? ''}`;
   let result = requests.get(key);
-  if (!result) requests.set(key, result = loadCountSnapshot(context, userId, now, itemType, eligible));
+  if (!result) requests.set(key, result = loadCountSnapshot(context, userId, now, itemType, catalog, categoryIds));
   return result;
 }
 
@@ -110,8 +111,8 @@ export function studyIdentities(context: object, userId: ObjectId, phraseRelatio
     { relationId: { $in: phraseRelationIds } },
     { relationId: null, itemId: { $in: phraseRelationIds } },
   ] } : {};
-  if (!result) requests.set(key, result = getDb().progress.aggregate<{ known: StudyIdentity[]; legacy: StudyIdentity[] }>(identitySummaryPipeline({ userId, ...scope }))
-    .toArray().then(rows => [...(rows[0]?.known ?? []), ...(rows[0]?.legacy ?? [])]));
+  if (!result) requests.set(key, result = getDb().progress.aggregate<PackedStudyIdentities>(identitySummaryPipeline({ userId, ...scope }))
+    .toArray().then(unpackStudyIdentities));
   return result;
 }
 
@@ -143,10 +144,9 @@ export async function studyCatalog(context: object, itemType?: string, includeMe
     return result as Promise<T[]>;
   };
   const db = getDb();
-  const shared = <T>(part: CatalogPart, load: () => Promise<T[]>) => catalogSummaryCache[refresh ? "refresh" : "read"](db, part, load);
   const [words, phrases, wordMeta, phraseMeta] = await Promise.all([
-    itemType !== "PHRASE" ? read("words", () => shared("words", () => db.relationsWordsEsDe.find({}).project<WordRelation>({ _id: 1, main: 1, translated: 1 }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray())) : [] as WordRelation[],
-    itemType !== "WORD" ? read("phrases", () => shared("phrases", () => db.relationsPhrasesEsDe.find({}).project<PhraseRelation>({ _id: 1, main: 1, translated: 1 }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray())) : [] as PhraseRelation[],
+    itemType !== "PHRASE" ? read("words", () => readCatalogPart<WordRelation>(db, "words", refresh)) : [] as WordRelation[],
+    itemType !== "WORD" ? read("phrases", () => readCatalogPart<PhraseRelation>(db, "phrases", refresh)) : [] as PhraseRelation[],
     includeMetadata ? read("wordMeta", () => studySpanishWords(db, refresh)) : [] as StudyCatalog["wordMeta"],
     includeMetadata ? read("phraseMeta", () => studySpanishPhrases(db, refresh)) : [] as StudyCatalog["phraseMeta"],
   ]);

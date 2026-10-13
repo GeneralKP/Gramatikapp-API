@@ -38,12 +38,24 @@ try {
   await db.progress.insertMany(progress as never);
   await db.cardEdits.insertOne({ _id: new ObjectId(), userId: user._id, itemType: 'PHRASE', relationId: relations[1], version: 1, flag: null, content: { german: 'Die Anna fragt nicht.', spanish: 'Anna no pregunta.', notes: '', examples: [] }, updatedAt: now });
   const before = await db.progress.find({}).toArray();
-  let wordReads = 0, surfaceReads = 0;
-  const originalWords = db.wordsDE.find.bind(db.wordsDE), originalSurfaces = db.translationsEsDe.find.bind(db.translationsEsDe);
-  db.wordsDE.find = ((...args: any[]) => { wordReads++; return originalWords(...args as [any]); }) as typeof db.wordsDE.find;
-  db.translationsEsDe.find = ((...args: any[]) => { surfaceReads++; return originalSurfaces(...args as [any]); }) as typeof db.translationsEsDe.find;
+  let wordSnapshotReads = 0, surfaceSnapshotReads = 0, wordFinds = 0, surfaceFinds = 0;
+  const originalWords = db.wordsDE.aggregate.bind(db.wordsDE), originalSurfaces = db.translationsEsDe.aggregate.bind(db.translationsEsDe);
+  const originalWordFind = db.wordsDE.find.bind(db.wordsDE), originalSurfaceFind = db.translationsEsDe.find.bind(db.translationsEsDe);
+  // Catalog snapshots now hash their projected rows in Mongo. Count the real
+  // aggregate loads, and keep find counters to catch per-word lookup regressions.
+  db.wordsDE.aggregate = ((...args: any[]) => {
+    assert.equal(args[0].at(-1)?.$project?.row, 1, 'word catalog read loads a row snapshot');
+    wordSnapshotReads++; return originalWords(...args as [any]);
+  }) as typeof db.wordsDE.aggregate;
+  db.translationsEsDe.aggregate = ((...args: any[]) => {
+    assert.equal(args[0].at(-1)?.$project?.row, 1, 'grammar surface read loads a row snapshot');
+    surfaceSnapshotReads++; return originalSurfaces(...args as [any]);
+  }) as typeof db.translationsEsDe.aggregate;
+  db.wordsDE.find = ((...args: any[]) => { wordFinds++; return originalWordFind(...args as [any]); }) as typeof db.wordsDE.find;
+  db.translationsEsDe.find = ((...args: any[]) => { surfaceFinds++; return originalSurfaceFind(...args as [any]); }) as typeof db.translationsEsDe.find;
   await warmStudyCatalog();
-  assert.equal(wordReads, 1); assert.equal(surfaceReads, 1, 'warmup coalesces the category projection');
+  assert.equal(wordSnapshotReads, 1); assert.equal(surfaceSnapshotReads, 1, 'warmup coalesces the category projection');
+  assert.equal(wordFinds, 0); assert.equal(surfaceFinds, 0, 'warmup uses shared aggregate snapshots');
   const packet = await post('cards', { itemIds: relations.map(String) });
   assert.equal(packet.status, 200);
   assert.deepEqual(packet.body.items[0].wordCategories, { Die: ['ARTICLE', 'PRONOUN'], Haus: ['NOUN'], zehn: ['NUMERAL'], kostet: ['VERB'] });
@@ -52,12 +64,14 @@ try {
   const starter = await post('queue', { itemType: 'PHRASE', dueLimit: 10, newLimit: 0, cardLimit: 1 });
   assert.equal(starter.status, 200); assert.equal(starter.body.items.length, 1);
   assert.equal(Object.keys(starter.body.manifest[1].wordCategories).length, 1, 'pending distractors only carry one-token category metadata');
-  assert.equal(wordReads, 1); assert.equal(surfaceReads, 1, 'warmed queue/card reads add no per-word catalog queries');
+  assert.equal(wordSnapshotReads, 1); assert.equal(surfaceSnapshotReads, 1, 'warmed queue/card reads reuse shared snapshots');
+  assert.equal(wordFinds, 0); assert.equal(surfaceFinds, 0, 'warmed queue/card reads add no per-word catalog queries');
   await db.wordsDE.updateOne({ _id: article }, { $set: { gramaticalCategories: ['ARTICLE'] } } as never);
   invalidateStudyCatalog(db);
   const refreshed = await post('cards', { itemIds: [String(relations[0])] });
   assert.deepEqual(refreshed.body.items[0].wordCategories.Die, ['ARTICLE']);
-  assert.equal(wordReads, 2); assert.equal(surfaceReads, 2, 'one invalidated generation reloads each required source once');
+  assert.equal(wordSnapshotReads, 2); assert.equal(surfaceSnapshotReads, 2, 'one invalidated generation reloads each required source once');
+  assert.equal(wordFinds, 0); assert.equal(surfaceFinds, 0, 'invalidation adds no per-word catalog queries');
   assert.deepEqual(await db.progress.find({}).toArray(), before, 'category reads do not alter schedules or mistakes');
   console.log('PASS HTTP→Mongo phrase categories, manual gaps, multiple roles, edited text, pending distractors, warmed reads/invalidation and unchanged progress');
 } finally {

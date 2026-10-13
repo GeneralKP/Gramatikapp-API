@@ -6,6 +6,7 @@ import type { Database } from "../src/lib/database.js";
 import { CATALOG_SUMMARY_REFRESH_MS, startStudyCatalogRefresh, stopStudyCatalogRefresh } from "../src/features/progress/studyLoading.js";
 import { studyTextCatalog } from "../src/features/progress/studyTextCatalog.js";
 import { saveReviewedEntry } from "../src/features/translations/translations.service.js";
+import { fixtureCatalogAggregate } from "./fixtures/catalogAggregate.js";
 import { createPhraseGrammarIndex } from "../src/features/phrases/phraseGrammar.js";
 
 let now = 0;
@@ -43,6 +44,119 @@ cache.invalidate(db);
 const latest = await cache.read(db, "words", async () => [{ version: 2 }]);
 releaseOld(); assert.deepEqual(await obsolete, [{ version: 1 }]);
 assert.equal(await cache.read(db, "words", async () => []), latest, "an invalidated in-flight read cannot restore an obsolete entry");
+
+// A content signature validation must preserve the same immutable generation
+// when the projected catalog is unchanged, including at the hard deadline.
+const validatedCache = createCatalogSummaryCache(() => now);
+now = 0;
+let snapshotLoads = 0, signatureChecks = 0;
+const unchangedSource = Object.assign(async () => { snapshotLoads++; return [{ version: 1 }]; }, {
+  async loadSnapshot() { snapshotLoads++; return { rows: [{ version: 1 }], signature: "1:42:84" }; },
+  async readSignature() { signatureChecks++; return "1:42:84"; },
+});
+const validated = await validatedCache.read(db, "words", unchangedSource);
+now = CATALOG_SUMMARY_REFRESH_MS;
+assert.equal(await validatedCache.refresh(db, "words", unchangedSource), validated, "unchanged refresh retains exact array identity");
+assert.equal(snapshotLoads, 1, "unchanged refresh never transfers the full catalog again");
+assert.equal(signatureChecks, 1);
+now += CATALOG_SUMMARY_TTL_MS;
+assert.equal(await validatedCache.read(db, "words", unchangedSource), validated, "unchanged hard expiry validates and retains the frozen generation");
+assert.equal(snapshotLoads, 1); assert.equal(signatureChecks, 2);
+
+// Changed signatures reload their own part, with singleflight checks/reloads.
+let changedSignature = "1:100:200", changedVersion = 2;
+let changedLoads = 0, changedChecks = 0, checkRelease!: () => void, loadRelease!: () => void, loadStarted!: () => void;
+let signalLoad = false;
+const loadingStarted = new Promise<void>(resolve => { loadStarted = resolve; });
+let checkGate: Promise<void> = Promise.resolve(), loadGate: Promise<void> = Promise.resolve();
+const changedSource = {
+  async loadSnapshot() { changedLoads++; if (signalLoad) loadStarted(); const rows = [{ version: changedVersion }], signature = changedSignature; await loadGate; return { rows, signature }; },
+  async readSignature() { changedChecks++; await checkGate; return changedSignature; },
+};
+const changedRows = await validatedCache.read(db, "phrases", changedSource);
+changedSignature = "1:101:202"; changedVersion = 3;
+now += CATALOG_SUMMARY_REFRESH_MS;
+signalLoad = true;
+checkGate = new Promise(resolve => { checkRelease = resolve; });
+loadGate = new Promise(resolve => { loadRelease = resolve; });
+const checking = validatedCache.refresh(db, "phrases", changedSource);
+assert.equal(validatedCache.refresh(db, "phrases", changedSource), checking, "concurrent signature checks share the same promise");
+assert.equal(await validatedCache.read(db, "phrases", changedSource), changedRows, "fresh reads remain immediate during a signature check");
+now += CATALOG_SUMMARY_REFRESH_MS;
+assert.equal(validatedCache.read(db, "phrases", changedSource), checking, "hard-expired reads await the same signature check/reload");
+checkRelease(); await loadingStarted;
+assert.equal(validatedCache.read(db, "phrases", changedSource), checking, "changed part loads remain singleflight");
+loadRelease(); const changedReplacement = await checking;
+assert.equal(changedReplacement[0].version, 3); assert.notEqual(changedReplacement, changedRows);
+assert.equal(changedLoads, 2); assert.equal(changedChecks, 1);
+assert.equal(await validatedCache.read(db, "words", unchangedSource), validated, "a changed phrase signature leaves the word generation intact");
+assert.equal(snapshotLoads, 1);
+
+// A failed validation cannot move the old deadline. Expired reads retry and
+// propagate the error rather than silently serving stale catalog content.
+const validationFailure = new Error("signature unavailable");
+let probeFails = true;
+const retrySource = { ...changedSource, async readSignature() { changedChecks++; if (probeFails) throw validationFailure; return changedSignature; } };
+now += CATALOG_SUMMARY_REFRESH_MS;
+await assert.rejects(validatedCache.refresh(db, "phrases", retrySource), error => error === validationFailure);
+assert.equal(await validatedCache.read(db, "phrases", retrySource), changedReplacement);
+now += CATALOG_SUMMARY_REFRESH_MS;
+await assert.rejects(validatedCache.read(db, "phrases", retrySource), error => error === validationFailure);
+probeFails = false;
+assert.equal(await validatedCache.read(db, "phrases", retrySource), changedReplacement, "expired validation failures are retryable");
+
+// A failed replacement after a changed probe also retains the original hard
+// deadline. At expiry the next request must retry the load and expose failures.
+const failingReloadCache = createCatalogSummaryCache(() => now);
+let reloadSignature = "old", reloadFails = false;
+const failingReloadSource = {
+  async loadSnapshot() { if (reloadFails) throw validationFailure; return { rows: [{ version: reloadSignature }], signature: reloadSignature }; },
+  async readSignature() { return reloadSignature; },
+};
+const preFailure = await failingReloadCache.read(db, "words", failingReloadSource);
+now += CATALOG_SUMMARY_REFRESH_MS; reloadSignature = "new"; reloadFails = true;
+await assert.rejects(failingReloadCache.refresh(db, "words", failingReloadSource), error => error === validationFailure);
+assert.equal(await failingReloadCache.read(db, "words", failingReloadSource), preFailure);
+now += CATALOG_SUMMARY_REFRESH_MS;
+await assert.rejects(failingReloadCache.read(db, "words", failingReloadSource), error => error === validationFailure);
+reloadFails = false;
+assert.deepEqual(await failingReloadCache.read(db, "words", failingReloadSource), [{ version: "new" }]);
+
+// Writer invalidation beats both the signature-check and snapshot-load phases.
+for (const phase of ["check", "load"] as const) {
+  const raceCache = createCatalogSummaryCache(() => now);
+  let raceSignature = "old", raceVersion = 1, releaseRace!: () => void;
+  let raceGate = Promise.resolve(), racing = false, reachedPhase!: () => void;
+  const phaseStarted = new Promise<void>(resolve => { reachedPhase = resolve; });
+  const raceSource = {
+    async loadSnapshot() { const rows = [{ version: raceVersion }], signature = raceSignature; if (phase === "load") { if (racing) reachedPhase(); await raceGate; } return { rows, signature }; },
+    async readSignature() { if (phase === "check") { if (racing) reachedPhase(); await raceGate; } return raceSignature; },
+  };
+  await raceCache.read(db, "words", raceSource);
+  raceSignature = "changed"; raceVersion = 2; racing = true;
+  raceGate = new Promise(resolve => { releaseRace = resolve; });
+  const priorValidation = raceCache.refresh(db, "words", raceSource);
+  await phaseStarted;
+  raceCache.invalidate(db, "words");
+  const afterInvalidation = await raceCache.read(db, "words", { async loadSnapshot() { return { rows: [{ version: 3 }], signature: "newest" }; }, async readSignature() { return "newest"; } });
+  releaseRace(); await priorValidation;
+  assert.equal(await raceCache.read(db, "words", raceSource), afterInvalidation, `invalidation during ${phase} cannot restore the older generation`);
+}
+
+// The probe observed a revision just before another writer. Bind the replacement
+// to its own rows/signature so the next validation cannot bless the wrong rows.
+const baselineCache = createCatalogSummaryCache(() => now);
+let baselineVersion = 1, baselineSignature = "1", baselineLoads = 0;
+const baselineSource = {
+  async loadSnapshot() { baselineLoads++; return { rows: [{ version: baselineVersion }], signature: baselineSignature }; },
+  async readSignature() { const signature = baselineSignature; baselineVersion = 3; baselineSignature = "3"; return signature; },
+};
+await baselineCache.read(db, "words", baselineSource);
+baselineVersion = 2; baselineSignature = "2";
+const boundSnapshot = await baselineCache.refresh(db, "words", baselineSource);
+assert.equal(boundSnapshot[0].version, 3);
+assert.equal(await baselineCache.refresh(db, "words", baselineSource), boundSnapshot);
+assert.equal(baselineLoads, 2, "the cached baseline is the loaded-row signature, not the earlier probe");
 
 // Refreshes replace the old generation only after the new summary is complete.
 // Reads before the hard deadline continue immediately; after it they must wait.
@@ -85,26 +199,20 @@ const displaySource: Record<string, any[]> = {
 };
 const displayReads: { collection: string; projection: any }[] = [];
 const displayDb = Object.fromEntries(Object.keys(displaySource).map(collection => [collection, {
-  find(filter: any) {
+  aggregate(pipeline: any[]) {
+    const filter = pipeline[0].$match, fields = pipeline[1].$project;
     assert.deepEqual(filter, {}, "static display cache never filters or reads by account");
-    let projected: any[];
-    return {
-      project(fields: any) {
-        displayReads.push({ collection, projection: fields });
-        projected = displaySource[collection].map(row => {
-          const result: any = {};
-          for (const key of Object.keys(fields)) {
-            const [parent, child] = key.split(".");
-            if (child) { if (row[parent] && typeof row[parent] === "object") { result[parent] ??= {}; if (row[parent][child] !== undefined) result[parent][child] = row[parent][child]; } }
-            else if (row[key] !== undefined) result[key] = row[key];
-          }
-          return result;
-        });
-        return this;
-      },
-      batchSize(size: number) { assert.equal(size, 5000); return this; },
-      async toArray() { return projected; },
-    };
+    if (!pipeline.some(stage => stage.$group)) displayReads.push({ collection, projection: fields });
+    const projected = displaySource[collection].map(row => {
+      const result: any = {};
+      for (const key of Object.keys(fields)) {
+        const [parent, child] = key.split(".");
+        if (child) { if (row[parent] && typeof row[parent] === "object") { result[parent] ??= {}; if (row[parent][child] !== undefined) result[parent][child] = row[parent][child]; } }
+        else if (row[key] !== undefined) result[key] = row[key];
+      }
+      return result;
+    });
+    return { batchSize(size: number) { assert.equal(size, 5000); return this; }, async toArray() { return fixtureCatalogAggregate(projected, pipeline); } };
   },
 }])) as unknown as Database;
 for (const privatePart of ["users", "progress", "schedulerProfiles", "reviewEvents"]) Object.defineProperty(displayDb, privatePart, { get() { throw new Error("Private state must never enter the static display cache"); } });
@@ -136,7 +244,7 @@ assert.equal(display.wordsDE[0].forms!.past, "ging", "a replacement never mutate
 catalogSummaryCache.invalidate(displayDb);
 const invalidatedDisplay = await studyTextCatalog(undefined, displayDb);
 assert.notEqual(invalidatedDisplay.wordsDE, refreshedDisplay.wordsDE, "catalog invalidation replaces enriched display generations too");
-assert.equal(displayReads.length, 12, "refresh and invalidation reuse only the same four text parts");
+assert.equal(displayReads.length, 11, "refresh loads only three changed text parts; invalidation reloads all four parts");
 
 const realSetInterval = globalThis.setInterval, realClearInterval = globalThis.clearInterval;
 let starts = 0, stops = 0, unrefs = 0;
@@ -205,4 +313,4 @@ const afterGrammar = await catalogSummaryCache.read(reviewedDb, "grammarSurfaceD
 assert.notEqual(afterGrammar, beforeGrammar, 'a SURFACE save invalidates its category projection immediately');
 assert.deepEqual(createPhraseGrammarIndex([], afterGrammar).forPhrase('lernte'), { lernte: ['VERB'] });
 assert.equal(catalogWrites, catalogWritesBeforeSurface); assert.equal(surfaceWrites, 1); assert.equal(endedSessions, 5);
-console.log("PASS immutable catalog summaries, database isolation, singleflight, atomic refresh, hard expiry, retryable loads, generation-safe invalidation, timer lifecycle, shared display/feedback and seed/dictionary writers");
+console.log("PASS immutable catalog summaries, unchanged signature identity/no bulk loads, changed-part reloads, loaded-row baselines, database isolation, singleflight checks/loads, hard expiry/failure retries, check/load invalidation, timer lifecycle, shared display/feedback and seed/dictionary writers");

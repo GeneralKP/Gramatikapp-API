@@ -32,7 +32,7 @@ export function newItemIdentityPipeline(query: object) {
   return [
     { $match: query },
     { $group: { _id: { itemType: '$itemType', itemId: { $ifNull: ['$relationId', '$itemId'] } } } },
-    { $project: { _id: 0, itemType: '$_id.itemType', itemId: '$_id.itemId' } },
+    { $group: { _id: '$_id.itemType', itemIds: { $push: '$_id.itemId' } } },
   ];
 }
 
@@ -46,7 +46,7 @@ export function identitySummaryPipeline(query: object) {
         { $group: { _id: { itemId: { $ifNull: ['$relationId', '$itemId'] }, itemType: '$itemType' },
           interval: { $max: { $cond: [{ $and: [{ $eq: ['$scheduler.phase', 'REVIEW'] }, { $gte: ['$interval', 1] }] }, 1, 0] } },
         } },
-        { $project: { _id: 0, itemId: '$_id.itemId', itemType: '$_id.itemType', graduated: { $gt: ['$interval', 0] } } },
+        { $group: { _id: { itemType: '$_id.itemType', graduated: { $gt: ['$interval', 0] } }, itemIds: { $push: '$_id.itemId' } } },
       ],
       legacy: [
         { $match: { 'scheduler.phase': { $nin: ['NEW', 'LEARNING', 'RELEARNING', 'REVIEW'] } } },
@@ -54,6 +54,18 @@ export function identitySummaryPipeline(query: object) {
       ],
     } },
   ];
+}
+
+export interface PackedNewItemIdentity { _id: UserProgress['itemType']; itemIds: ObjectId[]; }
+export function unpackNewItemIdentities(rows: PackedNewItemIdentity[]): Pick<UserProgress, 'itemType' | 'itemId' | 'relationId'>[] {
+  return rows.flatMap(row => row.itemIds.map(itemId => ({ itemType: row._id, itemId })));
+}
+export interface PackedStudyIdentities {
+  known: { _id: { itemType: UserProgress['itemType']; graduated: boolean }; itemIds: ObjectId[] }[];
+  legacy: StudyIdentity[];
+}
+export function unpackStudyIdentities(rows: PackedStudyIdentities[]): StudyIdentity[] {
+  return [...(rows[0]?.known ?? []).flatMap(row => row.itemIds.map(itemId => ({ ...row._id, itemId }))), ...(rows[0]?.legacy ?? [])];
 }
 
 export function counterEligibility(now: Date, categoryIds: ObjectId[] | null, catalog: { words: { _id: ObjectId }[]; phrases: { _id: ObjectId }[] }) {

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { mock } from 'node:test';
 import { ObjectId } from 'mongodb';
 import { DEFAULT_OPTIONS, initialScheduler, scheduleReview } from '../src/features/progress/scheduler.js';
 import { withScheduler } from '../src/features/progress/reviews.js';
@@ -6,6 +7,8 @@ import { studyReviewOptions, scheduleStudyReview } from '../src/features/progres
 import type { UserProgress } from '../src/features/progress/progress.types.js';
 
 const now = new Date('2026-10-08T19:00:00Z');
+// withScheduler uses Date.now for manual deferrals; keep this dated fixture deterministic.
+mock.timers.enable({ apis: ['Date'], now: +now });
 const fresh: UserProgress = { _id: new ObjectId(), userId: new ObjectId(), itemId: new ObjectId(), itemType: 'WORD', ease: 2.5, interval: 0, repetitions: 0, lapses: 0, totalReviews: 0, isNew: false, lastReviewed: null, createdAt: new Date('2026-02-19T12:00:00Z'), nextDueDate: new Date('2026-02-28T12:00:00Z') };
 fresh.scheduler = { ...initialScheduler(fresh), phase: 'REVIEW', queue: 'DAY' };
 const prepared = await withScheduler(fresh);
@@ -31,4 +34,5 @@ assert.ok(studyReviewOptions(old, now).find(option => option.grade === 'GOOD')!.
 for (const grade of ['AGAIN', 'HARD', 'GOOD', 'EASY'] as const) assert.ok(+scheduleReview(old, grade, now).nextDueDate > +now);
 for (const history of [{ totalReviews: 1 }, { repetitions: 1 }, { lastReviewed: now }, { interval: 1 }, { lapses: 1 }]) assert.equal((await withScheduler({ ...fresh, ...history })).scheduler?.phase, 'REVIEW');
 for (const history of [{ interval: 1 }, { lapses: 1 }]) assert.equal((await withScheduler({ ...fresh, scheduler: { ...fresh.scheduler, ...history } })).scheduler?.phase, 'REVIEW', 'Nonzero scheduler evidence also prevents an automatic reset');
+mock.timers.reset();
 console.log('PASS unstudied-state recovery, short initial steps, manual deferrals, retained historical reviews and future rating dates');
