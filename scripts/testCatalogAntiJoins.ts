@@ -20,11 +20,16 @@ type Read = { collection: string; pipeline: any[]; replyBytes: number; requestBy
 let reads: Read[] | undefined;
 const pending = new Map<number, Read>();
 const originalDb = MongoClient.prototype.db, originalConnect = MongoClient.prototype.connect;
+const clients = new Set<MongoClient>();
+let fixtureClient: MongoClient | undefined;
+let closeDatabase: (() => Promise<void>) | undefined;
+try {
 MongoClient.prototype.db = function (databaseName?: string, options?: any) {
   assert.ok(databaseName === undefined || databaseName === "gramatikapp" || databaseName === name, "Keep all application access inside the owned fixture");
   return originalDb.call(this, name, options);
 };
 MongoClient.prototype.connect = async function () {
+  clients.add(this);
   this.monitorCommands = true;
   this.on("commandStarted", event => {
     if (!reads || !["aggregate", "getMore"].includes(event.commandName)) return;
@@ -37,10 +42,14 @@ MongoClient.prototype.connect = async function () {
     if (row) { row.replyBytes = BSON.calculateObjectSize(event.reply); pending.delete(event.requestId); }
   });
   this.on("commandFailed", event => pending.delete(event.requestId));
-  return originalConnect.call(this);
+  const connected = await originalConnect.call(this);
+  fixtureClient = this;
+  return connected;
 };
 // Only now may dotenv/application code load or a connection occur.
-const { connectDatabase, closeDatabase, getDatabaseClient } = await import("../src/lib/database.js");
+const databaseModule = await import("../src/lib/database.js");
+closeDatabase = databaseModule.closeDatabase;
+const { connectDatabase, getDatabaseClient } = databaseModule;
 const { wordsResolvers: current } = await import("../src/features/words/words.resolvers.js");
 const { wordsResolvers: baseline } = await import("./fixtures/catalogAntiJoinBaseline.js");
 let db = await connectDatabase();
@@ -124,7 +133,6 @@ async function explainRead(read: Read) {
 }
 const failures: string[] = [];
 const budget = (ok: boolean, message: string) => { if (!ok) failures.push(message); };
-try {
   const es = Array.from({ length: 240 }, (_, n) => word(n, "ES")), de = Array.from({ length: 240 }, (_, n) => word(n, "DE"));
   await db.wordsES.insertMany(es as any); await db.wordsDE.insertMany(de as any);
   await db.wordsES.insertOne({ ...es[121], _id: es[121]._id.toString(), word: "ES string identity" } as any);
@@ -230,9 +238,22 @@ try {
   assert.deepEqual(failures, [], "Named initializer indexes and real foreign-index server-work budget");
   console.log("PASS additive initializer indexes, all four foreign index plans, exact public results, <30000 examined foreign documents");
 } finally {
-  assert.equal(fixtureDb().databaseName, name);
-  await fixtureDb().dropDatabase();
-  await closeDatabase();
-  MongoClient.prototype.db = originalDb; MongoClient.prototype.connect = originalConnect;
-  console.log("Removed only the unique owned catalog anti-join fixture database");
+  try {
+    if (fixtureClient) {
+      const ownedDb = originalDb.call(fixtureClient, name);
+      assert.equal(ownedDb.databaseName, name);
+      await ownedDb.dropDatabase();
+      console.log("Removed only the unique owned catalog anti-join fixture database");
+    }
+  } finally {
+    try {
+      await closeDatabase?.();
+    } finally {
+      try {
+        await Promise.all([...clients].map(client => client.close()));
+      } finally {
+        MongoClient.prototype.db = originalDb; MongoClient.prototype.connect = originalConnect;
+      }
+    }
+  }
 }

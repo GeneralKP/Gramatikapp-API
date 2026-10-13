@@ -112,4 +112,3 @@ export async function lessonForClient(lesson: ReadingLesson) {
 }
 export const attemptForClient = (attempt: TranslationAttempt) => ({ id: attempt._id.toString(), requestId: attempt.requestId, pageIndex: attempt.pageIndex,
   translation: attempt.translation, status: attempt.status, error: attempt.error ?? null, feedback: attempt.feedback ?? null });
-
