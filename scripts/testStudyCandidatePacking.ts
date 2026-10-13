@@ -290,7 +290,8 @@ try {
   const memoryBefore = await originalRead(filter, COMPLETE_STUDY_SELECTION);
   const memoryFallback = await measured(() => readPacked(db.progress, filter, COMPLETE_STUDY_SELECTION));
   exactRows(memoryFallback.result, memoryBefore, 'Real facet-memory fallback');
-  assert.equal(memoryFallback.reads[0].failure?.code, 4031700);
+  assert.ok([146, 4031700].includes(memoryFallback.reads[0].failure?.code),
+    `Real Mongo facet/accumulator memory overflow must use code 146 or 4031700; received ${memoryFallback.reads[0].failure?.code}`);
   assert.equal(memoryFallback.reads[1].commandName, 'find');
   console.log(JSON.stringify({ operation: 'facet-memory-overflow', failureCode: memoryFallback.reads[0].failure.code, commands: memoryFallback.reads.map(r => r.commandName), exactRows: memoryFallback.result.length }));
 
