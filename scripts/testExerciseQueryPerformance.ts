@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import crypto from "node:crypto";
+import { syncBuiltinESMExports } from "node:module";
 import { BSON, MongoClient, ObjectId, type CommandStartedEvent, type CommandSucceededEvent } from "mongodb";
 import { exerciseQueryTarget } from "./fixtures/exerciseQueryTarget.js";
 import type { ReadingLesson, TranslationAttempt } from "../src/features/reading/reading.types.js";
@@ -17,9 +19,15 @@ const uri = exerciseQueryTarget(process.env.TEST_EXERCISE_URI ?? "mongodb://127.
 process.env.MONGODB_URI = uri;
 console.log("PASS unsafe-target rejection before any Mongo connection; unique fixture database and directConnection");
 
-type Traffic = { requestBytes: number; replyBytes: number; firstReplyBytes: number; readBatches: number; closeCommands: number; rows: number };
-const emptyTraffic = (): Traffic => ({ requestBytes: 0, replyBytes: 0, firstReplyBytes: 0, readBatches: 0, closeCommands: 0, rows: 0 });
+type Traffic = { requestBytes: number; replyBytes: number; firstReplyBytes: number; readBatches: number; closeCommands: number; rows: number; sha256Calls: number };
+const emptyTraffic = (): Traffic => ({ requestBytes: 0, replyBytes: 0, firstReplyBytes: 0, readBatches: 0, closeCommands: 0, rows: 0, sha256Calls: 0 });
 let activeTraffic: Traffic | undefined;
+const originalCreateHash = crypto.createHash;
+crypto.createHash = function (...args: Parameters<typeof originalCreateHash>) {
+  if (activeTraffic && args[0] === "sha256") activeTraffic.sha256Calls++;
+  return originalCreateHash(...args);
+};
+syncBuiltinESMExports();
 const originalDb = MongoClient.prototype.db;
 MongoClient.prototype.db = function (databaseName?: string, options?: any) {
   assert.ok(databaseName === undefined || databaseName === "gramatikapp" || databaseName === name, "Application must stay inside the owned exercise-query fixture");
@@ -180,9 +188,12 @@ async function writingChecks() {
   const recent = await same("large RECENT", () => old.chooseWritingWords(owner, seed, "C2", "RECENT"), () => chooseWritingWords(owner, seed, "C2", "RECENT"));
   budget(record("recent", recent.before, recent.after) >= .8, "RECENT request/reply payload reduction must be >=80%");
   budget(recent.after.readBatches <= 6, `RECENT must use <=6 read batches for 250 rejected +180 usable candidates: observed ${recent.after.readBatches}`);
+  budget(recent.after.sha256Calls <= 180, `RECENT must compute each seed rank at most once: observed ${recent.after.sha256Calls} for <=180 candidates`);
   const fallback = await same("large fallback", () => old.chooseWritingWords(unpracticedOwner, seed, "C2", "RECENT"), () => chooseWritingWords(unpracticedOwner, seed, "C2", "RECENT"));
   budget(record("fallback", fallback.before, fallback.after) >= .8, "fallback request/reply payload reduction must be >=80%");
   budget(fallback.after.readBatches <= 4, `fallback must use <=4 read batches: observed ${fallback.after.readBatches}`);
+  const catalogRows = await db.relationsWordsEsDe.countDocuments();
+  budget(fallback.after.sha256Calls <= catalogRows, `fallback seed hashing must be linear in catalog size: observed ${fallback.after.sha256Calls} for ${catalogRows} relations`);
   await same("partial practice plus fallback exclusions", () => old.chooseWritingWords(sparseOwner, seed, "C2", "DIFFICULT"), () => chooseWritingWords(sparseOwner, seed, "C2", "DIFFICULT"));
   console.log("PASS complete Writing output differential: six CEFR bands, two focuses, three seeds, manual ordering, reviewed validity/forms, zero difficulty, suspension, supersession, completed cards, failures and fallback exclusions");
 }
@@ -374,4 +385,5 @@ try {
   assert.equal(db.progress.dbName, name); assert.match(name, /^exercise_query_performance_tests_/);
   await originalDb.call(getDatabaseClient(), name).dropDatabase();
   await closeDatabase(); MongoClient.prototype.db = originalDb; MongoClient.prototype.connect = originalConnect;
+  crypto.createHash = originalCreateHash; syncBuiltinESMExports();
 }

@@ -19,7 +19,7 @@ export function validateStudyOperations(input: unknown): StudyOperation[] {
     if (!job || !validId(job.id) || !validId(job.sessionId) || !ObjectId.isValid(job.itemId) || !["FAILURE", "REVIEW", "UNDO", "EDIT"].includes(job.kind)) throw new Error("Invalid study operation.");
     const time = Date.parse(job.occurredAt);
     if (!Number.isFinite(time) || time < Date.UTC(2000, 0, 1) || time > Date.now() + 300000) throw new Error("Invalid study time. Check your device clock.");
-    if (job.kind === "REVIEW" && (!["WORD", "PHRASE"].includes(job.itemType) || !["AGAIN", "HARD", "GOOD", "EASY", "REVISIT"].includes(job.grade) || !Number.isInteger(job.expectedVersion) || job.expectedVersion < 0 || (job.earlyReview !== undefined && typeof job.earlyReview !== "boolean"))) throw new Error("Invalid review operation.");
+    if (job.kind === "REVIEW" && (!["WORD", "PHRASE"].includes(job.itemType) || !["AGAIN", "HARD", "GOOD", "EASY", "REVISIT", "KNOWN"].includes(job.grade) || !Number.isInteger(job.expectedVersion) || job.expectedVersion < 0 || (job.earlyReview !== undefined && typeof job.earlyReview !== "boolean"))) throw new Error("Invalid review operation.");
     if (job.kind === "UNDO" && !validId(job.reviewId)) throw new Error("Invalid undo operation.");
     if (job.kind === "EDIT") {
       if (!["WORD", "PHRASE"].includes(job.itemType)) throw new Error("Invalid edited card type.");

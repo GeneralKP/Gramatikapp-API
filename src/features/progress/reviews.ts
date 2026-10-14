@@ -11,7 +11,7 @@ export interface SchedulerProfile {
   baselines?: { day: number; deck: string; new: number; review: number }[];
   createdAt: Date;
 }
-const schedulingFields = ["scheduler", "ease", "interval", "repetitions", "nextDueDate", "lastReviewed", "totalReviews", "lapses", "isNew", "lastReviewId", "suspended", "leech", "temporaryDueDate"] as const;
+const schedulingFields = ["scheduler", "ease", "interval", "repetitions", "nextDueDate", "lastReviewed", "totalReviews", "lapses", "isNew", "lastReviewId", "suspended", "leech", "temporaryDueDate", "buriedUntil"] as const;
 type Snapshot = Partial<Pick<UserProgress, typeof schedulingFields[number]>>;
 export interface ReviewEvent {
   _id: ObjectId; userId: ObjectId; itemId: ObjectId; itemType: string; reviewId: string;
@@ -20,6 +20,7 @@ export interface ReviewEvent {
   before: Snapshot; after: Snapshot; version: number;
   deck: string; day: number; newCount: number; reviewCount: number;
   siblings: { id: ObjectId; previous: Date | null; applied: Date }[];
+  knownSiblings?: { id: ObjectId; before: Snapshot; version: number }[];
   studySessionId?: string;
   syncedAt?: Date;
 }
@@ -40,7 +41,7 @@ export const deckAncestors = (deck: string) => deck.split("::").map((_, i, parts
 
 export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: string, grade: StudyGrade, reviewId: string, expectedVersion?: number, earlyReview = false, failureAttemptId?: string, timing?: { reviewedAt: Date; studySessionId: string }) {
   commandId(reviewId);
-  if (!([...GRADES, "REVISIT"] as string[]).includes(grade) || !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid review");
+  if (!([...GRADES, "REVISIT", "KNOWN"] as string[]).includes(grade) || !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid review");
   const db = getDb(), session = getDatabaseClient().startSession();
   try {
     return await session.withTransaction(async () => {
@@ -59,7 +60,7 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
       const profile = !initialized || initialized.scheduler.phase === "NEW"
         ? await db.schedulerProfiles.findOne({ _id: userId }, { session }) : null;
       const current = initialized ?? await withScheduler(stored, profile);
-      if (current.itemType === "WORD" && current.card?.direction === "ES_DE" && isNewCard(current)) {
+      if (grade !== "KNOWN" && current.itemType === "WORD" && current.card?.direction === "ES_DE" && isNewCard(current)) {
         const recognition = await db.progress.findOne({ userId, itemType: "WORD", "card.sourceNoteGuid": current.card.sourceNoteGuid,
           "card.direction": "DE_ES", supersededByAnki: { $ne: true } }, { session });
         if (recognition && isNewCard(await withScheduler(recognition, profile))) {
@@ -67,7 +68,7 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
         }
       }
       const now = timing?.reviewedAt ?? new Date();
-      if (current.scheduler.phase === "NEW") {
+      if (current.scheduler.phase === "NEW" && grade !== "KNOWN") {
         // A write to the shared account serializes competing devices' quota
         // checks inside MongoDB's retryable transaction (avoids write skew).
         const account = await db.users.findOne({ _id: userId }, { session });
@@ -91,7 +92,24 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
         ...(becameLeech ? { leech: true, ...(current.scheduler.options.leechSuspend ? { suspended: true } : {}) } : {}) };
       const isExtraReview = !!current.temporaryDueDate && current.nextDueDate > now || grade === "REVISIT" && current.nextDueDate > now;
       const siblings: ReviewEvent["siblings"] = [];
-      if (!isExtraReview && grade !== "REVISIT" && current.card?.sourceNoteGuid && (current.scheduler.options.buryNew || current.scheduler.options.buryReviews || current.scheduler.options.buryInterday)) {
+      const knownSiblings: NonNullable<ReviewEvent["knownSiblings"]> = [];
+      if (grade === "KNOWN" && current.card?.sourceNoteGuid) {
+        const candidates = await db.progress.find({ userId, itemType: "WORD", "card.sourceNoteGuid": current.card.sourceNoteGuid,
+          "card.direction": { $in: ["DE_ES", "ES_DE"] }, itemId: { $ne: itemId }, suspended: { $ne: true }, supersededByAnki: { $ne: true } }, { session }).toArray();
+        const siblingProfile = candidates.some(sibling => !sibling.scheduler) && !profile
+          ? await db.schedulerProfiles.findOne({ _id: userId }, { session }) : profile;
+        for (const sibling of candidates) {
+          const before = await withScheduler(sibling, siblingProfile);
+          const { delaySeconds: ignored, ...known } = scheduleStudyReview(before, "KNOWN", now);
+          const version = (sibling.scheduleVersion ?? 0) + 1;
+          const after = { ...before, ...known, lastReviewId: reviewId };
+          knownSiblings.push({ id: sibling._id, before: snapshot(before), version });
+          const unset = Object.fromEntries(schedulingFields.filter(key => after[key] === undefined).map(key => [key, "" as const]));
+          await db.progress.updateOne({ _id: sibling._id }, { $set: { ...snapshot(after), scheduleVersion: version, updatedAt: now },
+            ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session });
+        }
+      }
+      if (!isExtraReview && grade !== "REVISIT" && grade !== "KNOWN" && current.card?.sourceNoteGuid && (current.scheduler.options.buryNew || current.scheduler.options.buryReviews || current.scheduler.options.buryInterday)) {
         const candidates = await db.progress.find({ userId, "card.sourceNoteGuid": current.card.sourceNoteGuid, itemId: { $ne: itemId }, suspended: { $ne: true } }, { session }).toArray();
         const until = dateForStudyDay(studyDay(now, current.scheduler.timeZone, current.scheduler.rollover) + 1, current.scheduler.timeZone, current.scheduler.rollover);
         for (const sibling of candidates) {
@@ -108,8 +126,9 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
       const event: ReviewEvent = { _id: new ObjectId(), userId, itemId, itemType, reviewId, grade, earlyReview, reviewedAt: now, reversedAt: null,
         before: snapshot(current), after: snapshot(after), version: after.scheduleVersion,
         deck: deckName(current), day: studyDay(now, current.scheduler.timeZone, current.scheduler.rollover),
-        newCount: !isExtraReview && current.scheduler.phase === "NEW" ? 1 : 0,
+        newCount: grade !== "KNOWN" && !isExtraReview && current.scheduler.phase === "NEW" ? 1 : 0,
         reviewCount: !isExtraReview && (current.scheduler.phase === "REVIEW" || current.scheduler.queue === "DAY" && current.scheduler.phase !== "NEW") ? 1 : 0, siblings,
+        ...(knownSiblings.length ? { knownSiblings } : {}),
         ...(timing ? { studySessionId: timing.studySessionId, syncedAt: new Date() } : {}) };
       await db.reviewEvents.insertOne(event, { session });
       const unset = Object.fromEntries(schedulingFields.filter(key => after[key] === undefined).map(key => [key, "" as const]));
@@ -141,11 +160,21 @@ export async function undoReview(userId: ObjectId, reviewId: string) {
       if (!progress) throw new Error("Study card not found");
       if (event.reversedAt) return { reviewId, progress: { ...progress, extraPractice: !!event.earlyReview } };
       if (progress.lastReviewId !== reviewId) throw new Error("A newer review exists for this card. Undo that review first.");
+      for (const sibling of event.knownSiblings ?? []) {
+        const current = await db.progress.findOne({ _id: sibling.id, userId }, { session });
+        if (!current || current.lastReviewId !== reviewId || current.scheduleVersion !== sibling.version)
+          throw new ReviewConflict("A direction of this word changed after Known. Its latest server schedule has been kept.", progress, "STALE_CARD");
+      }
       const unset = Object.fromEntries(schedulingFields.filter(key => !(key in event.before)).map(key => [key, "" as const]));
       // Failure fields are deliberately absent from both snapshots and updates.
       await db.progress.updateOne({ _id: progress._id }, { $set: { ...event.before, updatedAt: new Date() }, $inc: { scheduleVersion: 1 }, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session });
       for (const sibling of event.siblings) {
         await db.progress.updateOne({ _id: sibling.id, buriedUntil: sibling.applied }, { $set: { buriedUntil: sibling.previous } }, { session });
+      }
+      for (const sibling of event.knownSiblings ?? []) {
+        const unsetSibling = Object.fromEntries(schedulingFields.filter(key => !(key in sibling.before)).map(key => [key, "" as const]));
+        await db.progress.updateOne({ _id: sibling.id }, { $set: { ...sibling.before, updatedAt: new Date() }, $inc: { scheduleVersion: 1 },
+          ...(Object.keys(unsetSibling).length ? { $unset: unsetSibling } : {}) }, { session });
       }
       await db.reviewEvents.updateOne({ _id: event._id }, { $set: { reversedAt: new Date() } }, { session });
       return { reviewId, progress: { ...await db.progress.findOne({ _id: progress._id }, { session }), extraPractice: !!event.earlyReview } };

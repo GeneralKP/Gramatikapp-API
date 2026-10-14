@@ -8,7 +8,7 @@ import type { UserProgress } from '../src/features/progress/progress.types.js';
 const path = new URL('../../german-gramatic-web/scripts/fixtures/study-previews.json', import.meta.url);
 const fixtures = JSON.parse(await readFile(path, 'utf8'));
 for (const fixture of fixtures) {
-  const original = JSON.stringify({ options: fixture.options, outcomes: fixture.outcomes });
+  const original = JSON.stringify({ options: fixture.options.filter((o: { grade: string }) => o.grade !== 'KNOWN'), outcomes: Object.fromEntries(Object.entries(fixture.outcomes).filter(([grade]) => grade !== 'KNOWN')) });
   const raw = JSON.parse(fixture.item.info.studyState);
   const progress = { ...raw, itemId: new ObjectId(raw.itemId) } as UserProgress;
   for (const field of ['nextDueDate', 'temporaryDueDate', 'lastReviewed', 'createdAt'] as const) if (raw[field]) progress[field] = new Date(raw[field]);
@@ -26,7 +26,7 @@ for (const fixture of fixtures) {
   }));
   const correctedReminder = !!progress.temporaryDueDate && progress.nextDueDate > now;
   if (progress.itemType === 'WORD' && !correctedReminder)
-    assert.equal(JSON.stringify({ options: fixture.options, outcomes: fixture.outcomes }), original, 'Ordinary word golden outcomes must stay unchanged');
+    assert.equal(JSON.stringify({ options: fixture.options.filter((o: { grade: string }) => o.grade !== 'KNOWN'), outcomes: Object.fromEntries(Object.entries(fixture.outcomes).filter(([grade]) => grade !== 'KNOWN')) }), original, 'Ordinary word golden outcomes must stay unchanged');
   if (correctedReminder)
     assert.deepEqual(fixture.options.slice(0, 4).map((option: { grade: string }) => option.grade), ['AGAIN', 'HARD', 'GOOD', 'EASY']);
 }

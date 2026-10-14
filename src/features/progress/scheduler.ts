@@ -30,6 +30,8 @@ export interface CardState {
 export interface SchedulerState extends CardState {
   version: 1; queue: "NEW" | "MINUTE" | "DAY"; options: DeckOptions;
   timeZone: string; rollover: number;
+  /** Mature interval retained when a known word is forgotten for a day. */
+  knownInterval?: number;
 }
 const DAY = 86400, f = Math.fround;
 const clamp = (x: number, min: number, max: number) => Math.max(min, Math.min(max, x));

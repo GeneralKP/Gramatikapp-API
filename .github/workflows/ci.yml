@@ -56,6 +56,9 @@ jobs:
           for i in $(seq 1 30); do
             docker exec temporary-review-mongo mongosh --port 27019 --quiet --eval 'if (!db.hello().isWritablePrimary) quit(1)' && break || sleep 1
           done
+      - run: npm run test:known
+        env:
+          KNOWN_FIXTURE_PORT: '27019'
       - run: npm run test:temporary-review-ratings
         env:
           MONGODB_URI: mongodb://127.0.0.1:27019/temporary_review_fixture
