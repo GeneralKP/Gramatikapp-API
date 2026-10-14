@@ -184,6 +184,12 @@
               "delaySeconds": 86400,
               "nextDueDate": "2026-10-07T10:00:00.000Z",
               "phase": "REVIEW"
+            },
+            {
+              "grade": "KNOWN",
+              "delaySeconds": 15552000,
+              "nextDueDate": "2027-04-04T02:00:00.000Z",
+              "phase": "REVIEW"
             }
           ]
         },
@@ -297,6 +303,12 @@
               "grade": "REVISIT",
               "delaySeconds": 86400,
               "nextDueDate": "2026-10-07T10:00:00.000Z",
+              "phase": "REVIEW"
+            },
+            {
+              "grade": "KNOWN",
+              "delaySeconds": 15552000,
+              "nextDueDate": "2027-04-04T02:00:00.000Z",
               "phase": "REVIEW"
             }
           ]
