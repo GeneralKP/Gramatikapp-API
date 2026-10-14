@@ -11,8 +11,8 @@ export interface SchedulerProfile {
   baselines?: { day: number; deck: string; new: number; review: number }[];
   createdAt: Date;
 }
-const schedulingFields = ["scheduler", "ease", "interval", "repetitions", "nextDueDate", "lastReviewed", "totalReviews", "lapses", "isNew", "lastReviewId", "suspended", "leech", "temporaryDueDate", "buriedUntil"] as const;
-type Snapshot = Partial<Pick<UserProgress, typeof schedulingFields[number]>>;
+const schedulingFields = ["scheduler", "ease", "interval", "repetitions", "nextDueDate", "lastReviewed", "totalReviews", "lapses", "isNew", "lastReviewId", "suspended", "leech", "temporaryDueDate"] as const;
+type Snapshot = Partial<Pick<UserProgress, typeof schedulingFields[number]>> & { buriedUntil?: Date | null };
 export interface ReviewEvent {
   _id: ObjectId; userId: ObjectId; itemId: ObjectId; itemType: string; reviewId: string;
   grade: StudyGrade; reviewedAt: Date; reversedAt: Date | null;
@@ -32,7 +32,7 @@ export async function withScheduler(progress: UserProgress, profile?: SchedulerP
   if (profile === undefined) profile = await getDb().schedulerProfiles.findOne({ _id: progress.userId });
   return { ...progress, scheduler: initialScheduler(progress, profile?.defaultOptions ?? DEFAULT_OPTIONS, profile?.timeZone ?? "Europe/Berlin", profile?.rollover ?? 4) };
 }
-const snapshot = (progress: UserProgress): Snapshot => Object.fromEntries(schedulingFields.filter(key => progress[key] !== undefined).map(key => [key, progress[key]]));
+const snapshot = (progress: UserProgress, known = false): Snapshot => ({ ...Object.fromEntries(schedulingFields.filter(key => progress[key] !== undefined).map(key => [key, progress[key]])), ...(known ? { buriedUntil: progress.buriedUntil ?? null } : {}) });
 const commandId = (value: string) => {
   if (!/^[a-zA-Z0-9_-]{16,100}$/.test(value)) throw new Error("Invalid review ID");
 };
@@ -103,9 +103,9 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
           const { delaySeconds: ignored, ...known } = scheduleStudyReview(before, "KNOWN", now);
           const version = (sibling.scheduleVersion ?? 0) + 1;
           const after = { ...before, ...known, lastReviewId: reviewId };
-          knownSiblings.push({ id: sibling._id, before: snapshot(before), version });
+          knownSiblings.push({ id: sibling._id, before: snapshot(before, true), version });
           const unset = Object.fromEntries(schedulingFields.filter(key => after[key] === undefined).map(key => [key, "" as const]));
-          await db.progress.updateOne({ _id: sibling._id }, { $set: { ...snapshot(after), scheduleVersion: version, updatedAt: now },
+          await db.progress.updateOne({ _id: sibling._id }, { $set: { ...snapshot(after, true), scheduleVersion: version, updatedAt: now },
             ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session });
         }
       }
@@ -124,7 +124,7 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
         }
       }
       const event: ReviewEvent = { _id: new ObjectId(), userId, itemId, itemType, reviewId, grade, earlyReview, reviewedAt: now, reversedAt: null,
-        before: snapshot(current), after: snapshot(after), version: after.scheduleVersion,
+        before: snapshot(current, grade === "KNOWN"), after: snapshot(after, grade === "KNOWN"), version: after.scheduleVersion,
         deck: deckName(current), day: studyDay(now, current.scheduler.timeZone, current.scheduler.rollover),
         newCount: grade !== "KNOWN" && !isExtraReview && current.scheduler.phase === "NEW" ? 1 : 0,
         reviewCount: !isExtraReview && (current.scheduler.phase === "REVIEW" || current.scheduler.queue === "DAY" && current.scheduler.phase !== "NEW") ? 1 : 0, siblings,
@@ -132,7 +132,7 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
         ...(timing ? { studySessionId: timing.studySessionId, syncedAt: new Date() } : {}) };
       await db.reviewEvents.insertOne(event, { session });
       const unset = Object.fromEntries(schedulingFields.filter(key => after[key] === undefined).map(key => [key, "" as const]));
-      await db.progress.updateOne({ _id: stored._id }, { $set: { ...snapshot(after), scheduleVersion: after.scheduleVersion, updatedAt: now }, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session });
+      await db.progress.updateOne({ _id: stored._id }, { $set: { ...snapshot(after, grade === "KNOWN"), scheduleVersion: after.scheduleVersion, updatedAt: now }, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { session });
       if (grade === "REVISIT") {
         // Revisit is a separate mistake from Check. The review command itself
         // deduplicates retries, including responses lost after the commit.
@@ -142,7 +142,7 @@ export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: s
       }
       // This transaction has the stored row and its exact scheduling write.
       // Revisit's independent mistake update still needs its authoritative read.
-      const saved: UserProgress = { ...stored, ...snapshot(after), scheduleVersion: after.scheduleVersion, updatedAt: now };
+      const saved: UserProgress = { ...stored, ...snapshot(after, grade === "KNOWN"), scheduleVersion: after.scheduleVersion, updatedAt: now };
       for (const key of schedulingFields) if (after[key] === undefined) delete saved[key];
       return { reviewId, progress: { ...(grade === "REVISIT" ? await db.progress.findOne({ _id: stored._id }, { session }) : saved), extraPractice: earlyReview } };
     });
