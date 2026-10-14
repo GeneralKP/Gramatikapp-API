@@ -83,6 +83,10 @@ export const connectDatabase = async (): Promise<Database> => {
   };
 
   // Create indexes
+  await db.relationsWordsEsDe.createIndex({ main: 1 }, { name: "catalog_anti_join_main" });
+  await db.relationsWordsEsDe.createIndex({ translated: 1 }, { name: "catalog_anti_join_translated" });
+  await db.phrasesES.createIndex({ words: 1 }, { name: "catalog_anti_join_words" });
+  await db.phrasesDE.createIndex({ words: 1 }, { name: "catalog_anti_join_words" });
   await db.users.createIndex({ email: 1 }, { unique: true });
 
   try {

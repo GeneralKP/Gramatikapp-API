@@ -13,7 +13,8 @@ const errorMessage = (error: unknown) => error instanceof Error ? error.message 
 
 /** Groups actual review activity; Undo does not undo having practiced a word. */
 export async function lastCompletedSession(userId: ObjectId, now = new Date()): Promise<StudySession | null> {
-  const cursor = getDb().reviewEvents.find({ userId }).sort({ reviewedAt: -1, _id: -1 });
+  const cursor = getDb().reviewEvents.find({ userId }, { projection: { _id: 1, reviewedAt: 1, itemId: 1, itemType: 1 } })
+    .sort({ reviewedAt: -1, _id: -1 }).batchSize(100);
   let current: StudySession | null = null;
   const eligible = () => current && current.itemIds.length && now.getTime() - current.endedAt.getTime() >= SESSION_BREAK_MS;
   try {
@@ -64,13 +65,20 @@ async function expireInterruptedWork(userId: ObjectId) {
 }
 
 export async function lessonForClient(lesson: ReadingLesson) {
-  const attempts = await getDb().translationAttempts.find({ userId: lesson.userId, lessonId: lesson._id }).sort({ createdAt: -1, _id: -1 }).toArray();
+  const attempts = await getDb().translationAttempts.aggregate<{ pageIndex: number; attempt: TranslationAttempt; hasReady: number }>([
+    { $match: { userId: lesson.userId, lessonId: lesson._id, pageIndex: { $in: lesson.pages.map(page => page.index) } } },
+    { $sort: { createdAt: -1, _id: -1 } },
+    { $group: { _id: "$pageIndex", attempt: { $first: { _id: "$_id", requestId: "$requestId", pageIndex: "$pageIndex",
+      translation: "$translation", status: "$status", error: "$error", feedback: "$feedback" } },
+      hasReady: { $max: { $cond: [{ $eq: ["$status", "READY"] }, 1, 0] } } } },
+    { $project: { _id: 0, pageIndex: "$_id", attempt: 1, hasReady: 1 } },
+  ]).toArray();
   return { id: lesson._id.toString(), sessionId: lesson.sessionId, sessionStartedAt: lesson.sessionStartedAt.toISOString(), sessionEndedAt: lesson.sessionEndedAt.toISOString(),
     status: lesson.status, error: lesson.error ?? null, words: lesson.words, pageCount: lesson.pageCount, model: lesson.model,
     pages: lesson.pages.map(page => {
-      const attempt = attempts.find(a => a.pageIndex === page.index);
-      return { ...page, spanish: attempts.some(a => a.pageIndex === page.index && a.status === "READY") ? page.spanish : null,
-        lastAttempt: attempt ? attemptForClient(attempt) : null };
+      const attemptsForPage = attempts.find(a => a.pageIndex === page.index);
+      return { ...page, spanish: attemptsForPage?.hasReady ? page.spanish : null,
+        lastAttempt: attemptsForPage ? attemptForClient(attemptsForPage.attempt) : null };
     }) };
 }
 export const attemptForClient = (attempt: TranslationAttempt) => ({ id: attempt._id.toString(), requestId: attempt.requestId, pageIndex: attempt.pageIndex,

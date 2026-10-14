@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import type { UserProgress } from "./progress.types.js";
 import { STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
+import { readPackedStudyCandidates } from './studyCandidatePacking.js';
 
 /** Rich directional cards are self-contained; legacy cards need their catalog relation. */
 export function studyReferenceIds(catalog: { words: { _id: ObjectId }[]; phrases: { _id: ObjectId }[] }): ReadonlySet<string> {
@@ -48,5 +49,5 @@ export function combinedStudyCandidateFilter(userId: ObjectId, itemType: UserPro
 
 /** One fresh owner-scoped read; each consumer still applies its original view. */
 export async function combinedStudyCandidates(userId: ObjectId, itemType: UserProgress["itemType"] | undefined, now: Date, projection: Record<string, number>) {
-  return getDb().progress.find(combinedStudyCandidateFilter(userId, itemType, now)).project<UserProgress>(projection).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
+  return readPackedStudyCandidates(getDb().progress, combinedStudyCandidateFilter(userId, itemType, now), projection, STUDY_SUMMARY_BATCH_SIZE);
 }

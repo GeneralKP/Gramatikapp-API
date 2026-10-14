@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { MongoClient, ObjectId } from 'mongodb';
+import { fixtureCatalogAggregate } from './fixtures/catalogAggregate.js';
 import { isCountStudyCandidate, isDueStudyCandidate } from '../src/features/progress/studyCandidates.js';
 import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -116,12 +117,33 @@ function collection(name:string):any {
    if(!row && options.upsert){row={...query,...update.$setOnInsert};fixture[name].push(row);}
    if(row && update.$set)Object.assign(row,update.$set);
   },
-  aggregate(pipeline:any[]){count('aggregate');return {batchSize(_size:number){return this;},async toArray(){
+  aggregate(pipeline:any[]){
+   if(name==='userprogresses' && pipeline.some(stage=>stage.$facet?.states && stage.$facet?.options)){
+    // This no-network suite supplies original projected rows at the packed
+    // read boundary. The real Mongo8 suite owns option grouping/limit proofs.
+    count('aggregate');
+    const traced={query:pipeline[0].$match,projection:pipeline[1].$project,batchSize:undefined as number|undefined,limit:undefined as number|undefined};
+    progressQueries.push(traced);
+    const states=(fixture[name]??[]).filter((row:any)=>matches(row,traced.query)).map((row:any)=>project(row,traced.projection));
+    return {batchSize(size:number){traced.batchSize=size;return this;},async toArray(){await holdRead?.(name,'packedRead',traced.query);return [{states,options:[]}];}};
+   }
+   if(['WORDS_ES_DE','PHRASES_ES_DE','WORDS_ES','WORDS_DE','PHRASES_ES','PHRASES_DE','TRANSLATIONS_ES_DE'].includes(name)){
+    const summary=pipeline.some(stage=>stage.$group);count(summary?'catalogSignature':'catalogSnapshot');
+    const traced={query:pipeline[0].$match,projection:pipeline[1].$project,batchSize:undefined as number|undefined,limit:undefined as number|undefined};
+    if(!summary){if(['WORDS_ES','WORDS_DE'].includes(name))counterCatalogQueries.push({name,trace:traced});if(['WORDS_DE','PHRASES_DE'].includes(name))displayCatalogQueries.push({name,trace:traced});}
+    return {batchSize(size:number){traced.batchSize=size;return this;},async toArray(){await holdRead?.(name,'aggregate',traced.query);return fixtureCatalogAggregate((fixture[name]??[]).filter((row:any)=>matches(row,traced.query)).map((row:any)=>project(row,traced.projection)),pipeline);}};
+   }
+   count('aggregate');return {batchSize(_size:number){return this;},async toArray(){
    if(name==='reviewevents')return [];
    assert.equal(name,'userprogresses');
    await holdRead?.(name,'aggregate',pipeline[0].$match);
    const rows=(fixture[name]??[]).filter((row:any)=>matches(row,pipeline[0].$match) && (!pipeline[1].$match || matches(row,pipeline[1].$match)));
-   if (pipeline[1].$group?._id?.itemType) return [...new Map(rows.map((row:any)=>[`${row.itemType}:${row.relationId??row.itemId}`,{itemType:row.itemType,itemId:row.relationId??row.itemId}])).values()];
+   if (pipeline[1].$group?._id?.itemType) {
+    const identities=[...new Map(rows.map((row:any)=>[`${row.itemType}:${row.relationId??row.itemId}`,{itemType:row.itemType,itemId:row.relationId??row.itemId}])).values()] as any[];
+    const packed=new Map<string,any>();
+    for(const row of identities){let group=packed.get(row.itemType);if(!group)packed.set(row.itemType,group={_id:row.itemType,itemIds:[]});group.itemIds.push(row.itemId);}
+    return [...packed.values()];
+   }
    if(pipeline[1].$facet){
     const known=new Map<string,any>(),legacy:any[]=[];
     for(const row of rows){
@@ -129,7 +151,21 @@ function collection(name:string):any {
      const key=`${row.itemType}:${row.relationId??row.itemId}`,prior=known.get(key);
      known.set(key,{itemId:row.relationId??row.itemId,itemType:row.itemType,graduated:!!prior?.graduated||isGraduatedStudyCard(row)});
     }
-    return [{known:[...known.values()],legacy}];
+    const packed=new Map<string,any>();
+    for(const row of known.values()){const key=`${row.itemType}:${row.graduated}`;let group=packed.get(key);if(!group)packed.set(key,group={_id:{itemType:row.itemType,graduated:row.graduated},itemIds:[]});group.itemIds.push(row.itemId);}
+    return [{known:[...packed.values()],legacy}];
+   }
+   if(pipeline[1].$group?._id?.t){
+    const identities=new Map<string,any>();
+    for(const row of rows){
+     const flags={t:row.itemType,c:row.card!=null&&(!Array.isArray(row.card)||!row.card.includes(null)),r:row.relationId===undefined?'missing':row.relationId===null?'null':'value'};
+     const itemId=row.relationId??row.itemId,key=`${JSON.stringify(flags)}:${itemId}`;
+     let group=identities.get(key);if(!group)identities.set(key,group={...flags,itemId,v:0,a:0});
+     if((row.temporaryDueDate??row.nextDueDate)<=now){if(row.scheduler.phase==='REVIEW')group.v++;if(['LEARNING','RELEARNING'].includes(row.scheduler.phase))group.a++;}
+    }
+    const packed=new Map<string,any>();
+    for(const {itemId,...flags} of identities.values()){if(!flags.v&&!flags.a)continue;const key=JSON.stringify(flags);let group=packed.get(key);if(!group)packed.set(key,group={_id:flags,ids:[]});group.ids.push(itemId);}
+    return [...packed.values()];
    }
    return [{review:rows.filter((row:any)=>row.scheduler.phase==='REVIEW'&&(row.temporaryDueDate??row.nextDueDate)<=now).length,
     learning:rows.filter((row:any)=>['LEARNING','RELEARNING'].includes(row.scheduler.phase)&&(row.temporaryDueDate??row.nextDueDate)<=now).length}];
@@ -213,19 +249,19 @@ try {
   if (result.errors) assert.ok(result.errors.every(error=>error.message==='Cannot return null for non-nullable field WordRelation.translated.'),result.errors.map(error=>error.message).join(';'));
   responses[name]=JSON.parse(JSON.stringify({data:result.data,...(result.errors?{errors:result.errors.map(error=>({message:error.message,path:error.path,locations:error.locations}))}:{})}));
   if(name==='due'){
-   assert.equal(reads['WORDS_ES_DE.find'],2,'one cold validity summary plus one bulk content read, never per-card lookups');
-   assert.equal(reads['WORDS_ES.find'],2);assert.equal(reads['WORDS_DE.find'],2);
-   assert.equal(reads['PHRASES_ES_DE.find'],2);
+   assert.equal(reads['WORDS_ES_DE.catalogSnapshot'],1,'one cold validity snapshot');assert.equal(reads['WORDS_ES_DE.find'],1,'one bulk content read, never per-card lookups');
+   assert.equal(reads['WORDS_ES.catalogSnapshot'],1);assert.equal(reads['WORDS_ES.find'],1);assert.equal(reads['WORDS_DE.catalogSnapshot'],1);assert.equal(reads['WORDS_DE.find'],1);
+   assert.equal(reads['PHRASES_ES_DE.catalogSnapshot'],1);assert.equal(reads['PHRASES_ES_DE.find'],1);
    assert.equal(reads['WORDS_ES_DE.findOne']??0,0,'no per-card relation lookup');
    assert.equal(reads['WORDS_ES.findOne']??0,0,'no per-card word lookup, including missing endpoints');
   }
   if(name==='dashboard'){assert.equal(reads['userprogresses.find'],1,'only legacy/new scheduling needs a per-card transfer');assert.equal(reads['userprogresses.aggregate'],2,'counts and learning path use fresh database summaries');}
   if(name==='phrases-counts'){
-   assert.equal(reads['PHRASES_ES_DE.find'],1);
+   assert.equal(reads['PHRASES_ES_DE.catalogSnapshot'],1);assert.equal(reads['PHRASES_ES_DE.find']??0,0);
    for(const key of ['WORDS_ES_DE.find','WORDS_ES.find'])assert.equal(reads[key]??0,0,'counts load only the selected relations and no unused catalog metadata');
   }
   if(name==='phrases-due'){
-   assert.equal(reads['PHRASES_ES_DE.find'],2);assert.equal(reads['PHRASES_ES.find'],2);assert.equal(reads['PHRASES_DE.find'],2);
+   assert.equal(reads['PHRASES_ES_DE.catalogSnapshot'],1);assert.equal(reads['PHRASES_ES_DE.find'],1);assert.equal(reads['PHRASES_ES.catalogSnapshot'],1);assert.equal(reads['PHRASES_ES.find'],1);assert.equal(reads['PHRASES_DE.catalogSnapshot'],1);assert.equal(reads['PHRASES_DE.find'],1);
    assert.equal(reads['WORDS_ES_DE.find']??0,0);assert.equal(reads['schedulerprofiles.findOne'],1);
   }
  };
@@ -236,7 +272,7 @@ try {
  const warmDashboard=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(warmDashboard.errors,undefined);
  assert.deepEqual(JSON.parse(JSON.stringify(warmDashboard.data)),responses.dashboard.data);
- for(const name of ['WORDS_ES_DE','PHRASES_ES_DE','WORDS_ES','PHRASES_ES'])assert.equal(reads[`${name}.find`]??0,0,'warm dashboards reuse immutable catalog summaries');
+ for(const name of ['WORDS_ES_DE','PHRASES_ES_DE','WORDS_ES','PHRASES_ES']){assert.equal(reads[`${name}.find`]??0,0,'warm dashboards reuse immutable catalog summaries');assert.equal(reads[`${name}.catalogSnapshot`]??0,0);assert.equal(reads[`${name}.catalogSignature`]??0,0);}
  assert.equal(reads['userprogresses.find'],1,'legacy/new progress is fresh on every dashboard request');assert.equal(reads['userprogresses.aggregate'],2,'known statuses remain fresh without transferring schedules');
  assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['reviewevents.aggregate'],1);
  const savedProgress=fixture.userprogresses;
@@ -265,7 +301,7 @@ try {
  const afterCatalogWrite=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(afterCatalogWrite.errors,undefined);
  assert.equal((afterCatalogWrite.data?.studyQueueCounts as any).total,relationCount,'own catalog mutations become visible immediately');
- assert.equal(reads['WORDS_ES_DE.find'],1,'catalog mutation invalidates the cached summary');
+ assert.equal(reads['WORDS_ES_DE.catalogSnapshot'],1,'catalog mutation invalidates the cached summary');
  const relationCollection=getDb().relationsWordsEsDe, insert=relationCollection.insertOne;
  relationCollection.insertOne=async function(doc:any){await insert.call(this,doc);throw new Error('fixture acknowledgement lost');};
  try {
@@ -274,7 +310,7 @@ try {
   const afterUncertainWrite=await graphql({schema,source:dashboard,variableValues:{userId:String(owner)},contextValue:{user}});
   assert.equal(afterUncertainWrite.errors,undefined);
   assert.equal((afterUncertainWrite.data?.studyQueueCounts as any).total,relationCount+1,'committed writes invalidate even when acknowledgement is lost');
-  assert.equal(reads['WORDS_ES_DE.find'],1);
+  assert.equal(reads['WORDS_ES_DE.catalogSnapshot'],1);
  } finally {relationCollection.insertOne=insert;}
  fixture.WORDS_ES_DE.splice(relationCount);invalidateStudyCatalog();
  console.log('PASS warm dashboard full contract, fresh account counters and immediate catalog-write invalidation');
@@ -307,8 +343,8 @@ try {
  assert.deepEqual(JSON.parse(JSON.stringify(aliases.data)),{first:phraseCounts,second:phraseCounts});
  assert.equal(reads['schedulerprofiles.findOne'],1);assert.equal(reads['userprogresses.find'],1,'identical category aliases share their fallback snapshot');
  assert.equal(reads['reviewevents.aggregate'],1,'counter aliases share daily allowances within the request');
- assert.equal(reads['PHRASES_ES_DE.find'],2,'one category lookup and one catalog read shared by both aliases');
- assert.equal(reads['PHRASES_ES.find'],2);assert.equal(reads['PHRASES_DE.find'],2);
+ assert.equal(reads['PHRASES_ES_DE.find'],1,'one category lookup shared by both aliases');assert.equal(reads['PHRASES_ES_DE.catalogSnapshot'],1,'one catalog snapshot shared by both aliases');
+ assert.equal(reads['PHRASES_ES.catalogSnapshot'],1);assert.equal(reads['PHRASES_ES.find'],1);assert.equal(reads['PHRASES_DE.catalogSnapshot'],1);assert.equal(reads['PHRASES_DE.find'],1);
  assert.equal(reads['WORDS_ES_DE.find']??0,0,'phrase category counts do not fetch words');
  reads={};
  const zero=await graphql({schema,source:'query($userId:ID!){dueItems(userId:$userId,dueLimit:0,newLimit:0,context:"invalid?"){itemId}}',variableValues:{userId:String(owner)},contextValue:{user}});
@@ -431,7 +467,7 @@ try {
  const expected=[40,41].map(n=>({itemId:String(id(n)),itemType:'PHRASE',schedulerPhase:'NEW',ease:2.5,interval:0,repetitions:0,failureIndex:0,nextDueDate:now.toISOString(),lastReviewed:null,phraseRelation:{id:String(id(n)),main:{id:String(id(30)),phrase:'Hoy aprendo alemán.',synonyms:['alternative'],contexts:['university'],level:'A1'},translated:{id:String(id(31)),phrase:'Ich lerne heute Deutsch.',synonyms:['alternative'],contexts:['university'],level:'A1'}}}));
  assert.deepEqual(JSON.parse(JSON.stringify(fresh.data)),{dueItems:expected});
  assert.equal(batches.length,1,'one batch for the new-card allocation');assert.equal(batches[0].length,2);
- assert.equal(reads['PHRASES_ES_DE.find'],3,'category selection, one cold validity summary and bulk hydration; allocation uses cached IDs');
+ assert.equal(reads['PHRASES_ES_DE.find'],2,'category selection and bulk hydration; allocation uses cached IDs');assert.equal(reads['PHRASES_ES_DE.catalogSnapshot'],1,'one cold validity snapshot');
  assert.equal(reads['WORDS_ES_DE.find']??0,0);
  reads={};const repeated=await graphql({schema,source:freshQuery,variableValues:{userId:String(owner)},contextValue:{user}});
  assert.equal(repeated.errors,undefined);assert.deepEqual(JSON.parse(JSON.stringify(repeated.data)),{dueItems:expected});
@@ -481,7 +517,7 @@ try {
  fixture.userprogresses=[...pendingPair];progressQueries=[];
  let pendingInserted=false;
  holdRead=async(name,method,query)=>{
-  if(!pendingInserted && name==='userprogresses' && method==='find' && query.$or?.some((clause:any)=>clause.temporaryDueDate)){
+  if(!pendingInserted && name==='userprogresses' && ['find','packedRead'].includes(method) && query.$or?.some((clause:any)=>clause.temporaryDueDate)){
    pendingInserted=true;fixture.userprogresses.push(pendingCard(64,'arrived-pair','DE_ES'),pendingCard(65,'arrived-pair','ES_DE'));
   }
  };
@@ -540,7 +576,7 @@ try {
  for(const changedCard of [{...pendingPair[0].card,sourceCardId:'999999'}, {...pendingPair[0].card,sourceNoteGuid:'changed'}, {...pendingPair[0].card,direction:'ES_DE'},undefined]){
   fixture.userprogresses=[...pendingPair];progressQueries=[];let metadataChanged=false;
   holdRead=async(name,method,query)=>{
-   if(!metadataChanged && name==='userprogresses' && method==='find' && query.$or?.some((clause:any)=>clause.temporaryDueDate)){
+   if(!metadataChanged && name==='userprogresses' && ['find','packedRead'].includes(method) && query.$or?.some((clause:any)=>clause.temporaryDueDate)){
     metadataChanged=true;fixture.userprogresses[0]={...pendingPair[0],card:changedCard};
    }
   };
@@ -657,7 +693,7 @@ try {
  for(const relationId of [null,String(id(40))])assert.equal(isDueStudyCandidate({...candidateBase,relationId} as any,now,categorySet),false,'explicit null and string relation IDs cannot match Mongo ObjectId categories');
  assert.equal(isDueStudyCandidate({...candidateBase,itemId:id(40),relationId:undefined},now,categorySet),true,'only an absent relation uses the typed item ID category fallback');
  fixture.userprogresses=[...pendingPair];progressQueries=[];let combinedPendingInserted=false;
- holdRead=async(name,method,query)=>{if(!combinedPendingInserted && name==='userprogresses' && method==='find' && query.$or?.some((branch:any)=>branch.$or?.some((clause:any)=>clause['scheduler.phase']))){combinedPendingInserted=true;fixture.userprogresses.push(pendingCard(186,'combined-arrival','DE_ES'),pendingCard(187,'combined-arrival','ES_DE'));}};
+ holdRead=async(name,method,query)=>{if(!combinedPendingInserted && name==='userprogresses' && ['find','packedRead'].includes(method) && query.$or?.some((branch:any)=>branch.$or?.some((clause:any)=>clause['scheduler.phase']))){combinedPendingInserted=true;fixture.userprogresses.push(pendingCard(186,'combined-arrival','DE_ES'),pendingCard(187,'combined-arrival','ES_DE'));}};
  try{
   const packet=await loadCompactStudyQueue(user as any,{...pendingArgs,newLimit:4,includeCounts:true});
   assert.deepEqual(packet.items.map(row=>row.id),[61,62,186,187].map(n=>String(id(200+n))),'combined entries still pick up a pending pair arriving after the shared snapshot');
@@ -834,7 +870,7 @@ try {
   // explicit card after selection but before optional content hydration.
   fixture.WORDS_DE=savedWordsDE;fixture.WORDS_ES=savedWordsES;invalidateStudyCatalog();
   fixture.userprogresses=[progress(198,'WORD',20,{card:ankiCard})];let removed=false;
-  holdRead=async(name,method,query)=>{if(!removed && name==='userprogresses' && method==='find' && query.$or){removed=true;fixture.userprogresses=fixture.userprogresses.map((p:any)=>({...p,card:null}));}};
+  holdRead=async(name,method,query)=>{if(!removed && name==='userprogresses' && ['find','packedRead'].includes(method) && query.$or){removed=true;fixture.userprogresses=fixture.userprogresses.map((p:any)=>({...p,card:null}));}};
   try{
    const removedPacket=await loadCompactStudyQueue(user as any,{...compactArgs,itemType:'WORD',cardLimit:1});assert.ok(removed);
    assert.equal(removedPacket.items[0].card,null);assert.equal(removedPacket.items[0].wordNotes,undefined);assert.deepEqual(removedPacket.items[0].examples,[]);assert.deepEqual(removedPacket.items[0].spanishExamples,[]);

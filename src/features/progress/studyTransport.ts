@@ -4,6 +4,7 @@ import type { User } from "../auth/auth.types.js";
 import type { UserProgress, StudyCard } from "./progress.types.js";
 import { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } from "./progress.resolvers.js";
 import { combinedStudyCandidates, isCountStudyCandidate } from "./studyCandidates.js";
+import { readPackedStudyCandidates } from './studyCandidatePacking.js';
 import { withScheduler } from "./reviews.js";
 import { schedulerSeed, type DeckOptions } from "./scheduler.js";
 import { studyMetadata, seedStudyMetadata, studyCatalog, studyCountSnapshot, STUDY_CONTENT_BATCH_SIZE } from "./studyLoading.js";
@@ -250,7 +251,7 @@ export async function loadCompactStudyCards(user: User, input: any): Promise<Com
   if (!Array.isArray(input.itemIds) || input.itemIds.length > 5000 || input.itemIds.some(id => typeof id !== "string" || !ObjectId.isValid(id)) || new Set(input.itemIds).size !== input.itemIds.length) throw new Error("Invalid itemIds");
   const db = getDb(), ids = input.itemIds.map((id: string) => new ObjectId(id));
   const [stored, { profile }] = await Promise.all([
-    ids.length ? db.progress.find({ userId: user._id, itemId: { $in: ids }, supersededByAnki: { $ne: true } }).project<UserProgress>(COMPACT_STUDY_SELECTION).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray() : [] as UserProgress[],
+    ids.length ? readPackedStudyCandidates(db.progress, { userId: user._id, itemId: { $in: ids }, supersededByAnki: { $ne: true } }, COMPACT_STUDY_SELECTION, STUDY_CONTENT_BATCH_SIZE) : [] as UserProgress[],
     studyMetadata({ user }, user._id),
   ]);
   const byId = new Map(stored.map(p => [String(p.itemId), p] as const));
