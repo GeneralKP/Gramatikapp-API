@@ -127,3 +127,70 @@ Across the fixture's three reads, foreign examination falls from **23,616,000 to
 A detached checkout based on deployed0de804b contains only the performance work. The original dirty API/web/native work remains intact. Required deployed-backend CI gates plus the new real-Mongo differential fixtures, full Reading mock-provider/Writing vocabulary workflows and curriculum integration passed across 34 verification steps. The first run passed33/34; its phrase-grammar fixture still counted find rather than the new snapshot aggregate. A fresh integration worker corrected only instrumentation, retained real HTTP/Mongo content and progress assertions, and passed the covering integration and explicit test TypeScript check in both checkouts. The initial failed receipt is retained; it is not rewritten as an initial pass.
 
 Web types/build and selected behavior suites passed. Current-source iOS/Android QA runtimes passed the selected loading, retries, pagination, practice, ratings/Undo, offline/cold recovery and owner-isolation checks. Native historical-shell/physical-device/production-timing limits remain as above. Deployment/readiness/rollback helper tests also passed. Final whole-package review and live delivery verification remain pending. No paid tier/region change or collection-property pruning has been made.
+
+## Delivered API and live results — 14 October 2026
+
+[PR #6](https://github.com/GeneralKP/Gramatikapp-API/pull/6) was merged and [the main verification/deployment workflow](https://github.com/GeneralKP/Gramatikapp-API/actions/runs/38488173598) passed. Public health confirms exact revision **963baf4fa9f0d4d25259a95924897fb8dfbf3c7d**. Four named foreign indexes are present on Atlas. The original API/web/native working changes are preserved separately; this delivery contains the reviewed performance package. The final test cleanup and external-CI memory-code assertion adapters also passed focused reviews. Production code handles both 146 and 4031700; CI now accepts the real memory-error variants while preserving complete fallback state/order checks.
+
+A sequential, read-only VPS process imported the actual new release and guarded collection mutations, aggregation writes and index initialization. Existing-account helper results:
+
+| Helper | Deployed ms | Reply bytes | Result rows |
+| --- | ---: | ---: | ---: |
+| difficult-c2-six | 333 | 7,386 | 6 |
+| recent-c2-four | 1,008 | 37,634 | 4 |
+| tester-fallback-a1 | 2,599 | 91,454 | 2 |
+| reading-session | 296 | 8,809 | 1 |
+| candidates-mixed | 6,977 | 613,615 | 1,014 |
+| candidates-WORD | 5,886 | 514,391 | 767 |
+| candidates-PHRASE | 1,354 | 99,727 | 247 |
+| wordsWithoutTranslation-ES | 828 | 49,390 | 100 |
+| wordsWithoutTranslation-DE | 953 | 61,993 | 100 |
+| wordRelationsWithoutPhrases | 510 | 38,920 | 20 |
+
+The seven deployed signature reads return 2,142 bytes total, matching the isolated preparation proof. Remote benchmark source was removed after completion; credentials were transient stdin only. Numeric receipt: `.local/atlas-after-audit.ndjson`. No users, reviews, progress, exercises or AI calls were created.
+
+### Live web, same existing test account and harness
+
+| Screen | Before main GraphQL ms | After | Before data/content DOM ms | After |
+| --- | ---: | ---: | ---: | ---: |
+| dashboard | 3,396 | 670 | 4,576 | 1,551 |
+| words | 1,618 | 1,642 | 2,476 | 2,486 |
+| phrases | 1,155 | 1,177 | 1,266 | 1,251 |
+
+Both dictionary pages contain 60 visible entries. All nine after requests returned HTTP 200 with zero GraphQL errors, with the same decoded response byte counts. Word study status completed at 2,500 ms and phrase status at 1,529 ms. The dashboard DOM metric is data-loaded layout creation; its existing Framer Motion overview/child animations were still running in the immediate before/after screenshots, so it is not a full-animation or LCP measurement. All three saved after screenshots were inspected; dictionaries show content and loaded statuses. Numeric/screenshots: `/tmp/latency-live-web-20261014/after.*`. The allowlist continued to block write-capable operations; none was requested.
+
+### Actual recurring API traffic
+
+Unprivileged Linux socket telemetry selected only the dedicated gramatik-api service UID and MongoDB TCP sockets, excluding the VPS’s other applications. Each observation pair retained an identical socket set within its own window. These are short traffic samples, including TLS/heartbeats; they are not the Atlas quota ledger.
+
+| Sample | Duration sec | Stable sockets | Received bytes/sec | Sent bytes/sec |
+| --- | ---: | ---: | ---: | ---: |
+| Original API | 48.073 | 18 | 198,440.64 | 262.41 |
+| Delivered API | 38.320 | 13 | 828.06 | 4,040.31 |
+
+Received rate falls **99.583%**, from 198.4 KB/s to 0.83 KB/s. The after sample sends 154,824 bytes across 38.32 seconds, consistent with three compact 51 KB signature cycles plus connection maintenance. Incoming traffic includes the compact replies and heartbeats. This directly verifies that the running API stopped the old recurring bulk transfer.
+
+### Remaining performance limit and proposed next step
+
+The current cluster remains Free/M0 in AWS N. Virginia. Mixed candidates still transfer 613,615 bytes in 6.977 seconds; Word candidates 514,391 bytes in 5.886 seconds. Dictionary query timings are essentially unchanged. Reducing traffic does not immediately erase a previously exceeded rolling seven-day transfer allowance. The network-limit diagnosis remains strongly supported, not an authoritative MongoDB limiter flag.
+
+The measured VPS load was low, so a larger VPS is not the first justified change. Keep the shared master catalog and per-owner state; full copies for every registration would multiply data without resolving the current transfer restriction. Targeted dictionary sort/read-model work can be considered if its server work becomes dominant after the connection is healthy.
+
+Atlas Flex includes unlimited transfer and currently costs **$8–$30 per 30 days**, usage based, with 5 GB storage. [Official Flex pricing](https://www.mongodb.com/docs/atlas/billing/atlas-flex-costs/). Switching from Free to Flex requires downtime and halting writes, followed by application restart. [Official cluster-scaling considerations](https://www.mongodb.com/docs/atlas/scale-cluster/). This infrastructure purchase has not been authorized or performed. A closer supported EU region is a subsequent option for the measured ~97 ms round-trip distance; a tier change must be measured before promising a latency target.
+
+### Actual indexed server work and database isolation
+
+A follow-up read-only process captured the deployed resolver pipelines and explained those exact pipelines on Atlas. It suppresses index initialization, blocks mutations, emits no query IDs/content, and removes its remote source afterward:
+
+| Read | Foreign endpoint | Documents / keys examined | Foreign scans | Index | Server execution ms |
+| --- | --- | ---: | ---: | --- | ---: |
+| wordsWithoutTranslation-ES | WORDS_ES_DE.main | 145 / 145 | 0 | catalog_anti_join_main | 39 |
+| wordsWithoutTranslation-DE | WORDS_ES_DE.translated | 233 / 233 | 0 | catalog_anti_join_translated | 38 |
+| wordRelationsWithoutPhrases | PHRASES_ES.words | 12 / 12 | 0 | catalog_anti_join_words | 8 |
+| wordRelationsWithoutPhrases | PHRASES_DE.words | 1 / 1 | 0 | catalog_anti_join_words | 8 |
+
+The DE translation-gap foreign examination is now **233 documents**, versus the original **2,996,640**; server execution is **38 ms**, versus the earlier **1,254 ms** separate explain. The phrase-gap read uses both multikey indexes and retains the full selected endpoint hydration. These explain timings measure server work, separate from helper wall time and reply transfer. Receipt: `.local/catalog-antijoin-live-explain.ndjson`.
+
+The same metadata-only probe requested complete database-name visibility and counted **eight other non-system databases** on this cluster; it did not emit their names or read their records. The proposed paid step is consequently **a separate Flex cluster for German Gramatik**, with only the existing gramatikapp data moved, a supported region near the VPS, preserved IDs/schema/authentication, and a controlled maintenance/cutover. It would isolate quota and performance while preserving the other databases. This purchase/migration remains pending the owner’s approval. Staying on M0 means quota recovery depends on total traffic across the shared cluster.
+
+Completed verification fixtures and their owned anonymous Docker volumes were removed; the owned Mongo bridge and native QA runtime services/emulator were stopped. Existing app/simulator storage, unrelated containers/services and original unreleased work are preserved. Review evidence is archived locally under `.local/latency-review-archive-20261014`; the finished SDD plan workspace was removed after its reviewed fixes were merged.
