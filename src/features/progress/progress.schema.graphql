@@ -28,7 +28,7 @@ type UserProgress {
   reviewOptions: [ReviewOption!]!
 }
 
-enum ReviewGrade { AGAIN HARD GOOD EASY REVISIT }
+enum ReviewGrade { AGAIN HARD GOOD EASY REVISIT KNOWN }
 type ReviewOption {
   grade: ReviewGrade!
   delaySeconds: Float!

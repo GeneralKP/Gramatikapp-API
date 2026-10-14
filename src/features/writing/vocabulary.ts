@@ -103,7 +103,18 @@ export async function chooseWritingWords(userId: ObjectId, seed: ObjectId, level
     if (practiced.length !== selectedIds.length) throw new Error("A selected word is unavailable or above the chosen level. Refresh the list.");
     return selectedIds.map(id => practiced.find(word => word.id === id)!);
   }
-  const rank = (word: Pick<WritingVocabulary, "id">) => createHash("sha256").update(`${seed}:${word.id}`).digest("hex");
+  // Ranking depends only on this request's seed and relation ID. Repeated
+  // comparator calls (and duplicate candidate IDs) reuse the exact same hash;
+  // the locale comparator, stable ties and fresh discovery/hydration stay intact.
+  const ranks = new Map<string, string>();
+  const rank = (word: Pick<WritingVocabulary, "id">) => {
+    let value = ranks.get(word.id);
+    if (value === undefined) {
+      value = createHash("sha256").update(`${seed}:${word.id}`).digest("hex");
+      ranks.set(word.id, value);
+    }
+    return value;
+  };
   // RECENT ranks the same first 180 usable words, without transferring their rich content.
   const chosen = focus === "RECENT"
     ? await hydrateVocabulary((await practicedWords(userId, level, focus, 180, undefined, false, true)).sort((a, b) => rank(a).localeCompare(rank(b))), level, maximum, true)

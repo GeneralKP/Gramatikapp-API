@@ -23,12 +23,12 @@ for (const type of ['WORD', 'PHRASE'] as const) {
   for (const interval of [0, 1, 2, 5, 30, 100, 365, 36500]) {
     const p = card(type, interval);
     const options = studyReviewOptions(p, now);
-    const ratings = options.filter(option => option.grade !== 'REVISIT');
+    const ratings = options.filter(option => option.grade !== 'REVISIT' && option.grade !== 'KNOWN');
     assert.ok(ratings.every((option, i) => !i || option.delaySeconds >= ratings[i - 1].delaySeconds), `${type} ${interval}: rating order`);
     for (const option of options) {
       const saved = { ...p, ...scheduleStudyReview(p, option.grade, now) };
       assert.equal(effectiveDueDate(saved).toISOString(), option.nextDueDate, `${type} ${interval} ${option.grade}: preview/date equality`);
-      if (saved.scheduler.queue === 'DAY' && option.grade !== 'REVISIT') {
+      if (saved.scheduler.queue === 'DAY' && option.grade !== 'REVISIT' && option.grade !== 'KNOWN') {
         assert.equal(studyDay(effectiveDueDate(saved), 'Europe/Berlin', 4) - studyDay(now, 'Europe/Berlin', 4), option.delaySeconds / 86400);
       }
     }
@@ -39,7 +39,7 @@ console.log('PASS word/phrase phases, ascending ordinary ratings, maximum interv
 const revisited = { ...card(), ...scheduleStudyReview(card(), 'REVISIT', now) };
 const tomorrow = revisited.temporaryDueDate!;
 const completion = studyReviewOptions(revisited, tomorrow);
-assert.deepEqual(completion.filter(option => option.grade !== 'REVISIT').map(option => option.grade), GRADES, 'Temporary reviews retain all ordinary recall choices');
+assert.deepEqual(completion.filter(option => option.grade !== 'REVISIT' && option.grade !== 'KNOWN').map(option => option.grade), GRADES, 'Temporary reviews retain all ordinary recall choices');
 assert.ok(completion.some(option => option.grade === 'REVISIT'), 'Repeat extra practice tomorrow remains available when it precedes the regular review');
 const completed = { ...revisited, ...scheduleStudyReview(revisited, 'GOOD', tomorrow) };
 const earlyGood = scheduleReview(revisited, 'GOOD', tomorrow, true);
@@ -49,7 +49,7 @@ assert.equal(completed.ease, earlyGood.ease);
 assert.equal(completed.temporaryDueDate, undefined);
 assert.equal(completed.totalReviews, revisited.totalReviews! + 1);
 const expired = { ...revisited, nextDueDate: tomorrow };
-assert.equal(studyReviewOptions(expired, tomorrow).filter(option => option.grade !== 'REVISIT').length, 4, 'An overdue regular review must use ordinary ratings');
+assert.equal(studyReviewOptions(expired, tomorrow).filter(option => option.grade !== 'REVISIT' && option.grade !== 'KNOWN').length, 4, 'An overdue regular review must use ordinary ratings');
 console.log('PASS all temporary-review ratings, shared early-review scheduling and expired-regular-review fallback');
 
 for (const delays of [[361, 365, 366, 370], [32, 33, 34], [36500, 36500]]) {

@@ -9,7 +9,7 @@ const revisit=scheduleStudyReview(p,'REVISIT',now);assert.equal(effectiveDueDate
 assert.ok(revisit.nextDueDate.getTime()>now.getTime()+100*86400000);
 const reminder={...p,...revisit}, reminderTime=new Date(now.getTime()+86400000);
 const reminderOptions=studyReviewOptions(reminder,reminderTime);
-assert.deepEqual(reminderOptions.map(option=>option.grade),['AGAIN','HARD','GOOD','EASY','REVISIT'],'a temporary reminder must never collapse the regular recall choices');
+assert.deepEqual(reminderOptions.map(option=>option.grade),['AGAIN','HARD','GOOD','EASY','REVISIT','KNOWN'],'a temporary reminder must never collapse the regular recall choices');
 for(const grade of ['AGAIN','HARD','GOOD','EASY']as const){
  const completed=scheduleStudyReview(reminder,grade,reminderTime);
  const expected=scheduleReview(reminder,grade,reminderTime,true);

@@ -33,7 +33,7 @@ try {
         p.scheduler = initialScheduler(p, { ...DEFAULT_OPTIONS, leechSuspend: false });
         const options = studyReviewOptions(p, now);
         assert.deepEqual(options.slice(0, 4).map(option => option.grade), GRADES);
-        assert.equal(options.length, itemType === 'WORD' ? 5 : 4);
+        assert.equal(options.length, itemType === 'WORD' ? 6 : 4);
         const preview = options.find(option => option.grade === grade)!;
         await db.progress.insertOne(p);
         const job = command(p, grade);
