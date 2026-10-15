@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { User, defaultUserSettings } from "./auth.types.js";
+import { validateCredentials, withPasswordWork } from "./auth.credentials.js";
 
 dotenv.config();
 
@@ -11,6 +12,10 @@ if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) throw new 
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
 const SALT_ROUNDS = 10;
+
+// bcrypt uses only its first 72 UTF-8 bytes. Retaining 73 UTF-16 units keeps a
+// surrogate pair across that boundary intact without encoding an unbounded input.
+const bcryptPassword = (password: string): string => password.slice(0, 73);
 
 export interface TokenPayload {
   userId: string;
@@ -23,14 +28,14 @@ export interface AuthResult {
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
+  return withPasswordWork(() => bcrypt.hash(bcryptPassword(password), SALT_ROUNDS));
 }
 
 export async function verifyPassword(
   password: string,
   hash: string,
 ): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+  return withPasswordWork(() => bcrypt.compare(bcryptPassword(password), hash));
 }
 
 export function generateToken(user: User): string {
@@ -43,6 +48,7 @@ export function generateToken(user: User): string {
 }
 
 export function verifyToken(token: string): TokenPayload | null {
+  if (typeof token !== "string" || token.length > 8192 || Buffer.byteLength(token, "utf8") > 8192) return null;
   try {
     const payload = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
     if (typeof payload !== "object" || typeof payload.userId !== "string" || !ObjectId.isValid(payload.userId)
@@ -57,15 +63,12 @@ export async function registerWithEmail(
   email: string,
   password: string,
 ): Promise<AuthResult> {
+  const normalizedEmail = validateCredentials(email, password, "register");
   const db = getDb();
 
-  const existingUser = await db.users.findOne({ email: email.toLowerCase() });
+  const existingUser = await db.users.findOne({ email: normalizedEmail });
   if (existingUser) {
     throw new Error("User with this email already exists");
-  }
-
-  if (password.length < 6) {
-    throw new Error("Password must be at least 6 characters");
   }
 
   const passwordHash = await hashPassword(password);
@@ -73,7 +76,7 @@ export async function registerWithEmail(
 
   const newUser: User = {
     _id: new ObjectId(),
-    email: email.toLowerCase(),
+    email: normalizedEmail,
     passwordHash,
     authProvider: "email",
     settings: { ...defaultUserSettings },
@@ -90,9 +93,10 @@ export async function loginWithEmail(
   email: string,
   password: string,
 ): Promise<AuthResult> {
+  const normalizedEmail = validateCredentials(email, password, "login");
   const db = getDb();
 
-  const user = await db.users.findOne({ email: email.toLowerCase() });
+  const user = await db.users.findOne({ email: normalizedEmail });
 
   if (!user) {
     throw new Error("Invalid email or password");

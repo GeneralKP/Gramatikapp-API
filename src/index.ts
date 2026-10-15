@@ -1,102 +1,18 @@
-import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
-import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
-import express from "express";
-import http from "http";
-import { readFileSync } from "node:fs";
-import cors from "cors";
-import { connectDatabase, closeDatabase } from "./lib/database.js";
-import { typeDefs, resolvers } from "./graphql/schema.js";
-import { getUserFromToken } from "./features/auth/auth.service.js";
-import { User } from "./features/auth/auth.types.js";
 import dotenv from "dotenv";
-import { ObjectId } from "mongodb";
-import { translateWritingWord } from "./features/writing/writing.service.js";
-import { syncStudy } from "./features/progress/studySync.js";
-import { wordTranslationRouter } from "./features/translations/translations.http.js";
-import { studyTransportRouter } from "./features/progress/studyTransport.http.js";
-import { cardEditsRouter } from "./features/progress/cardEdits.http.js";
+import { connectDatabase, closeDatabase } from "./lib/database.js";
+import { createApplication } from "./app.js";
 import { warmStudyCatalog, startStudyCatalogRefresh, stopStudyCatalogRefresh } from "./features/progress/studyLoading.js";
 
 dotenv.config();
 
 const PORT = parseInt(process.env.PORT || "4000", 10);
 const HOST = process.env.HOST?.trim() || undefined;
-// The privileged deployment helper writes this credential-free commit marker.
-let release: string | null = null;
-try {
-  const marker = readFileSync("RELEASE", "utf8").trim();
-  if (/^[0-9a-f]{40}$/.test(marker)) release = marker;
-} catch { /* Local development and retained Render builds have no marker. */ }
-
-export interface GraphQLContext {
-  user: User | null;
-}
 
 async function startServer() {
-  // Connect to MongoDB
   await connectDatabase();
   await warmStudyCatalog();
   startStudyCatalogRefresh();
-
-  // Create Express app and HTTP server
-  const app = express();
-  const httpServer = http.createServer(app);
-
-  // Create Apollo Server with drain plugin
-  const server = new ApolloServer<GraphQLContext>({
-    typeDefs,
-    resolvers,
-    stopOnTerminationSignals: false,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-  });
-
-  await server.start();
-
-  // Apply CORS and JSON middleware
-  const allowedOrigins = process.env.WEB_ORIGINS?.split(",").map(origin => origin.trim()).filter(Boolean);
-  app.use(cors({ origin: allowedOrigins?.length ? allowedOrigins : true }));
-  app.use(express.json({ limit: "2mb" }));
-  app.get("/health", (_req, res) => { res.set("Cache-Control", "no-store").json({ status: "ok", release }); });
-  app.post("/api/study/sync", async (req, res) => {
-    try {
-      const user = await getUserFromToken((req.headers.authorization || "").replace(/^Bearer /, ""));
-      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
-      res.json(await syncStudy(user._id, req.body?.operations));
-    } catch (error) { res.status(400).json({ error: (error as Error).message }); }
-  });
-  app.post("/api/translate", async (req, res) => {
-    try {
-      const user = await getUserFromToken((req.headers.authorization || "").replace(/^Bearer /, ""));
-      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
-      if (!ObjectId.isValid(req.body?.exerciseId) || typeof req.body?.word !== "string") { res.status(400).json({ error: "Provide an exerciseId and Spanish word." }); return; }
-      res.json(await translateWritingWord(user._id, new ObjectId(req.body.exerciseId), req.body.word));
-    }
-    catch (error) { res.status(400).json({ error: (error as Error).message }); }
-  });
-  app.use(wordTranslationRouter());
-  app.use(studyTransportRouter());
-  app.use(cardEditsRouter());
-
-  // Apply GraphQL endpoint
-  app.use(
-    "/graphql",
-    expressMiddleware(server, {
-      context: async ({ req }): Promise<GraphQLContext> => {
-        // Extract token from Authorization header
-        const authHeader = req.headers.authorization || "";
-        const token = authHeader.replace("Bearer ", "");
-
-        // Get user from token if present
-        let user: User | null = null;
-        if (token) {
-          user = await getUserFromToken(token);
-        }
-
-        return { user };
-      },
-    }) as unknown as express.RequestHandler,
-  );
+  const { httpServer, server } = await createApplication();
 
   await new Promise<void>((resolve) =>
     httpServer.listen({ port: PORT, ...(HOST ? { host: HOST } : {}) }, resolve),

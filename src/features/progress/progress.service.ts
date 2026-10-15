@@ -78,11 +78,3 @@ export function calculateNextReview(
     nextDueDate,
   };
 }
-
-/**
- * Check if a phrase is due for review
- */
-export function isDue(nextDueDate: Date | null | undefined): boolean {
-  if (!nextDueDate) return true;
-  return new Date(nextDueDate) <= new Date();
-}

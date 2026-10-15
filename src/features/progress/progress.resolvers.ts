@@ -1,4 +1,4 @@
-import { loadStudyRelations, studyCountSnapshot, summarizedStudyCounts, studyIdentities, studyDailyCounts, studyCatalog, studyMetadata, insertNewProgress, STUDY_CONTENT_BATCH_SIZE, STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
+import { loadStudyRelations, summarizedStudyCounts, studyIdentities, studyDailyCounts, studyCatalog, studyMetadata, insertNewProgress, STUDY_CONTENT_BATCH_SIZE, STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
 import { isGraduatedStudyIdentity, newItemIdentityPipeline, unpackNewItemIdentities, type PackedNewItemIdentity } from './studySummaries.js';
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
@@ -19,7 +19,7 @@ import { studyCurriculum, planCurriculumIntroductions } from "./studyCurriculum.
 import { isDueStudyCandidate, hasStudyReference, studyReferenceIds } from "./studyCandidates.js";
 import { readPackedStudyCandidates } from './studyCandidatePacking.js';
 import { selectedFields } from "../levels/catalogProjection.js";
-import { isGraduatedStudyCard, normalizedStudyPhase, STUDY_STATUS_PROJECTION } from "./studyStatus.js";
+import { normalizedStudyPhase, STUDY_STATUS_PROJECTION } from "./studyStatus.js";
 import type { GraphQLResolveInfo } from "graphql";
 
 function requireOwner(context: { user: User | null }, userId: string) {

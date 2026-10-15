@@ -1,7 +1,7 @@
 import { ObjectId, type ClientSession } from "mongodb";
 import { getDb, getDatabaseClient } from "../../lib/database.js";
 import type { UserProgress } from "./progress.types.js";
-import { DEFAULT_OPTIONS, DeckOptions, Grade, GRADES, initialScheduler, normalizeUnstudiedProgress, scheduleReview, studyDay, dateForStudyDay } from "./scheduler.js";
+import { DEFAULT_OPTIONS, DeckOptions, GRADES, initialScheduler, normalizeUnstudiedProgress, studyDay, dateForStudyDay } from "./scheduler.js";
 import { scheduleStudyReview, type StudyGrade } from "./studyScheduling.js";
 import { isIntroductionFollowup, isNewCard } from "./newWordOrder.js";
 import { introducedToday } from "./dailyLimit.js";
@@ -39,7 +39,8 @@ const commandId = (value: string) => {
 export const deckName = (progress: UserProgress) => progress.card?.deck || "App";
 export const deckAncestors = (deck: string) => deck.split("::").map((_, i, parts) => parts.slice(0, i + 1).join("::"));
 
-export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: string, grade: StudyGrade, reviewId: string, expectedVersion?: number, earlyReview = false, failureAttemptId?: string, timing?: { reviewedAt: Date; studySessionId: string }) {
+// The legacy failure argument stays positional; recordFailure owns mistake writes.
+export async function saveReview(userId: ObjectId, itemId: ObjectId, itemType: string, grade: StudyGrade, reviewId: string, expectedVersion?: number, earlyReview = false, _failureAttemptId?: string, timing?: { reviewedAt: Date; studySessionId: string }) {
   commandId(reviewId);
   if (!([...GRADES, "REVISIT", "KNOWN"] as string[]).includes(grade) || !["WORD", "PHRASE"].includes(itemType)) throw new Error("Invalid review");
   const db = getDb(), session = getDatabaseClient().startSession();

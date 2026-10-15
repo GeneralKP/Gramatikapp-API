@@ -1,9 +1,10 @@
 import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
 import { catalogProjection } from "../levels/catalogProjection.js";
+import { catalogListBounds } from "../levels/catalogBounds.js";
 import type { GraphQLResolveInfo } from "graphql";
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
-import { Word, WordRelation } from "./words.types.js";
+import type { WordRelation } from "./words.types.js";
 import { invalidateStudyCatalog } from "../progress/catalogSummaryCache.js";
 import { dictionaryWord } from "./reviewedWordContent.js";
 
@@ -37,10 +38,11 @@ export const wordsResolvers = {
       _: unknown,
       {
         lang,
-        limit = 100,
-        offset = 0,
+        limit: requestedLimit,
+        offset: requestedOffset,
       }: { lang: string; limit?: number; offset?: number },
     ) => {
+      const { limit, offset } = catalogListBounds({ limit: requestedLimit, offset: requestedOffset });
       const db = getDb();
       const collection = lang.toUpperCase() === "DE" ? db.wordsDE : db.wordsES;
       const words = await collection
@@ -72,8 +74,9 @@ export const wordsResolvers = {
     },
     wordsWithoutTranslation: async (
       _: unknown,
-      { lang, limit = 100 }: { lang: string; limit?: number },
+      { lang, limit: requestedLimit }: { lang: string; limit?: number },
     ) => {
+      const { limit } = catalogListBounds({ limit: requestedLimit });
       const db = getDb();
       const isDE = lang.toUpperCase() === "DE";
       const collection = isDE ? db.wordsDE : db.wordsES;
@@ -100,8 +103,9 @@ export const wordsResolvers = {
     },
     wordRelationsWithoutPhrases: async (
       _: unknown,
-      { limit = 20 }: { limit?: number },
+      { limit: requestedLimit }: { limit?: number },
     ) => {
+      const { limit } = catalogListBounds({ limit: requestedLimit }, 20);
       const db = getDb();
       const relations = await db.relationsWordsEsDe
         .aggregate([

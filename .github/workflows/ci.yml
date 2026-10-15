@@ -41,6 +41,8 @@ jobs:
         env:
           MONGODB_URI: mongodb://127.0.0.1:27037/phrase_grammar_fixture
       - run: npm run test:auth
+      - run: npm run test:auth-security
+      - run: npm run test:model-refactor
       - run: npm run test:anki
       - run: npm run test:scheduler
       - run: npm run test:study-curriculum

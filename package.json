@@ -80,7 +80,9 @@
     "test:temporary-review-ratings": "tsx scripts/testTemporaryReviewRatings.ts",
     "test:practice-consistency": "tsx scripts/testCrossModeDue.ts && tsx scripts/testReviewHotPath.ts",
     "test:practice-consistency-integration": "tsx scripts/testPracticeConsistencyIntegration.ts",
-    "test:known": "node --import tsx scripts/runKnownFixture.mjs"
+    "test:known": "node --import tsx scripts/runKnownFixture.mjs",
+    "test:auth-security": "tsx scripts/testAuthCredentials.ts && tsx scripts/testRequestSecurity.ts && tsx scripts/testHttpSecurity.ts && tsx scripts/testSecurityBoundaries.ts",
+    "test:model-refactor": "tsx scripts/testModelRefactor.ts && tsx scripts/testCatalogBounds.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

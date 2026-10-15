@@ -1,22 +1,13 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
-import { User, UserSettings } from "./auth.types.js";
+import { User, UserSettings, defaultUserSettings } from "./auth.types.js";
 import { studyMetadata } from "../progress/studyLoading.js";
 import {
   registerWithEmail,
   loginWithEmail,
-  generateToken,
 } from "./auth.service.js";
 
-// Default settings for new or incomplete users
-const DEFAULT_SETTINGS: UserSettings = {
-  soundEnabled: true,
-  selectSound: true,
-  successSound: true,
-  errorSound: true,
-  popSound: true,
-  darkMode: false,
-};
+type GraphQLUser = Omit<User, "createdAt"> & { id: string; createdAt: string };
 
 // Helper to convert MongoDB doc to GraphQL format
 function toGraphQL(user: User | null) {
@@ -26,7 +17,7 @@ function toGraphQL(user: User | null) {
     id: user._id.toString(),
     createdAt: user.createdAt.toISOString(),
     settings: {
-      ...DEFAULT_SETTINGS,
+      ...defaultUserSettings,
       ...user.settings,
     },
   };
@@ -116,7 +107,7 @@ export const authResolvers = {
     dailyNewCards: (settings: UserSettings) => settings.dailyNewCards ?? 20,
   },
   User: {
-    settings: async (user: any, _: unknown, context: GraphQLContext) => ({ ...DEFAULT_SETTINGS, ...user.settings,
+    settings: async (user: GraphQLUser, _: unknown, context: GraphQLContext) => ({ ...defaultUserSettings, ...user.settings,
       dailyNewCards: user.settings?.dailyNewCards ?? (await studyMetadata(context, new ObjectId(user.id ?? user._id), user)).limit }),
   },
 };

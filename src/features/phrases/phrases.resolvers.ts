@@ -1,10 +1,21 @@
 import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
 import { catalogProjection } from "../levels/catalogProjection.js";
+import { catalogListBounds } from "../levels/catalogBounds.js";
 import type { GraphQLResolveInfo } from "graphql";
-import { ObjectId, Filter } from "mongodb";
+import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { translate as translateText } from "./phrases.service.js";
-import { processSeedData, SeedDataInput } from "./seedService.js";
+import { processSeedData } from "./seedService.js";
+
+function toGraphQLPhrase(phrase: any) {
+  if (!phrase) return null;
+  return {
+    ...phrase,
+    id: phrase._id.toString(),
+    perWordExplanation: Object.entries(phrase.perWordExplanation ?? {}).map(([key, value]) => ({ key, value })),
+    createdAt: phrase.createdAt?.toISOString(),
+  };
+}
 
 export const phrasesResolvers = {
   Query: {
@@ -12,10 +23,11 @@ export const phrasesResolvers = {
       _: unknown,
       {
         lang,
-        limit = 100,
-        offset = 0,
+        limit: requestedLimit,
+        offset: requestedOffset,
       }: { lang: string; limit?: number; offset?: number },
     ) => {
+      const { limit, offset } = catalogListBounds({ limit: requestedLimit, offset: requestedOffset });
       const db = getDb();
       const collection =
         lang.toUpperCase() === "DE" ? db.phrasesDE : db.phrasesES;
@@ -24,21 +36,7 @@ export const phrasesResolvers = {
         .skip(offset)
         .limit(limit)
         .toArray();
-      return phrases.map((p) => {
-        // Convert perWordExplanation Map into array
-        const perWordArr: { key: string; value: any }[] = [];
-        if (p.perWordExplanation) {
-          for (const [k, v] of Object.entries(p.perWordExplanation)) {
-            perWordArr.push({ key: k, value: v });
-          }
-        }
-        return {
-          ...p,
-          id: p._id.toString(),
-          perWordExplanation: perWordArr,
-          createdAt: p.createdAt?.toISOString(),
-        };
-      });
+      return phrases.map(toGraphQLPhrase);
     },
 
     newPhrase: async (
@@ -49,20 +47,7 @@ export const phrasesResolvers = {
       const collection =
         lang.toUpperCase() === "DE" ? db.phrasesDE : db.phrasesES;
       const phrase = await collection.findOne({ _id: new ObjectId(id) });
-      if (!phrase) return null;
-
-      const perWordArr: { key: string; value: any }[] = [];
-      if (phrase.perWordExplanation) {
-        for (const [k, v] of Object.entries(phrase.perWordExplanation)) {
-          perWordArr.push({ key: k, value: v });
-        }
-      }
-      return {
-        ...phrase,
-        id: phrase._id.toString(),
-        perWordExplanation: perWordArr,
-        createdAt: phrase.createdAt?.toISOString(),
-      };
+      return toGraphQLPhrase(phrase);
     },
 
     phraseRelations: async (_: unknown, args: CatalogArgs, _context: unknown, info?: GraphQLResolveInfo) => {
@@ -87,7 +72,7 @@ export const phrasesResolvers = {
 
   NewPhrase: {
     level: (parent: any) => parent.cefrLevel?.split(".")[0] ?? parent.level ?? null,
-    words: async (parent: any, _: unknown, context: any, info: any) => {
+    words: async (parent: any) => {
       const db = getDb();
       // Since a phrase might be from DE or ES, we'll try to find the words in both or one collection.
       // But we know 'lang' from the query or by matching `_id`. Actually, we can just search wordsES and wordsDE.
@@ -116,20 +101,7 @@ export const phrasesResolvers = {
           _id: new ObjectId(parent.main),
         });
       }
-      if (!phrase) return null;
-
-      const perWordArr: { key: string; value: any }[] = [];
-      if (phrase.perWordExplanation) {
-        for (const [k, v] of Object.entries(phrase.perWordExplanation)) {
-          perWordArr.push({ key: k, value: v });
-        }
-      }
-      return {
-        ...phrase,
-        id: phrase._id.toString(),
-        perWordExplanation: perWordArr,
-        createdAt: phrase.createdAt?.toISOString(),
-      };
+      return toGraphQLPhrase(phrase);
     },
     translated: async (parent: any) => {
       let phrase = parent.translatedDoc;
@@ -139,20 +111,7 @@ export const phrasesResolvers = {
           _id: new ObjectId(parent.translated),
         });
       }
-      if (!phrase) return null;
-
-      const perWordArr: { key: string; value: any }[] = [];
-      if (phrase.perWordExplanation) {
-        for (const [k, v] of Object.entries(phrase.perWordExplanation)) {
-          perWordArr.push({ key: k, value: v });
-        }
-      }
-      return {
-        ...phrase,
-        id: phrase._id.toString(),
-        perWordExplanation: perWordArr,
-        createdAt: phrase.createdAt?.toISOString(),
-      };
+      return toGraphQLPhrase(phrase);
     },
   },
 
