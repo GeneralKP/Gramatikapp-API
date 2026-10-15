@@ -1,13 +1,14 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { recordFailure } from "./failures.js";
+import { recordArticleFailure } from "./articleFailures.js";
 import { saveReview, undoReview, ReviewConflict } from "./reviews.js";
 import type { StudyGrade } from "./studyScheduling.js";
 import { CardEditConflict, saveCardEdit } from "./cardEdits.js";
 import { validateCardEdit, type CardEditCommand } from "./cardEdits.types.js";
 
 export interface StudyOperation {
-  id: string; kind: "FAILURE" | "REVIEW" | "UNDO" | "EDIT"; itemId: string;
+  id: string; kind: "FAILURE" | "ARTICLE_FAILURE" | "REVIEW" | "UNDO" | "EDIT"; itemId: string;
   occurredAt: string; sessionId: string; itemType?: "WORD" | "PHRASE";
   grade?: StudyGrade; expectedVersion?: number; earlyReview?: boolean; reviewId?: string;
   edit?: CardEditCommand;
@@ -16,11 +17,12 @@ const validId = (id: unknown) => typeof id === "string" && /^[a-zA-Z0-9_-]{16,10
 export function validateStudyOperations(input: unknown): StudyOperation[] {
   if (!Array.isArray(input) || input.length > 100 || !input.length) throw new Error("Send 1–100 study operations per batch.");
   for (const job of input) {
-    if (!job || !validId(job.id) || !validId(job.sessionId) || !ObjectId.isValid(job.itemId) || !["FAILURE", "REVIEW", "UNDO", "EDIT"].includes(job.kind)) throw new Error("Invalid study operation.");
+    if (!job || !validId(job.id) || !validId(job.sessionId) || !ObjectId.isValid(job.itemId) || !["FAILURE", "ARTICLE_FAILURE", "REVIEW", "UNDO", "EDIT"].includes(job.kind)) throw new Error("Invalid study operation.");
     const time = Date.parse(job.occurredAt);
     if (!Number.isFinite(time) || time < Date.UTC(2000, 0, 1) || time > Date.now() + 300000) throw new Error("Invalid study time. Check your device clock.");
     if (job.kind === "REVIEW" && (!["WORD", "PHRASE"].includes(job.itemType) || !["AGAIN", "HARD", "GOOD", "EASY", "REVISIT", "KNOWN"].includes(job.grade) || !Number.isInteger(job.expectedVersion) || job.expectedVersion < 0 || (job.earlyReview !== undefined && typeof job.earlyReview !== "boolean"))) throw new Error("Invalid review operation.");
     if (job.kind === "UNDO" && !validId(job.reviewId)) throw new Error("Invalid undo operation.");
+    if (job.kind === "ARTICLE_FAILURE" && (job.itemType !== "WORD" || job.grade !== undefined || job.reviewId !== undefined || job.expectedVersion !== undefined || job.earlyReview !== undefined)) throw new Error("Invalid article difficulty operation.");
     if (job.kind === "EDIT") {
       if (!["WORD", "PHRASE"].includes(job.itemType)) throw new Error("Invalid edited card type.");
       validateCardEdit(job.edit);
@@ -35,10 +37,12 @@ export async function syncStudy(userId: ObjectId, input: unknown) {
   const operations = validateStudyOperations(input), results: { id: string; success: boolean; error?: string; code?: string }[] = [];
   const blocked = new Set<string>(), blockedRelations = new Set<string>();
   for (const job of operations) {
-    if ((blocked.has(job.itemId) && job.kind !== "FAILURE") || (job.kind === 'EDIT' && blockedRelations.has(`${job.itemType}:${job.edit?.relationId}`))) { results.push({ id: job.id, success: false, code: "DEPENDENCY_CONFLICT", error: "Resolve the earlier conflicting card before this operation." }); continue; }
+    const independentFailure = job.kind === "FAILURE" || job.kind === "ARTICLE_FAILURE";
+    if ((blocked.has(job.itemId) && !independentFailure) || (job.kind === 'EDIT' && blockedRelations.has(`${job.itemType}:${job.edit?.relationId}`))) { results.push({ id: job.id, success: false, code: "DEPENDENCY_CONFLICT", error: "Resolve the earlier conflicting card before this operation." }); continue; }
     try {
       const itemId = new ObjectId(job.itemId);
       if (job.kind === "FAILURE") await recordFailure(getDb().progress, userId, itemId, job.id, new Date(job.occurredAt));
+      else if (job.kind === "ARTICLE_FAILURE") await recordArticleFailure(getDb(), userId, itemId, job.id, new Date(job.occurredAt));
       else if (job.kind === "REVIEW") {
         // Forgotten recall remains a mistake even if a competing schedule wins.
         // saveReview uses this same key, so a successful Revisit adds it only once.
@@ -62,7 +66,7 @@ export async function syncStudy(userId: ObjectId, input: unknown) {
       }
       const conflict = error instanceof ReviewConflict || error instanceof CardEditConflict;
       const code = conflict ? error.code : "STUDY_SYNC_FAILED";
-      if (job.kind !== "FAILURE") blocked.add(job.itemId);
+      if (!independentFailure) blocked.add(job.itemId);
       if (job.kind === "EDIT") blockedRelations.add(`${job.itemType}:${job.edit?.relationId}`);
       results.push({ id: job.id, success: false, code, error: conflict ? error.message : "This operation could not be synchronized. Your device copy has been retained." });
     }

@@ -14,6 +14,8 @@ export function toGraphQLProgress(progress: UserProgress | null) {
     itemType: progress.itemType,
     relationId: progress.relationId?.toString(),
     failureIndex: progress.failureIndex ?? 0,
+    articleFailureIndex: progress.articleFailureIndex ?? 0,
+    articleFailureAttemptIds: progress.articleFailureAttemptIds ?? [],
     totalReviews: progress.totalReviews ?? 0,
     scheduleVersion: progress.scheduleVersion ?? 0,
     studyState: JSON.stringify({
@@ -24,6 +26,7 @@ export function toGraphQLProgress(progress: UserProgress | null) {
       repetitions: progress.repetitions,
       nextDueDate: progress.nextDueDate,
       temporaryDueDate: progress.temporaryDueDate,
+      againPending: progress.againPending,
       lastReviewed: progress.lastReviewed,
       createdAt: progress.createdAt,
       scheduler,

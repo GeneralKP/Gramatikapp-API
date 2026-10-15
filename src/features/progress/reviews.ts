@@ -11,7 +11,7 @@ export interface SchedulerProfile {
   baselines?: { day: number; deck: string; new: number; review: number }[];
   createdAt: Date;
 }
-const schedulingFields = ["scheduler", "ease", "interval", "repetitions", "nextDueDate", "lastReviewed", "totalReviews", "lapses", "isNew", "lastReviewId", "suspended", "leech", "temporaryDueDate"] as const;
+const schedulingFields = ["scheduler", "ease", "interval", "repetitions", "nextDueDate", "lastReviewed", "totalReviews", "lapses", "isNew", "lastReviewId", "suspended", "leech", "temporaryDueDate", "againPending"] as const;
 type Snapshot = Partial<Pick<UserProgress, typeof schedulingFields[number]>> & { buriedUntil?: Date | null };
 export interface ReviewEvent {
   _id: ObjectId; userId: ObjectId; itemId: ObjectId; itemType: string; reviewId: string;

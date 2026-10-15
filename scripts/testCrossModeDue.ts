@@ -18,16 +18,16 @@ word.scheduler = initialScheduler(word, { ...DEFAULT_OPTIONS, newPerDay: 20, rev
 for (const grade of ['AGAIN', 'HARD', 'GOOD'] as const) {
   const reviewed = { ...word, ...scheduleStudyReview(word, grade, now) };
   assert.ok(reviewed.nextDueDate > now, `${grade} must schedule a future learning step`);
-  assert.deepEqual(selectStudyQueue([reviewed], new Map(), now, 50, 0), [],
+  assert.equal(selectStudyQueue([reviewed], new Map(), now, 50, 0).length, grade === 'AGAIN' ? 1 : 0,
     `${grade}: a word reviewed in word practice must not immediately reappear in mixed practice before its saved due date`);
-  assert.equal(selectStudyQueue([reviewed], new Map(), new Date(+reviewed.nextDueDate - 1), 50, 0).length, 0,
+  assert.equal(selectStudyQueue([reviewed], new Map(), new Date(+reviewed.nextDueDate - 1), 50, 0).length, grade === 'AGAIN' ? 1 : 0,
     `${grade}: eligibility begins at the exact saved due instant`);
   assert.equal(selectStudyQueue([reviewed], new Map(), reviewed.nextDueDate, 50, 0)[0]?.itemId, word.itemId,
     `${grade}: the same card becomes available when due`);
 }
-const temporarilyDeferred = { ...word, ...scheduleStudyReview(word, 'AGAIN', now), nextDueDate: new Date(+now - 1), temporaryDueDate: new Date(+now + 60_000) };
+const temporarilyDeferred = { ...word, ...scheduleStudyReview(word, 'HARD', now), nextDueDate: new Date(+now - 1), temporaryDueDate: new Date(+now + 60_000) };
 assert.equal(selectStudyQueue([temporarilyDeferred], new Map(), now, 50, 0).length, 0,
   'A future temporary due date must govern even when the ordinary minute step is overdue');
 assert.equal(selectStudyQueue([temporarilyDeferred], new Map(), temporarilyDeferred.temporaryDueDate, 50, 0).length, 1,
   'A temporary minute card appears once at its effective due instant');
-console.log('PASS word-to-mixed: all learning ratings remain unavailable until their exact saved due instant');
+console.log('PASS word-to-mixed: Again stays available across modes; successful learning honors its due instant');

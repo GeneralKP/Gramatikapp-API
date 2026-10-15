@@ -33,6 +33,7 @@ const wordReference = (phrase: UserProgress, grade: typeof GRADES[number], time:
 };
 assert.deepEqual(PHRASE_SCHEDULING_PRESET.learningSteps, [10080, 76320]);
 const ordinary = (progress: UserProgress, time = now, early = false) => studyReviewOptions(progress, time, early).filter(o => o.grade !== 'REVISIT');
+const timingOnly = ({ againPending: _againPending, ...state }: ReturnType<typeof scheduleStudyReview>) => state;
 let sharedLearningCases = 0, establishedCases = 0;
 for (const options of [DEFAULT_OPTIONS, { ...DEFAULT_OPTIONS, learningSteps: [2, 25], relearningSteps: [5, 20], graduatingGood: 3, graduatingEasy: 8 }]) {
   const fresh = phraseCard(0); fresh.scheduler = initialScheduler(fresh, options);
@@ -40,7 +41,7 @@ for (const options of [DEFAULT_OPTIONS, { ...DEFAULT_OPTIONS, learningSteps: [2,
   const relearning = phraseCard(30); relearning.lapses = 2;
   relearning.scheduler = { ...initialScheduler(relearning, options), phase: 'RELEARNING', queue: 'MINUTE', remainingSteps: options.relearningSteps.length, scheduledSeconds: options.relearningSteps[0] * 60 };
   for (const phrase of [learning, relearning]) for (const time of [now, new Date('2026-10-11T01:59:50Z')]) for (const grade of GRADES) {
-    assert.deepEqual(scheduleStudyReview(phrase, grade, time), wordReference(phrase, grade, time), `${phrase.scheduler.phase} ${grade}: same learning/relearning engine with longer graduation`);
+    assert.deepEqual(timingOnly(scheduleStudyReview(phrase, grade, time)), wordReference(phrase, grade, time), `${phrase.scheduler.phase} ${grade}: same learning/relearning engine with longer graduation`);
     sharedLearningCases++;
   }
 }
@@ -70,7 +71,7 @@ for (const interval of [1, 30, 180, 365, 1000]) for (const totalReviews of [1, 1
     for (const preview of previews) {
       const grade = preview.grade as typeof GRADES[number];
       const next = scheduleStudyReview(phrase, grade, now, timing === 'early');
-      assert.deepEqual(next, wordReference(phrase, grade, now, timing === 'early'), 'History, ease, overdue/early credit, lapses and fuzz use the word engine');
+      assert.deepEqual(timingOnly(next), wordReference(phrase, grade, now, timing === 'early'), 'History, ease, overdue/early credit, lapses and fuzz use the word engine');
       assert.equal(next.nextDueDate.toISOString(), preview.nextDueDate);
       assert.equal(next.scheduler.interval, next.interval);
       assert.equal(next.totalReviews, totalReviews + 1); assert.equal(next.lastReviewed, now); assert.equal(next.isNew, false);

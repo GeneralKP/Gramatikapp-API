@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { ObjectId } from 'mongodb';
 import { schedulerSeed } from '../src/features/progress/scheduler.js';
 import { effectiveDueDate, scheduleStudyReview, studyReviewOptions } from '../src/features/progress/studyScheduling.js';
 import type { UserProgress } from '../src/features/progress/progress.types.js';
 
-const path = new URL('../../german-gramatic-web/scripts/fixtures/study-previews.json', import.meta.url);
+const path = process.env.GRAMATIK_WEB_ROOT ? pathToFileURL(resolve(process.env.GRAMATIK_WEB_ROOT, 'scripts/fixtures/study-previews.json')) : new URL('../../german-gramatic-web/scripts/fixtures/study-previews.json', import.meta.url);
 const fixtures = JSON.parse(await readFile(path, 'utf8'));
 for (const fixture of fixtures) {
   const original = JSON.stringify({ options: fixture.options.filter((o: { grade: string }) => o.grade !== 'KNOWN'), outcomes: Object.fromEntries(Object.entries(fixture.outcomes).filter(([grade]) => grade !== 'KNOWN')) });

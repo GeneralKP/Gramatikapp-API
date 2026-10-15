@@ -5,7 +5,7 @@ import type { UserProgress } from "./progress.types.js";
 import { summarizedStudyCounts, studyIdentities, studyDailyCounts, studyCatalog, studyMetadata, insertNewProgress, STUDY_CONTENT_BATCH_SIZE, STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
 import { isGraduatedStudyIdentity, newItemIdentityPipeline, unpackNewItemIdentities, type PackedNewItemIdentity } from "./studySummaries.js";
 import { withScheduler, dailyCounts } from "./reviews.js";
-import { effectiveDueDate } from "./studyScheduling.js";
+import { effectiveDueDate, isAgainPending } from "./studyScheduling.js";
 import { categoryRelations, categoryProgressFilter } from "./categories.js";
 import { DEFAULT_OPTIONS, initialScheduler, studyDay } from "./scheduler.js";
 import { selectStudyQueue } from "./studyQueue.js";
@@ -14,7 +14,7 @@ import { nativeWordPair, ensureNativeWordPairs } from "./nativeWordPairs.js";
 import { introducedToday, applyDailyLimit } from "./dailyLimit.js";
 import { studyTextCatalog } from "./studyTextCatalog.js";
 import { studyCurriculum, planCurriculumIntroductions } from "./studyCurriculum.js";
-import { isDueStudyCandidate, hasStudyReference, studyReferenceIds } from "./studyCandidates.js";
+import { AGAIN_PENDING_FILTER, isDueStudyCandidate, hasStudyReference, studyReferenceIds } from "./studyCandidates.js";
 import { readPackedStudyCandidates } from "./studyCandidatePacking.js";
 
 async function withNewWordSiblings(db: ReturnType<typeof getDb>, userId: ObjectId, progress: UserProgress[], projection?: Record<string, number>) {
@@ -49,11 +49,11 @@ async function freshPendingRows(db: ReturnType<typeof getDb>, query: object, pro
   // starter/full queues. Identity, versions and update/deferral state must match;
   // missing or changed cards fall back to a complete fresh pending read.
   const rows = await db.progress.find(query).project<UserProgress>({ _id: 0, itemId: 1, itemType: 1, relationId: 1,
-    scheduleVersion: 1, failureVersion: 1, failureIndex: 1, updatedAt: 1, buriedUntil: 1, suspended: 1, supersededByAnki: 1, isNew: 1,
+    scheduleVersion: 1, failureVersion: 1, failureIndex: 1, articleFailureIndex: 1, articleFailureAttemptIds: 1, againPending: 1, updatedAt: 1, buriedUntil: 1, suspended: 1, supersededByAnki: 1, isNew: 1,
     "card.sourceCardId": 1, "card.sourceNoteGuid": 1, "card.direction": 1 }).batchSize(STUDY_SUMMARY_BATCH_SIZE).toArray();
   const byId = new Map(existing.map(p => [String(p.itemId), p]));
   const same = (a: unknown, b: unknown) => a instanceof Date && b instanceof Date ? +a === +b : String(a) === String(b);
-  const keys = ['itemType', 'relationId', 'scheduleVersion', 'failureVersion', 'failureIndex', 'updatedAt', 'buriedUntil', 'suspended', 'supersededByAnki', 'isNew'] as const;
+  const keys = ['itemType', 'relationId', 'scheduleVersion', 'failureVersion', 'failureIndex', 'articleFailureIndex', 'articleFailureAttemptIds', 'againPending', 'updatedAt', 'buriedUntil', 'suspended', 'supersededByAnki', 'isNew'] as const;
   if (rows.every(row => {
     const previous = byId.get(String(row.itemId));
     return previous && keys.every(key => same(row[key], previous[key])) && !!row.card === !!previous.card
@@ -130,7 +130,7 @@ export async function loadDueStudyProgress(
       return prepared.candidates.then(rows => rows.filter(p => isDueStudyCandidate(p, now, categorySet)));
     }
     const query: any = { ...categoryProgressFilter(categoryIds), userId: userObjectId, suspended: { $ne: true }, supersededByAnki: { $ne: true },
-      $or: [{ temporaryDueDate: { $lte: now } }, { temporaryDueDate: null, nextDueDate: { $lte: new Date(now.getTime() + 1200000) } }, { isNew: true }] };
+      $or: [AGAIN_PENDING_FILTER, { temporaryDueDate: { $lte: now } }, { temporaryDueDate: null, nextDueDate: { $lte: new Date(now.getTime() + 1200000) } }, { isNew: true }] };
     if (itemType) query.itemType = itemType;
     return projection ? readPackedStudyCandidates(db.progress, query, projection, STUDY_SUMMARY_BATCH_SIZE)
       : db.progress.find(query).batchSize(STUDY_CONTENT_BATCH_SIZE).toArray();
@@ -285,7 +285,7 @@ export async function loadStudyQueueCounts(
     newCards = selectStudyQueue(applyDailyLimit(candidates, limit), counts, now, 0, availableNew, true, curriculum.compare).filter(p=>p.scheduler.phase === "NEW").length;
   }
   const summary = { new: newCards,
-    learning: ready.learning + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>["LEARNING","RELEARNING"].includes(p.scheduler.phase) && effectiveDueDate(p) <= now).length,
+    learning: ready.learning + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>["LEARNING","RELEARNING"].includes(p.scheduler.phase) && (isAgainPending(p) || effectiveDueDate(p) <= now)).length,
     review: ready.review + progress.filter(p=>!p.suspended && (!p.buriedUntil || p.buriedUntil<=now)).filter(p=>p.scheduler.phase === "REVIEW" && effectiveDueDate(p) <= now).length };
   if (prepared?.countersOnly) return summary;
   const catalogIds: ObjectId[] = [];

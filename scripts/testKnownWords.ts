@@ -14,7 +14,7 @@ import type { UserProgress } from '../src/features/progress/progress.types.js';
 assert.match(process.env.GRAMATIK_ISOLATED_FIXTURE ?? '', /^known_fixture_\d+_[a-f0-9]{12}$/, 'Run only through the isolated fixture runner');
 const endpoint = new URL(process.env.MONGODB_URI!);
 assert.equal(endpoint.hostname, '127.0.0.1');
-assert.ok(['27935', '27019'].includes(endpoint.port));
+assert.ok(['27935', '27019', '27043'].includes(endpoint.port));
 const userId = new ObjectId(), now = new Date('2026-10-14T12:00:00Z');
 function card(direction: 'DE_ES' | 'ES_DE' = 'DE_ES', note = randomUUID()): UserProgress {
   const p: UserProgress = { _id: new ObjectId(), userId, itemId: new ObjectId(), itemType: 'WORD',
@@ -31,15 +31,17 @@ for (const date of ['2026-10-15T12:00:00Z', '2026-03-28T23:30:00Z', '2026-10-24T
   assert.equal(+known.nextDueDate, +dateForStudyDay(studyDay(at, 'Europe/Berlin', 4) + 180, 'Europe/Berlin', 4));
   const due = known.nextDueDate;
   const options = studyReviewOptions(known, due);
-  for (const [grade, days] of [['AGAIN', 1], ['HARD', 180], ['GOOD', 270], ['EASY', 365]] as const) {
+  for (const [grade, days] of [['HARD', 180], ['GOOD', 270], ['EASY', 365]] as const) {
     const next = scheduleStudyReview(known, grade, due);
     assert.equal(next.delaySeconds, days * 86400);
     assert.equal(options.find(option => option.grade === grade)?.nextDueDate, next.nextDueDate.toISOString());
     assert.equal(+next.nextDueDate, +dateForStudyDay(studyDay(due, 'Europe/Berlin', 4) + days, 'Europe/Berlin', 4));
   }
   const again = { ...known, ...scheduleStudyReview(known, 'AGAIN', due) };
-  assert.equal(again.scheduler.knownInterval, 180); assert.equal(again.lapses, 1);
-  assert.equal(scheduleStudyReview(again, 'HARD', again.nextDueDate).interval, 180);
+  assert.equal(again.scheduler.knownInterval, undefined); assert.equal(again.lapses, 1);
+  assert.equal(again.againPending, true); assert.equal(again.scheduler.phase, 'RELEARNING'); assert.equal(again.delaySeconds, 600);
+  assert.equal(scheduleStudyReview(again, 'HARD', again.nextDueDate).interval, 1);
+  assert.equal(scheduleStudyReview(again, 'HARD', again.nextDueDate).againPending, false);
   const good = { ...known, ...scheduleStudyReview(known, 'GOOD', due) };
   assert.equal(scheduleStudyReview(good, 'GOOD', good.nextDueDate).interval, 405);
   const easy = { ...known, ...scheduleStudyReview(known, 'EASY', due) };
@@ -50,7 +52,7 @@ for (const date of ['2026-10-15T12:00:00Z', '2026-03-28T23:30:00Z', '2026-10-24T
 }
 assert.throws(() => scheduleStudyReview({ ...card(), itemType: 'PHRASE' }, 'KNOWN', now));
 const ordinary = card(); assert.equal(scheduleStudyReview(ordinary, 'EASY', now).scheduler.knownInterval, undefined);
-console.log('PASS future due-date simulations, DST/rollover/leap dates, exact previews, lapse anchor, growth, Revisit and ordinary-card isolation');
+console.log('PASS future due-date simulations, DST/rollover/leap dates, exact previews, forgotten-anchor reset, growth, Revisit and ordinary-card isolation');
 
 const db = await connectDatabase();
 try {

@@ -7,6 +7,8 @@ type UserProgress {
   itemType: String!
   relationId: ID
   failureIndex: Int!
+  articleFailureIndex: Int!
+  articleFailureAttemptIds: [String!]!
   lastFailedAt: String
   totalReviews: Int!
   lapses: Int!

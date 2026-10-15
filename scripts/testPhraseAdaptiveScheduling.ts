@@ -27,7 +27,7 @@ for (const time of ['2026-03-28T03:01:00Z', '2026-10-24T02:01:00Z', '2026-10-25T
       assert.equal(next.scheduler.phase, ['AGAIN', 'HARD'].includes(option.grade) ? 'LEARNING' : 'REVIEW');
       assert.equal(next.totalReviews, 1); assert.equal(next.isNew, false);
       assert.deepEqual(next.scheduler.options, unstudied.scheduler.options);
-      assert.equal(selectStudyQueue([next], new Map(), new Date(+next.nextDueDate - 1), 10, 0).length, 0);
+      assert.equal(selectStudyQueue([next], new Map(), new Date(+next.nextDueDate - 1), 10, 0).length, option.grade === 'AGAIN' ? 1 : 0, 'Outstanding Again alone bypasses the ordinary future date');
       assert.equal(selectStudyQueue([next], new Map(), next.nextDueDate, 10, 0).length, 1);
       initialCases++;
     }
