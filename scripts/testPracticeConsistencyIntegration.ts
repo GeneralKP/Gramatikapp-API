@@ -49,6 +49,7 @@ try {
     const reviewId = randomUUID(), receipt = await saveReview(userId, fresh.itemId, 'WORD', grade, reviewId, 0);
     const saved = await db.progress.findOne({ _id: fresh._id });
     assert.ok(saved.nextDueDate > start);
+    assert.equal(saved.againPending, grade === 'AGAIN');
     assert.deepEqual(normalize(receipt.progress), normalize({ ...saved, extraPractice: false }), 'Normal response equals the actual committed MongoDB row');
     assert.equal(saved.failureIndex, fresh.failureIndex);
     assert.equal((await db.reviewEvents.findOne({ userId, reviewId })).after.nextDueDate.toISOString(), saved.nextDueDate.toISOString());
@@ -59,21 +60,22 @@ try {
       mock.timers.setTime(time);
       for (const mode of ['WORD', undefined]) {
         const result = await automatic(mode);
-        assert.deepEqual(result.ids, [], `${grade}: word-to-mixed selection is unavailable before the exact saved due instant`);
-        assert.deepEqual(result.compact.items, []);
-        assert.deepEqual(result.compact.counts, { new: 0, learning: 0, review: 0 });
+        assert.deepEqual(result.ids, grade === 'AGAIN' ? [String(fresh.itemId)] : [], `${grade}: word-to-mixed selection retains unresolved Again while other ratings wait for the exact saved due instant`);
+        assert.deepEqual(result.compact.items.map(p => p.id), result.ids);
+        assert.deepEqual(result.compact.counts, { new: 0, learning: grade === 'AGAIN' ? 1 : 0, review: 0 });
       }
     }
     mock.timers.setTime(+saved.nextDueDate);
     for (const mode of ['WORD', undefined]) {
       const result = await automatic(mode);
-      assert.deepEqual(result.ids, [String(fresh.itemId)], `${grade}: legitimate repetition appears exactly when due`);
+      assert.deepEqual(result.ids, [String(fresh.itemId)], `${grade}: learning repetition is available at the saved due instant`);
       assert.deepEqual(result.compact.items.map(p => p.id), result.ids);
       assert.deepEqual(result.compact.counts, { new: 0, learning: 1, review: 0 });
     }
     const undone = await undoReview(userId, reviewId);
     assert.equal(undone.progress.nextDueDate.toISOString(), fresh.nextDueDate.toISOString());
     assert.equal(undone.progress.totalReviews ?? 0, 0);
+    assert.equal(undone.progress.againPending, undefined, 'Undo restores the absent pre-review retry flag');
     assert.equal(undone.progress.failureIndex, fresh.failureIndex);
     assert.equal((await undoReview(userId, reviewId)).progress.scheduleVersion, undone.progress.scheduleVersion);
   }
@@ -92,7 +94,7 @@ try {
   assert.deepEqual(normalize(matureReceipt.progress), normalize({ ...matureSaved, extraPractice: false }));
   assert.deepEqual(commands, ['find', 'find', 'insert', 'update'], 'Real established review uses four sequential data commands');
   console.log(JSON.stringify({ establishedReviewDataCommands: commands.length, commands, loopbackReviewMs: Number(elapsed.toFixed(2)) }));
-  console.log('PASS real isolated transactions: word/mixed exact due and counters, legitimate repetition, committed response, retry, stale version, Undo and failure preservation');
+  console.log('PASS real isolated transactions: immediate Again and ordinary exact due across word/mixed counters, committed response, retry, stale version, Undo and failure preservation');
 } finally {
   await originalDb.call(getDatabaseClient(), databaseName).dropDatabase();
   await closeDatabase();
