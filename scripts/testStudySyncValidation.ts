@@ -15,3 +15,9 @@ assert.deepEqual(selectStudyQueue(pair,new Map(),now,0,1,true).map(p=>p.card.dir
 assert.equal(selectStudyQueue(pair,new Map(),now,0,1).length,0,'ordinary small fetches still preserve complete introductions');
 assert.equal(selectStudyQueue(pair,new Map([['App',{new:1,review:0}]]),now,0,1,true).length,0);
 console.log('PASS individual daily cap of one, recognition-first order, cap exhaustion and ordinary paired fetches');
+
+const article = { id: randomUUID(), kind: 'ARTICLE_FAILURE', itemId: String(new ObjectId()), itemType: 'WORD', occurredAt: now.toISOString(), sessionId: randomUUID() };
+assert.equal(validateStudyOperations([article]).length, 1);
+for (const extra of [{ grade: 'HARD' }, { reviewId: job.id }, { expectedVersion: 0 }, { earlyReview: false }, { itemType: 'PHRASE' }, { edit: {} }])
+  assert.throws(() => validateStudyOperations([{ ...article, ...extra }]), 'Article commands accept counter fields only');
+console.log('PASS independent article command validation and forbidden schedule fields');

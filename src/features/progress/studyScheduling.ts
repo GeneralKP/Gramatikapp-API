@@ -1,5 +1,5 @@
 import type { UserProgress } from './progress.types.js';
-import { GRADES, dateForStudyDay, initialScheduler, normalizeUnstudiedProgress, scheduleReview, studyDay, type Grade } from './scheduler.js';
+import { DEFAULT_OPTIONS, GRADES, dateForStudyDay, initialScheduler, normalizeUnstudiedProgress, scheduleReview, studyDay, type Grade } from './scheduler.js';
 export type StudyGrade = Grade | 'REVISIT' | 'KNOWN';
 export const PHRASE_FIRST_INTERVALS = { AGAIN: 7, HARD: 30, GOOD: 180, EASY: 365 };
 // Minutes for learning steps; days for graduation and the lapse interval.
@@ -9,10 +9,22 @@ export const PHRASE_SCHEDULING_PRESET = {
   graduatingGood: 180, graduatingEasy: 365, minimumLapseInterval: 21,
 };
 export const effectiveDueDate = (progress: UserProgress) => progress.temporaryDueDate ?? progress.nextDueDate;
+export const isAgainPending = (progress: UserProgress) => progress.againPending === true
+  && ['LEARNING', 'RELEARNING'].includes(progress.scheduler?.phase);
+
+/** App recall cannot graduate on Again even when a deck disables learning steps.
+ * The classic Anki engine and the original saved options remain unchanged. */
+function recallReview(progress: UserProgress, grade: Grade, now: Date, earlyReview: boolean) {
+  const current = progress.scheduler ?? initialScheduler(progress);
+  const field = current.phase === 'REVIEW' || current.phase === 'RELEARNING' ? 'relearningSteps' : 'learningSteps';
+  if (grade !== 'AGAIN' || current.options[field].length) return scheduleReview(progress, grade, now, earlyReview);
+  const next = scheduleReview({ ...progress, scheduler: { ...current, options: { ...current.options, [field]: DEFAULT_OPTIONS[field] } } }, grade, now, earlyReview);
+  return { ...next, scheduler: { ...next.scheduler, options: current.options } };
+}
 /** Manual date changes preserve phase, interval, repetitions and review history. */
 export function rescheduleStudyCard(progress: UserProgress, due: Date, now = new Date()) {
   if (!Number.isFinite(+due)) throw new Error('Invalid due date.');
-  return { nextDueDate: due, temporaryDueDate: null, buriedUntil: progress.scheduler.phase === 'NEW' && due > now ? due : null };
+  return { nextDueDate: due, temporaryDueDate: null, againPending: false, buriedUntil: progress.scheduler.phase === 'NEW' && due > now ? due : null };
 }
 /** An unintroduced production card cannot precede its manually deferred recognition card. */
 export function isRescheduleFollower(progress: UserProgress, sibling: UserProgress): boolean {
@@ -20,8 +32,12 @@ export function isRescheduleFollower(progress: UserProgress, sibling: UserProgre
     && !!progress.card.sourceNoteGuid && sibling.itemType === 'WORD' && sibling.scheduler.phase === 'NEW'
     && sibling.card?.direction === 'ES_DE' && sibling.card.sourceNoteGuid === progress.card.sourceNoteGuid;
 }
-export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, now: Date, earlyReview = false): Omit<ReturnType<typeof scheduleReview>, "lastReviewed"> & { lastReviewed: Date | null; temporaryDueDate?: Date; buriedUntil?: Date | null } {
+function scheduleStudyTransition(progress: UserProgress, grade: StudyGrade, now: Date, earlyReview = false): Omit<ReturnType<typeof scheduleReview>, "lastReviewed"> & { lastReviewed: Date | null; temporaryDueDate?: Date; buriedUntil?: Date | null } {
   progress = normalizeUnstudiedProgress(progress, now);
+  if (grade === 'AGAIN' && progress.scheduler?.knownInterval) {
+    const { knownInterval: _knownInterval, ...scheduler } = progress.scheduler;
+    progress = { ...progress, scheduler };
+  }
   if (grade === 'KNOWN' || progress.itemType === 'WORD' && progress.scheduler.knownInterval) {
     if (grade === 'KNOWN' && (progress.itemType !== 'WORD' || progress.card?.direction === 'CLOZE')) throw new Error('Known is available for word cards.');
     if (grade !== 'REVISIT') {
@@ -107,7 +123,11 @@ export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, n
     }
     return { ...next, scheduler: { ...next.scheduler, options }, temporaryDueDate: undefined };
   }
-  return { ...scheduleReview(progress, grade, now, earlyReview), temporaryDueDate: undefined };
+  return { ...recallReview(progress, grade, now, earlyReview), temporaryDueDate: undefined };
+}
+/** Retry intent is durable but does not rewrite the ordinary calculated due time. */
+export function scheduleStudyReview(progress: UserProgress, grade: StudyGrade, now: Date, earlyReview = false) {
+  return { ...scheduleStudyTransition(progress, grade, now, earlyReview), againPending: grade === 'AGAIN' };
 }
 export function studyReviewOptions(progress: UserProgress, now = new Date(), earlyReview = false) {
   progress = normalizeUnstudiedProgress(progress, now);

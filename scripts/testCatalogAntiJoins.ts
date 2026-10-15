@@ -163,12 +163,12 @@ const budget = (ok: boolean, message: string) => { if (!ok) failures.push(messag
     await comparePublic(`relations/${limit ?? "omitted"}`, "wordRelationsWithoutPhrases", limit === undefined ? {} : { limit });
   }
   for (const [operation, args] of [["wordsWithoutTranslation", { lang: "ES", limit: 0 }], ["wordsWithoutTranslation", { lang: "DE", limit: 0 }], ["wordRelationsWithoutPhrases", { limit: 0 }]] as const) {
-    const errors: any[] = [];
-    for (const resolvers of [baseline, current]) {
-      try { await resolvers.Query[operation](null, args as any); assert.fail("MongoDB 8 must preserve the old invalid $limit:0 error"); }
-      catch (error) { assert.ok(error instanceof MongoServerError); errors.push({ code: error.code, codeName: error.codeName, message: error.message }); }
-    }
-    assert.deepEqual(errors[1], errors[0]);
+    await assert.rejects(() => baseline.Query[operation](null, args as any), MongoServerError, "The baseline sends its invalid limit to MongoDB");
+    reads = [];
+    try {
+      await assert.rejects(() => current.Query[operation](null, args as any), /Choose a catalog limit from 1 to 500/);
+      assert.deepEqual(reads, [], "Invalid public bounds must be rejected before any MongoDB query");
+    } finally { reads = undefined; }
   }
   const orphanWords = await current.Query.wordsWithoutTranslation(null, { lang: "ES", limit: 100 });
   assert.equal(orphanWords[0].id, es[120]._id.toString(), "Result limit must follow all earlier linked words");
@@ -178,7 +178,7 @@ const budget = (ok: boolean, message: string) => { if (!ok) failures.push(messag
   assert.equal(orphanRelations[0].id, regular[90]._id.toString(), "Relation limit follows anti-join eligibility");
   assert.ok(orphanRelations.some(row => row.id === edge[8]._id.toString()), "Phrase string keys do not match ObjectId relation endpoints");
   assert.ok(!orphanRelations.some(row => [0, 1, 3, 9, 10].some(n => row.id === edge[n]._id.toString())), "Null, missing and array endpoints retain phrase equality semantics");
-  console.log("PASS exact ordered ES/DE public results and hydration, duplicate/missing/null/typed/array endpoints, phrase arrays, limits omitted/0/1/20/100");
+  console.log("PASS exact ordered ES/DE public results and hydration, duplicate/missing/null/typed/array endpoints, phrase arrays, valid limits omitted/1/20/100 and invalid zero rejected before MongoDB");
 
   // At least 6k word/relation/phrase rows expose real nested foreign COLLSCAN work.
   await clearCatalog();

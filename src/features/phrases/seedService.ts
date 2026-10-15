@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
-import { Database } from "../../lib/database.js";
-import { Word } from "../words/words.types.js";
-import { Phrase } from "./phrases.types.js";
+import type { Database } from "../../lib/database.js";
+import type { RelatedWords, Word, WordForms } from "../words/words.types.js";
+import type { PerWordExplanation, Phrase } from "./phrases.types.js";
 import { invalidateStudyCatalog } from "../progress/catalogSummaryCache.js";
 
 // ─── Input JSON shape ────────────────────────────────────────────────
@@ -10,23 +10,8 @@ export interface SeedWordInput {
   word: string;
   gramaticalCategories: string[];
   examples: string[];
-  relatedWords?: {
-    synonyms?: string[];
-    antonyms?: string[];
-    homophones?: string[];
-    homonymous?: string[];
-    paronyms?: string[];
-    verbFamilies?: string[];
-  };
-  forms?: {
-    perfect?: string;
-    past?: string;
-    imperativ?: string;
-    irregularConjugations?: string;
-    plural?: string;
-    gender?: string;
-    gramaticalCase?: string;
-  };
+  relatedWords?: RelatedWords;
+  forms?: WordForms;
   contexts: string[];
   level?: string;
   notes?: string;
@@ -37,10 +22,7 @@ export interface SeedPhraseInput {
   phrase: string;
   synonyms?: string[];
   wordRefs?: string[]; // tempIds pointing to words
-  perWordExplanation?: Record<
-    string,
-    { missing?: string; misplaced?: string; misspelled?: string }
-  >;
+  perWordExplanation?: Record<string, PerWordExplanation>;
   level?: string;
   contexts: string[];
 }
@@ -103,176 +85,89 @@ async function insertSeedData(db: Database, data: SeedDataInput): Promise<Import
     },
   };
 
-  // Maps: tempId → real ObjectId
-  const wordIdMap = new Map<string, ObjectId>();
+  // Shared across languages so later duplicate tempIds retain their original
+  // last-write behavior, including cross-language references.
+  const wordIds = new Map<string, ObjectId>();
+  const phraseIds = new Map<string, ObjectId>();
 
-  // ── 1. Process German words ──────────────────────────────────────
-  for (const w of data.words_de || []) {
-    const existing = await db.wordsDE.findOne({ word: w.word });
-    if (existing) {
-      wordIdMap.set(w.tempId, existing._id);
-      result.wordsSkipped++;
-      result.details.wordsSkippedList.push(`[DE] ${w.word}`);
-    } else {
-      const newId = new ObjectId();
-      const doc: Word = {
-        _id: newId,
-        word: w.word,
-        gramaticalCategories: w.gramaticalCategories as any[],
-        examples: w.examples || [],
-        relatedWords: w.relatedWords as any,
-        forms: w.forms as any,
-        contexts: w.contexts as any[],
-        level: w.level as any,
-        notes: w.notes,
-        createdAt: new Date(),
-      };
-      await db.wordsDE.insertOne(doc);
-      wordIdMap.set(w.tempId, newId);
-      result.wordsCreated++;
-      result.details.wordsCreatedList.push(`[DE] ${w.word}`);
-    }
-  }
-
-  // ── 2. Process Spanish words ─────────────────────────────────────
-  for (const w of data.words_es || []) {
-    const existing = await db.wordsES.findOne({ word: w.word });
-    if (existing) {
-      wordIdMap.set(w.tempId, existing._id);
-      result.wordsSkipped++;
-      result.details.wordsSkippedList.push(`[ES] ${w.word}`);
-    } else {
-      const newId = new ObjectId();
-      const doc: Word = {
-        _id: newId,
-        word: w.word,
-        gramaticalCategories: w.gramaticalCategories as any[],
-        examples: w.examples || [],
-        relatedWords: w.relatedWords as any,
-        forms: w.forms as any,
-        contexts: w.contexts as any[],
-        level: w.level as any,
-        notes: w.notes,
-        createdAt: new Date(),
-      };
-      await db.wordsES.insertOne(doc);
-      wordIdMap.set(w.tempId, newId);
-      result.wordsCreated++;
-      result.details.wordsCreatedList.push(`[ES] ${w.word}`);
-    }
-  }
-
-  // ── 3. Create word relations ─────────────────────────────────────
-  for (const rel of data.word_relations || []) {
-    const mainId = wordIdMap.get(rel.main);
-    const translatedId = wordIdMap.get(rel.translated);
-    if (!mainId || !translatedId) {
-      console.warn(
-        `⚠ Word relation skipped — unresolved tempIds: main=${rel.main}, translated=${rel.translated}`,
-      );
-      continue;
-    }
-    // Check for existing relation
-    const existingRel = await db.relationsWordsEsDe.findOne({
-      main: mainId,
-      translated: translatedId,
-    });
-    if (!existingRel) {
-      await db.relationsWordsEsDe.insertOne({
+  async function insertWords(entries: SeedWordInput[], language: "DE" | "ES") {
+    const collection = language === "DE" ? db.wordsDE : db.wordsES;
+    for (const input of entries || []) {
+      const existing = await collection.findOne({ word: input.word });
+      if (existing) {
+        wordIds.set(input.tempId, existing._id);
+        result.wordsSkipped++;
+        result.details.wordsSkippedList.push(`[${language}] ${input.word}`);
+        continue;
+      }
+      const document: Word = {
         _id: new ObjectId(),
-        main: mainId,
-        translated: translatedId,
-        createdAt: new Date(),
-      });
-      result.relationsCreated++;
-    }
-  }
-
-  // Maps: phrase tempId → real ObjectId
-  const phraseIdMap = new Map<string, ObjectId>();
-
-  // ── 4. Process German phrases ────────────────────────────────────
-  for (const p of data.phrases_de || []) {
-    const existing = await db.phrasesDE.findOne({ phrase: p.phrase });
-    if (existing) {
-      phraseIdMap.set(p.tempId, existing._id);
-      result.phrasesSkipped++;
-      result.details.phrasesSkippedList.push(`[DE] ${p.phrase}`);
-    } else {
-      const newId = new ObjectId();
-      const resolvedWords = (p.wordRefs || [])
-        .map((ref) => wordIdMap.get(ref))
-        .filter(Boolean) as ObjectId[];
-      const doc: Phrase = {
-        _id: newId,
-        phrase: p.phrase,
-        synonyms: p.synonyms || [],
-        words: resolvedWords,
-        perWordExplanation: p.perWordExplanation as any,
-        level: p.level as any,
-        contexts: p.contexts as any[],
+        word: input.word,
+        gramaticalCategories: input.gramaticalCategories as Word["gramaticalCategories"],
+        examples: input.examples || [],
+        relatedWords: input.relatedWords,
+        forms: input.forms,
+        contexts: input.contexts,
+        level: input.level as Word["level"],
+        notes: input.notes,
         createdAt: new Date(),
       };
-      await db.phrasesDE.insertOne(doc);
-      phraseIdMap.set(p.tempId, newId);
-      result.phrasesCreated++;
-      result.details.phrasesCreatedList.push(`[DE] ${p.phrase}`);
+      await collection.insertOne(document);
+      wordIds.set(input.tempId, document._id);
+      result.wordsCreated++;
+      result.details.wordsCreatedList.push(`[${language}] ${input.word}`);
     }
   }
 
-  // ── 5. Process Spanish phrases ───────────────────────────────────
-  for (const p of data.phrases_es || []) {
-    const existing = await db.phrasesES.findOne({ phrase: p.phrase });
-    if (existing) {
-      phraseIdMap.set(p.tempId, existing._id);
-      result.phrasesSkipped++;
-      result.details.phrasesSkippedList.push(`[ES] ${p.phrase}`);
-    } else {
-      const newId = new ObjectId();
-      const resolvedWords = (p.wordRefs || [])
-        .map((ref) => wordIdMap.get(ref))
-        .filter(Boolean) as ObjectId[];
-      const doc: Phrase = {
-        _id: newId,
-        phrase: p.phrase,
-        synonyms: p.synonyms || [],
-        words: resolvedWords,
-        perWordExplanation: p.perWordExplanation as any,
-        level: p.level as any,
-        contexts: p.contexts as any[],
-        createdAt: new Date(),
-      };
-      await db.phrasesES.insertOne(doc);
-      phraseIdMap.set(p.tempId, newId);
-      result.phrasesCreated++;
-      result.details.phrasesCreatedList.push(`[ES] ${p.phrase}`);
-    }
-  }
-
-  // ── 6. Create phrase relations ───────────────────────────────────
-  for (const rel of data.phrase_relations || []) {
-    const mainId = phraseIdMap.get(rel.main);
-    const translatedId = phraseIdMap.get(rel.translated);
-    if (!mainId || !translatedId) {
-      console.warn(
-        `⚠ Phrase relation skipped — unresolved tempIds: main=${rel.main}, translated=${rel.translated}`,
-      );
-      continue;
-    }
-    const existingRel = await db.relationsPhrasesEsDe.findOne({
-      main: mainId,
-      translated: translatedId,
-    });
-    if (!existingRel) {
-      await db.relationsPhrasesEsDe.insertOne({
+  async function insertPhrases(entries: SeedPhraseInput[], language: "DE" | "ES") {
+    const collection = language === "DE" ? db.phrasesDE : db.phrasesES;
+    for (const input of entries || []) {
+      const existing = await collection.findOne({ phrase: input.phrase });
+      if (existing) {
+        phraseIds.set(input.tempId, existing._id);
+        result.phrasesSkipped++;
+        result.details.phrasesSkippedList.push(`[${language}] ${input.phrase}`);
+        continue;
+      }
+      const document: Phrase = {
         _id: new ObjectId(),
-        main: mainId,
-        translated: translatedId,
+        phrase: input.phrase,
+        synonyms: input.synonyms || [],
+        words: (input.wordRefs || []).map(ref => wordIds.get(ref)).filter(Boolean) as ObjectId[],
+        perWordExplanation: input.perWordExplanation,
+        level: input.level as Phrase["level"],
+        contexts: input.contexts,
         createdAt: new Date(),
-      });
-      result.relationsCreated++;
+      };
+      await collection.insertOne(document);
+      phraseIds.set(input.tempId, document._id);
+      result.phrasesCreated++;
+      result.details.phrasesCreatedList.push(`[${language}] ${input.phrase}`);
     }
   }
 
+  async function insertRelations(entries: SeedRelationInput[], ids: Map<string, ObjectId>, kind: "Word" | "Phrase") {
+    const collection = kind === "Word" ? db.relationsWordsEsDe : db.relationsPhrasesEsDe;
+    for (const input of entries || []) {
+      const main = ids.get(input.main), translated = ids.get(input.translated);
+      if (!main || !translated) {
+        console.warn(`⚠ ${kind} relation skipped — unresolved tempIds: main=${input.main}, translated=${input.translated}`);
+        continue;
+      }
+      if (!await collection.findOne({ main, translated })) {
+        await collection.insertOne({ _id: new ObjectId(), main, translated, createdAt: new Date() });
+        result.relationsCreated++;
+      }
+    }
+  }
+
+  // Preserve sequential stage order: phrases can reference every inserted word,
+  // and a later failure must not erase inserts completed by an earlier stage.
+  await insertWords(data.words_de, "DE");
+  await insertWords(data.words_es, "ES");
+  await insertRelations(data.word_relations, wordIds, "Word");
+  await insertPhrases(data.phrases_de, "DE");
+  await insertPhrases(data.phrases_es, "ES");
+  await insertRelations(data.phrase_relations, phraseIds, "Phrase");
   return result;
 }

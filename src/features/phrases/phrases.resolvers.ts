@@ -1,10 +1,38 @@
 import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
 import { catalogProjection } from "../levels/catalogProjection.js";
+import { catalogListBounds } from "../levels/catalogBounds.js";
+import {
+  toGraphQLDocument,
+  toGraphQLRelation,
+  type GraphQLCatalogDocument,
+  type JoinedCatalogDocuments,
+  type ProjectedCatalogDocument,
+} from "../levels/catalogGraphQL.js";
 import type { GraphQLResolveInfo } from "graphql";
-import { ObjectId, Filter } from "mongodb";
+import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
 import { translate as translateText } from "./phrases.service.js";
-import { processSeedData, SeedDataInput } from "./seedService.js";
+import { processSeedData, type SeedDataInput } from "./seedService.js";
+import type { Phrase, PhraseRelation } from "./phrases.types.js";
+import type { Word } from "../words/words.types.js";
+import { requireUserId, type AuthContext } from "../auth/auth.context.js";
+
+type PhraseDocument = ProjectedCatalogDocument<Phrase>;
+type PhraseParent = Omit<Partial<Phrase>, "createdAt" | "perWordExplanation"> & { createdAt?: Date | string };
+type PhraseRelationDocument = ProjectedCatalogDocument<PhraseRelation> & JoinedCatalogDocuments<PhraseDocument>;
+type PhraseRelationParent = Partial<Pick<PhraseRelation, "main" | "translated">> & {
+  mainDoc?: PhraseDocument | null;
+  translatedDoc?: PhraseDocument | null;
+};
+
+function toGraphQLPhrase(phrase: PhraseDocument | null | undefined) {
+  if (!phrase) return null;
+  return {
+    ...toGraphQLDocument(phrase),
+    perWordExplanation: Object.entries(phrase.perWordExplanation ?? {})
+      .map(([key, value]) => ({ key, value })),
+  };
+}
 
 export const phrasesResolvers = {
   Query: {
@@ -12,10 +40,11 @@ export const phrasesResolvers = {
       _: unknown,
       {
         lang,
-        limit = 100,
-        offset = 0,
+        limit: requestedLimit,
+        offset: requestedOffset,
       }: { lang: string; limit?: number; offset?: number },
     ) => {
+      const { limit, offset } = catalogListBounds({ limit: requestedLimit, offset: requestedOffset });
       const db = getDb();
       const collection =
         lang.toUpperCase() === "DE" ? db.phrasesDE : db.phrasesES;
@@ -24,21 +53,7 @@ export const phrasesResolvers = {
         .skip(offset)
         .limit(limit)
         .toArray();
-      return phrases.map((p) => {
-        // Convert perWordExplanation Map into array
-        const perWordArr: { key: string; value: any }[] = [];
-        if (p.perWordExplanation) {
-          for (const [k, v] of Object.entries(p.perWordExplanation)) {
-            perWordArr.push({ key: k, value: v });
-          }
-        }
-        return {
-          ...p,
-          id: p._id.toString(),
-          perWordExplanation: perWordArr,
-          createdAt: p.createdAt?.toISOString(),
-        };
-      });
+      return phrases.map(toGraphQLPhrase);
     },
 
     newPhrase: async (
@@ -49,66 +64,42 @@ export const phrasesResolvers = {
       const collection =
         lang.toUpperCase() === "DE" ? db.phrasesDE : db.phrasesES;
       const phrase = await collection.findOne({ _id: new ObjectId(id) });
-      if (!phrase) return null;
-
-      const perWordArr: { key: string; value: any }[] = [];
-      if (phrase.perWordExplanation) {
-        for (const [k, v] of Object.entries(phrase.perWordExplanation)) {
-          perWordArr.push({ key: k, value: v });
-        }
-      }
-      return {
-        ...phrase,
-        id: phrase._id.toString(),
-        perWordExplanation: perWordArr,
-        createdAt: phrase.createdAt?.toISOString(),
-      };
+      return toGraphQLPhrase(phrase);
     },
 
-    phraseRelations: async (_: unknown, args: CatalogArgs, _context: unknown, info?: GraphQLResolveInfo) => {
+    phraseRelations: async (
+      _: unknown,
+      args: CatalogArgs,
+      _context: unknown,
+      info?: GraphQLResolveInfo,
+    ) => {
       const db = getDb();
       const relations = await db.relationsPhrasesEsDe
-        .aggregate(catalogPipeline(args, "PHRASES_ES", "PHRASES_DE", "phrase", catalogProjection(info)))
+        .aggregate<PhraseRelationDocument>(catalogPipeline(args, "PHRASES_ES", "PHRASES_DE", "phrase", catalogProjection(info)))
         .toArray();
 
-      return relations.map((r) => {
-        const doc: any = { ...r };
-        if (r.mainDocs && r.mainDocs.length > 0) doc.mainDoc = r.mainDocs[0];
-        if (r.translatedDocs && r.translatedDocs.length > 0)
-          doc.translatedDoc = r.translatedDocs[0];
-        return {
-          ...doc,
-          id: doc._id.toString(),
-          createdAt: doc.createdAt?.toISOString(),
-        };
-      });
+      return relations.map(toGraphQLRelation);
     },
   },
 
   NewPhrase: {
-    level: (parent: any) => parent.cefrLevel?.split(".")[0] ?? parent.level ?? null,
-    words: async (parent: any, _: unknown, context: any, info: any) => {
+    level: (parent: PhraseParent) => parent.cefrLevel?.split(".")[0] ?? parent.level ?? null,
+    words: async (parent: PhraseParent) => {
       const db = getDb();
-      // Since a phrase might be from DE or ES, we'll try to find the words in both or one collection.
-      // But we know 'lang' from the query or by matching `_id`. Actually, we can just search wordsES and wordsDE.
+      // Keep phrase order and duplicates, preferring Spanish when an ID exists in both languages.
       const wordIds: ObjectId[] = parent.words || [];
-      const res = [];
+      const words: GraphQLCatalogDocument<Word>[] = [];
       for (const wid of wordIds) {
         let w = await db.wordsES.findOne({ _id: wid });
         if (!w) w = await db.wordsDE.findOne({ _id: wid });
-        if (w)
-          res.push({
-            ...w,
-            id: w._id.toString(),
-            createdAt: w.createdAt?.toISOString(),
-          });
+        if (w) words.push(toGraphQLDocument(w));
       }
-      return res;
+      return words;
     },
   },
 
   PhraseRelation: {
-    main: async (parent: any) => {
+    main: async (parent: PhraseRelationParent) => {
       let phrase = parent.mainDoc;
       if (!("mainDoc" in parent)) {
         const db = getDb();
@@ -116,22 +107,9 @@ export const phrasesResolvers = {
           _id: new ObjectId(parent.main),
         });
       }
-      if (!phrase) return null;
-
-      const perWordArr: { key: string; value: any }[] = [];
-      if (phrase.perWordExplanation) {
-        for (const [k, v] of Object.entries(phrase.perWordExplanation)) {
-          perWordArr.push({ key: k, value: v });
-        }
-      }
-      return {
-        ...phrase,
-        id: phrase._id.toString(),
-        perWordExplanation: perWordArr,
-        createdAt: phrase.createdAt?.toISOString(),
-      };
+      return toGraphQLPhrase(phrase);
     },
-    translated: async (parent: any) => {
+    translated: async (parent: PhraseRelationParent) => {
       let phrase = parent.translatedDoc;
       if (!("translatedDoc" in parent)) {
         const db = getDb();
@@ -139,20 +117,7 @@ export const phrasesResolvers = {
           _id: new ObjectId(parent.translated),
         });
       }
-      if (!phrase) return null;
-
-      const perWordArr: { key: string; value: any }[] = [];
-      if (phrase.perWordExplanation) {
-        for (const [k, v] of Object.entries(phrase.perWordExplanation)) {
-          perWordArr.push({ key: k, value: v });
-        }
-      }
-      return {
-        ...phrase,
-        id: phrase._id.toString(),
-        perWordExplanation: perWordArr,
-        createdAt: phrase.createdAt?.toISOString(),
-      };
+      return toGraphQLPhrase(phrase);
     },
   },
 
@@ -160,20 +125,24 @@ export const phrasesResolvers = {
     translate: async (
       _: unknown,
       { text, targetLang = "ES" }: { text: string; targetLang?: string },
-      context: { user: unknown },
+      context: AuthContext,
     ) => {
-      if (!context.user) throw new Error("Unauthorized");
+      requireUserId(context);
       return translateText(text, targetLang);
     },
 
-    importSeedData: async (_: unknown, { jsonData }: { jsonData: string }, context: { user: unknown }) => {
-      if (!context.user) throw new Error("Unauthorized");
+    importSeedData: async (
+      _: unknown,
+      { jsonData }: { jsonData: string },
+      context: AuthContext,
+    ) => {
+      requireUserId(context);
       const db = getDb();
-      let data: any;
+      let data: SeedDataInput;
       try {
         data = JSON.parse(jsonData);
-      } catch (err: any) {
-        throw new Error(`Invalid JSON: ${err.message}`);
+      } catch (error) {
+        throw new Error(`Invalid JSON: ${(error as SyntaxError).message}`);
       }
       const result = await processSeedData(db, data);
       return {

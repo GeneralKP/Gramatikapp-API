@@ -1,32 +1,46 @@
 import { catalogPipeline, type CatalogArgs } from "../levels/catalogQuery.js";
 import { catalogProjection } from "../levels/catalogProjection.js";
+import { catalogListBounds } from "../levels/catalogBounds.js";
+import {
+  toGraphQLDocument,
+  toGraphQLRelation,
+  type JoinedCatalogDocuments,
+  type ProjectedCatalogDocument,
+} from "../levels/catalogGraphQL.js";
 import type { GraphQLResolveInfo } from "graphql";
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
-import { Word, WordRelation } from "./words.types.js";
+import type { Word, WordRelation } from "./words.types.js";
+import { requireUserId, type AuthContext } from "../auth/auth.context.js";
 import { invalidateStudyCatalog } from "../progress/catalogSummaryCache.js";
 import { dictionaryWord } from "./reviewedWordContent.js";
 
-function toGraphQL(doc: any) {
-  if (!doc) return null;
-  return {
-    ...doc,
-    id: doc._id.toString(),
-    createdAt: doc.createdAt?.toISOString(),
-  };
-}
+type WordDocument = ProjectedCatalogDocument<Word>;
+type WordParent = Omit<Partial<Word>, "createdAt"> & { id?: string; createdAt?: Date | string };
+type WordRelationDocument = ProjectedCatalogDocument<WordRelation> & JoinedCatalogDocuments<WordDocument>;
+type WordRelationParent = Partial<Pick<WordRelation, "main" | "translated">> & {
+  mainDoc?: WordDocument | null;
+  translatedDoc?: WordDocument | null;
+  study?: unknown;
+};
 
 export const wordsResolvers = {
   Word: {
-    level: (parent: any) => parent.cefrLevel?.split(".")[0] ?? parent.level ?? null,
-    failureIndex: async (parent: any, _: unknown, context: any) => {
+    level: (parent: WordParent) => parent.cefrLevel?.split(".")[0] ?? parent.level ?? null,
+    failureIndex: async (parent: WordParent, _: unknown, context: AuthContext) => {
       if (!context.user) return 0;
       const db = getDb();
       const wordId = new ObjectId(parent.id || parent._id);
-      const relations = await db.relationsWordsEsDe.find({ $or: [{ main: wordId }, { translated: wordId }] }).project({ _id: 1 }).toArray();
+      const relations = await db.relationsWordsEsDe
+        .find({ $or: [{ main: wordId }, { translated: wordId }] })
+        .project({ _id: 1 })
+        .toArray();
       const ids = relations.map(r => r._id);
-      const rows = await db.progress.aggregate([
-        { $match: { userId: context.user._id, $or: [{ relationId: { $in: ids } }, { itemId: { $in: ids } }] } },
+      const rows = await db.progress.aggregate<{ failureIndex: number }>([
+        { $match: {
+          userId: context.user._id,
+          $or: [{ relationId: { $in: ids } }, { itemId: { $in: ids } }],
+        } },
         { $group: { _id: null, failureIndex: { $sum: { $ifNull: ["$failureIndex", 0] } } } },
       ]).toArray();
       return rows[0]?.failureIndex ?? 0;
@@ -37,10 +51,11 @@ export const wordsResolvers = {
       _: unknown,
       {
         lang,
-        limit = 100,
-        offset = 0,
+        limit: requestedLimit,
+        offset: requestedOffset,
       }: { lang: string; limit?: number; offset?: number },
     ) => {
+      const { limit, offset } = catalogListBounds({ limit: requestedLimit, offset: requestedOffset });
       const db = getDb();
       const collection = lang.toUpperCase() === "DE" ? db.wordsDE : db.wordsES;
       const words = await collection
@@ -48,39 +63,39 @@ export const wordsResolvers = {
         .skip(offset)
         .limit(limit)
         .toArray();
-      return words.map(toGraphQL);
+      return words.map(toGraphQLDocument);
     },
     word: async (_: unknown, { lang, id }: { lang: string; id: string }) => {
       const db = getDb();
       const collection = lang.toUpperCase() === "DE" ? db.wordsDE : db.wordsES;
       const word = await collection.findOne({ _id: new ObjectId(id) });
-      return toGraphQL(word);
+      return toGraphQLDocument(word);
     },
-    wordRelations: async (_: unknown, args: CatalogArgs, _context: unknown, info?: GraphQLResolveInfo) => {
+    wordRelations: async (
+      _: unknown,
+      args: CatalogArgs,
+      _context: unknown,
+      info?: GraphQLResolveInfo,
+    ) => {
       const db = getDb();
       const relations = await db.relationsWordsEsDe
-        .aggregate(catalogPipeline(args, "WORDS_ES", "WORDS_DE", "word", catalogProjection(info, true)))
+        .aggregate<WordRelationDocument>(catalogPipeline(args, "WORDS_ES", "WORDS_DE", "word", catalogProjection(info, true)))
         .toArray();
 
-      return relations.map((r) => {
-        const doc: any = { ...r };
-        if (r.mainDocs && r.mainDocs.length > 0) doc.mainDoc = r.mainDocs[0];
-        if (r.translatedDocs && r.translatedDocs.length > 0)
-          doc.translatedDoc = r.translatedDocs[0];
-        return toGraphQL(doc);
-      });
+      return relations.map(toGraphQLRelation);
     },
     wordsWithoutTranslation: async (
       _: unknown,
-      { lang, limit = 100 }: { lang: string; limit?: number },
+      { lang, limit: requestedLimit }: { lang: string; limit?: number },
     ) => {
+      const { limit } = catalogListBounds({ limit: requestedLimit });
       const db = getDb();
       const isDE = lang.toUpperCase() === "DE";
       const collection = isDE ? db.wordsDE : db.wordsES;
       const relationField = isDE ? "translated" : "main";
 
       const orphans = await collection
-        .aggregate([
+        .aggregate<WordDocument>([
           {
             $lookup: {
               from: "WORDS_ES_DE",
@@ -96,15 +111,16 @@ export const wordsResolvers = {
         ])
         .toArray();
 
-      return orphans.map(toGraphQL);
+      return orphans.map(toGraphQLDocument);
     },
     wordRelationsWithoutPhrases: async (
       _: unknown,
-      { limit = 20 }: { limit?: number },
+      { limit: requestedLimit }: { limit?: number },
     ) => {
+      const { limit } = catalogListBounds({ limit: requestedLimit }, 20);
       const db = getDb();
       const relations = await db.relationsWordsEsDe
-        .aggregate([
+        .aggregate<WordRelationDocument>([
           {
             $lookup: {
               from: "PHRASES_ES",
@@ -151,38 +167,36 @@ export const wordsResolvers = {
         ])
         .toArray();
 
-      return relations.map((r) => {
-        const doc: any = { ...r };
-        if (r.mainDocs && r.mainDocs.length > 0) doc.mainDoc = r.mainDocs[0];
-        if (r.translatedDocs && r.translatedDocs.length > 0)
-          doc.translatedDoc = r.translatedDocs[0];
-        return toGraphQL(doc);
-      });
+      return relations.map(toGraphQLRelation);
     },
   },
   WordRelation: {
-    main: async (parent: any) => {
-      if ("mainDoc" in parent) return toGraphQL(dictionaryWord(parent.mainDoc, parent.study, "ES"));
+    main: async (parent: WordRelationParent) => {
+      if ("mainDoc" in parent) {
+        return toGraphQLDocument(dictionaryWord(parent.mainDoc, parent.study, "ES"));
+      }
       const db = getDb();
       const word = await db.wordsES.findOne({ _id: new ObjectId(parent.main) });
-      return toGraphQL(dictionaryWord(word, parent.study, "ES"));
+      return toGraphQLDocument(dictionaryWord(word, parent.study, "ES"));
     },
-    translated: async (parent: any) => {
-      if ("translatedDoc" in parent) return toGraphQL(dictionaryWord(parent.translatedDoc, parent.study, "DE"));
+    translated: async (parent: WordRelationParent) => {
+      if ("translatedDoc" in parent) {
+        return toGraphQLDocument(dictionaryWord(parent.translatedDoc, parent.study, "DE"));
+      }
       const db = getDb();
       const word = await db.wordsDE.findOne({
         _id: new ObjectId(parent.translated),
       });
-      return toGraphQL(dictionaryWord(word, parent.study, "DE"));
+      return toGraphQLDocument(dictionaryWord(word, parent.study, "DE"));
     },
   },
   Mutation: {
     addWordRelation: async (
       _: unknown,
       { mainId, translatedId }: { mainId: string; translatedId: string },
-      context: { user: unknown },
+      context: AuthContext,
     ) => {
-      if (!context.user) throw new Error("Unauthorized");
+      requireUserId(context);
       const db = getDb();
       const newRelation: WordRelation = {
         _id: new ObjectId(),
@@ -192,7 +206,7 @@ export const wordsResolvers = {
       };
       try {
         await db.relationsWordsEsDe.insertOne(newRelation);
-        return toGraphQL(newRelation);
+        return toGraphQLDocument(newRelation);
       } finally {
         // A network error can follow a committed insert.
         invalidateStudyCatalog(db);

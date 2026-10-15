@@ -30,7 +30,7 @@ export interface CardState {
 export interface SchedulerState extends CardState {
   version: 1; queue: "NEW" | "MINUTE" | "DAY"; options: DeckOptions;
   timeZone: string; rollover: number;
-  /** Mature interval retained when a known word is forgotten for a day. */
+  /** Mature Known interval used until an Again removes the anchor. */
   knownInterval?: number;
 }
 const DAY = 86400, f = Math.fround;

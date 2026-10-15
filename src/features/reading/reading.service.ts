@@ -6,8 +6,9 @@ import { CORRECTION_INSTRUCTIONS, FEEDBACK_SCHEMA, GENERATION_INSTRUCTIONS, PAGE
 import { isReadingConfigured, requestStructured } from "./openai.js";
 import { validateFeedback, validatePage } from "./validation.js";
 import { dictionaryWord } from "../words/reviewedWordContent.js";
+import { presentReadingAttempt, presentReadingLesson, type ReadingPageAttempt } from "./reading.presentation.js";
 
-export const SESSION_BREAK_MS = 30 * 60000;
+const SESSION_BREAK_MS = 30 * 60000;
 const LEASE_MS = 5 * 60000;
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : "This exercise could not be completed. Your work is saved; try again.";
 
@@ -65,24 +66,30 @@ async function expireInterruptedWork(userId: ObjectId) {
 }
 
 export async function lessonForClient(lesson: ReadingLesson) {
-  const attempts = await getDb().translationAttempts.aggregate<{ pageIndex: number; attempt: TranslationAttempt; hasReady: number }>([
-    { $match: { userId: lesson.userId, lessonId: lesson._id, pageIndex: { $in: lesson.pages.map(page => page.index) } } },
+  const attempts = await getDb().translationAttempts.aggregate<ReadingPageAttempt>([
+    { $match: {
+      userId: lesson.userId,
+      lessonId: lesson._id,
+      pageIndex: { $in: lesson.pages.map(page => page.index) },
+    } },
     { $sort: { createdAt: -1, _id: -1 } },
-    { $group: { _id: "$pageIndex", attempt: { $first: { _id: "$_id", requestId: "$requestId", pageIndex: "$pageIndex",
-      translation: "$translation", status: "$status", error: "$error", feedback: "$feedback" } },
-      hasReady: { $max: { $cond: [{ $eq: ["$status", "READY"] }, 1, 0] } } } },
+    { $group: {
+      _id: "$pageIndex",
+      attempt: { $first: {
+        _id: "$_id",
+        requestId: "$requestId",
+        pageIndex: "$pageIndex",
+        translation: "$translation",
+        status: "$status",
+        error: "$error",
+        feedback: "$feedback",
+      } },
+      hasReady: { $max: { $cond: [{ $eq: ["$status", "READY"] }, 1, 0] } },
+    } },
     { $project: { _id: 0, pageIndex: "$_id", attempt: 1, hasReady: 1 } },
   ]).toArray();
-  return { id: lesson._id.toString(), sessionId: lesson.sessionId, sessionStartedAt: lesson.sessionStartedAt.toISOString(), sessionEndedAt: lesson.sessionEndedAt.toISOString(),
-    status: lesson.status, error: lesson.error ?? null, words: lesson.words, pageCount: lesson.pageCount, model: lesson.model,
-    pages: lesson.pages.map(page => {
-      const attemptsForPage = attempts.find(a => a.pageIndex === page.index);
-      return { ...page, spanish: attemptsForPage?.hasReady ? page.spanish : null,
-        lastAttempt: attemptsForPage ? attemptForClient(attemptsForPage.attempt) : null };
-    }) };
+  return presentReadingLesson(lesson, attempts);
 }
-export const attemptForClient = (attempt: TranslationAttempt) => ({ id: attempt._id.toString(), requestId: attempt.requestId, pageIndex: attempt.pageIndex,
-  translation: attempt.translation, status: attempt.status, error: attempt.error ?? null, feedback: attempt.feedback ?? null });
 
 export async function readingPractice(userId: ObjectId) {
   await expireInterruptedWork(userId);
@@ -150,7 +157,7 @@ export async function checkReadingTranslation(userId: ObjectId, lessonId: Object
   if (!page) throw new Error("Reading page not found");
   let attempt = await db.translationAttempts.findOne({ userId, requestId });
   if (attempt && (!attempt.lessonId.equals(lessonId) || attempt.pageIndex !== pageIndex || attempt.translation !== translation)) throw new Error("This translation request ID was already used for different work.");
-  if (attempt?.status === "READY") return attemptForClient(attempt);
+  if (attempt?.status === "READY") return presentReadingAttempt(attempt);
   if (!isReadingConfigured()) throw new Error("Translation checking needs OPENAI_API_KEY in the server environment.");
   if (!attempt) {
     const now = new Date();
@@ -164,7 +171,7 @@ export async function checkReadingTranslation(userId: ObjectId, lessonId: Object
   const claimed = await db.translationAttempts.findOneAndUpdate({ _id: attempt._id, $or: [{ status: "FAILED" }, { status: "CHECKING", lockedUntil: { $lte: now } }] },
     { $set: { status: "CHECKING", error: null, generationToken: token, lockedUntil: new Date(now.getTime() + LEASE_MS), updatedAt: now } }, { returnDocument: "after" });
   if (claimed) void checkTranslation(claimed, page, token).catch(() => console.error("Translation check state could not be saved; its lease will expire."));
-  return attemptForClient(claimed ?? await db.translationAttempts.findOne({ _id: attempt._id, userId }));
+  return presentReadingAttempt(claimed ?? await db.translationAttempts.findOne({ _id: attempt._id, userId }));
 }
 
 async function checkTranslation(attempt: TranslationAttempt, page: ReadingLesson["pages"][number], token: string) {

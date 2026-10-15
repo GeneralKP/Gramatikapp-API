@@ -37,7 +37,7 @@ export function accountCounterPipeline(query: object, now: Date) {
       ], default: 'value' } },
     },
     v: { $sum: { $cond: [{ $and: [{ $eq: ['$scheduler.phase', 'REVIEW'] }, { $lte: [due, now] }] }, 1, 0] } },
-    a: { $sum: { $cond: [{ $and: [{ $in: ['$scheduler.phase', ['LEARNING', 'RELEARNING']] }, { $lte: [due, now] }] }, 1, 0] } },
+    a: { $sum: { $cond: [{ $and: [{ $in: ['$scheduler.phase', ['LEARNING', 'RELEARNING']] }, { $or: [{ $eq: ['$againPending', true] }, { $lte: [due, now] }] }] }, 1, 0] } },
     } },
     { $match: { $or: [{ v: { $gt: 0 } }, { a: { $gt: 0 } }] } },
     { $group: { _id: { t: '$_id.t', c: '$_id.c', r: '$_id.r', v: '$v', a: '$a' }, ids: { $push: '$_id.i' } } },

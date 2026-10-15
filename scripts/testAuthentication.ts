@@ -52,6 +52,9 @@ try {
  }
  const result=await graphql({schema,source:'query{me{id}}',contextValue:{user:null}});assert.deepEqual(JSON.parse(JSON.stringify(result.data)),{me:null});
  profiles=[profile];cap=undefined;
+ const incomplete=await graphql({schema,source:'query{me{settings{soundEnabled selectSound successSound errorSound popSound darkMode dailyNewCards}}}',contextValue:{user:{...user,settings:{}}}});
+ assert.equal(incomplete.errors,undefined);
+ assert.deepEqual(JSON.parse(JSON.stringify(incomplete.data)),{me:{settings:{soundEnabled:true,selectSound:true,successSound:true,errorSound:true,popSound:true,darkMode:false,dailyNewCards:37}}},'incomplete accounts retain all settings defaults and the scheduler-profile daily limit');
  const loginSource=`mutation($email:String!,$password:String!){login(email:$email,password:$password){token user{${fields}}}}`;
  for(const [email,password] of [[user.email,'incorrect'],['missing@example.invalid','fixture-password']]){
   reads={};const rejected=await graphql({schema,source:loginSource,variableValues:{email,password},contextValue:{user:null}});

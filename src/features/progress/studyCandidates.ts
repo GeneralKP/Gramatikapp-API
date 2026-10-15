@@ -3,6 +3,9 @@ import { getDb } from "../../lib/database.js";
 import type { UserProgress } from "./progress.types.js";
 import { STUDY_SUMMARY_BATCH_SIZE } from "./studyLoading.js";
 import { readPackedStudyCandidates } from './studyCandidatePacking.js';
+import { isAgainPending } from './studyScheduling.js';
+
+export const AGAIN_PENDING_FILTER = { againPending: true, 'scheduler.phase': { $in: ['LEARNING', 'RELEARNING'] } };
 
 /** Rich directional cards are self-contained; legacy cards need their catalog relation. */
 export function studyReferenceIds(catalog: { words: { _id: ObjectId }[]; phrases: { _id: ObjectId }[] }): ReadonlySet<string> {
@@ -27,7 +30,7 @@ export function isDueStudyCandidate(progress: UserProgress, now: Date, categoryI
   if (progress.suspended === true || progress.supersededByAnki === true) return false;
   if (categoryIds !== null && !(progress.relationId instanceof ObjectId && categoryIds.has(String(progress.relationId))
     || progress.relationId === undefined && progress.itemId instanceof ObjectId && categoryIds.has(String(progress.itemId)))) return false;
-  return atOrBefore(progress.temporaryDueDate, now)
+  return isAgainPending(progress) || atOrBefore(progress.temporaryDueDate, now)
     || progress.temporaryDueDate == null && atOrBefore(progress.nextDueDate, new Date(now.getTime() + 1_200_000))
     || progress.isNew === true;
 }
@@ -37,6 +40,7 @@ export function combinedStudyCandidateFilter(userId: ObjectId, itemType: UserPro
     { suspended: { $ne: true }, supersededByAnki: { $ne: true }, $or: [
       { temporaryDueDate: { $lte: now } },
       { temporaryDueDate: null, nextDueDate: { $lte: new Date(now.getTime() + 1_200_000) } },
+      AGAIN_PENDING_FILTER,
       { isNew: true },
     ] },
     { $or: [

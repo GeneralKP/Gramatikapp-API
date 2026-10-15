@@ -23,7 +23,7 @@
     "sync:anki-due-dates": "tsx scripts/syncAnkiDueDates.ts",
     "test:failures": "tsx scripts/testFailures.ts",
     "import:anki": "tsx scripts/importAnki.ts",
-    "test:scheduler": "tsx scripts/testScheduler.ts && tsx scripts/testUnstudiedScheduling.ts && tsx scripts/testLegacyStudyRestart.ts && tsx scripts/testStudyIntervals.ts && tsx scripts/testPhraseScheduling.ts && tsx scripts/testPhraseAdaptiveScheduling.ts",
+    "test:scheduler": "tsx scripts/testScheduler.ts && tsx scripts/testUnstudiedScheduling.ts && tsx scripts/testLegacyStudyRestart.ts && tsx scripts/testStudyIntervals.ts && tsx scripts/testPhraseScheduling.ts && tsx scripts/testPhraseAdaptiveScheduling.ts && npm run test:again-pending",
     "test:reviews": "tsx scripts/testReviews.ts",
     "test:new-words": "tsx scripts/testNewWords.ts",
     "test:new-words-browser": "tsx scripts/testNewWordsBrowser.ts",
@@ -80,7 +80,12 @@
     "test:temporary-review-ratings": "tsx scripts/testTemporaryReviewRatings.ts",
     "test:practice-consistency": "tsx scripts/testCrossModeDue.ts && tsx scripts/testReviewHotPath.ts",
     "test:practice-consistency-integration": "tsx scripts/testPracticeConsistencyIntegration.ts",
-    "test:known": "node --import tsx scripts/runKnownFixture.mjs"
+    "test:known": "node --import tsx scripts/runKnownFixture.mjs",
+    "test:auth-security": "tsx scripts/testAuthCredentials.ts && tsx scripts/testRequestSecurity.ts && tsx scripts/testHttpSecurity.ts && tsx scripts/testSecurityBoundaries.ts",
+    "test:model-refactor": "tsx scripts/testModelRefactor.ts && tsx scripts/testCatalogBounds.ts && tsx scripts/testAuthSettings.ts && tsx scripts/testCatalogResolvers.ts && tsx scripts/testExercisePresentation.ts && tsx scripts/testProgressResolvers.ts && tsx scripts/testSeedRefactor.ts",
+    "test:again-pending": "tsx scripts/testAgainPending.ts",
+    "test:again-pending-integration": "tsx scripts/testAgainPendingIntegration.ts",
+    "test:article-failures": "tsx scripts/testArticleFailures.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",

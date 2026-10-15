@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { clozeText, dueDate, plainText, normalizeWord, germanLexemeKey, templateFormats, collectionConfig } from "./lib/anki.js";
 import { readFile } from "node:fs/promises";
 import { noteContent, studyCard } from "./lib/anki.js";
-import { calculateNextReview } from "../src/features/progress/progress.service.js";
+import "./testAnkiImportedScheduling.js";
 const configRows = [
   { KEY: "creationOffset", val: { base64: Buffer.from("300").toString("base64") } },
   { key: "rollover", val: { base64: Buffer.from("6").toString("base64") } },
@@ -33,9 +33,6 @@ const now = new Date();
 assert.equal(dueDate({ queue: 0, due: 99 }, {}, {}, "Europe/Berlin", now), now);
 assert.deepEqual(templateFormats({ base64: Buffer.from([10, 3, 65, 66, 67, 18, 1, 68]).toString("base64") }), { question: "ABC", answer: "D" });
 console.log("PASS safe Anki parsing, cloze ordinals, directions and timezone-aware scheduling");
-const imported = calculateNextReview(4, { ease: 2.95, interval: 942, repetitions: 5, preserveAnkiLimits: true });
-assert.equal(imported.ease, 2.95);
-assert.ok(imported.interval > 942, "imported intervals must not be silently clamped to one year");
 if (process.argv[2]) {
   const { tables } = JSON.parse(await readFile(process.argv[2], "utf8"));
   const sourceConfig = collectionConfig(tables.config);

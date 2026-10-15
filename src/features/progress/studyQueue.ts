@@ -1,4 +1,4 @@
-import { effectiveDueDate } from "./studyScheduling.js";
+import { effectiveDueDate, isAgainPending } from "./studyScheduling.js";
 import type { UserProgress } from "./progress.types.js";
 import { deckName, deckAncestors } from "./reviews.js";
 import { newCardGroups } from "./newWordOrder.js";
@@ -15,8 +15,9 @@ const mix = <T>(first: T[], second: T[]) => {
 
 export function selectStudyQueue(progress: UserProgress[], counts: Map<string, { new: number; review: number }>, now: Date, dueLimit: number, newLimit: number, allowPartialIntroduction = false, compareNew?: (a: UserProgress, b: UserProgress) => number) {
   const available = progress.filter(p => !p.suspended && !p.supersededByAnki && (!p.buriedUntil || p.buriedUntil <= now));
-  const temporary = available.filter(p => p.temporaryDueDate && p.temporaryDueDate <= now).sort((a,b) => effectiveDueDate(a).getTime() - effectiveDueDate(b).getTime());
-  const minute = available.filter(p => !p.temporaryDueDate && p.scheduler.queue === "MINUTE" && p.nextDueDate <= now).sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
+  const retry = available.filter(isAgainPending).sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
+  const temporary = available.filter(p => !isAgainPending(p) && p.temporaryDueDate && p.temporaryDueDate <= now).sort((a,b) => effectiveDueDate(a).getTime() - effectiveDueDate(b).getTime());
+  const minute = available.filter(p => !isAgainPending(p) && !p.temporaryDueDate && p.scheduler.queue === "MINUTE" && p.nextDueDate <= now).sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
   const reserved = new Map<string, { new: number; review: number }>();
   const fits = (p: UserProgress, isNew: boolean, budget = reserved) => deckAncestors(deckName(p)).every(deck => {
     const used = counts.get(deck) ?? { new: 0, review: 0 }, selected = budget.get(deck) ?? { new: 0, review: 0 };
@@ -28,9 +29,9 @@ export function selectStudyQueue(progress: UserProgress[], counts: Map<string, {
       budget.set(deck, { new: prior.new + (isNew ? 1 : 0), review: prior.review + (isNew ? 0 : 1) });
     }
   };
-  const due = available.filter(p => !p.temporaryDueDate && p.scheduler.queue === "DAY" && p.nextDueDate <= now).sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
+  const due = available.filter(p => !isAgainPending(p) && !p.temporaryDueDate && p.scheduler.queue === "DAY" && p.nextDueDate <= now).sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
   const selectedDue: UserProgress[] = [];
-  for (const p of due) if (selectedDue.length + minute.length + temporary.length < dueLimit && fits(p, false)) { reserve(p, false); selectedDue.push(p); }
+  for (const p of due) if (selectedDue.length + retry.length + minute.length + temporary.length < dueLimit && fits(p, false)) { reserve(p, false); selectedDue.push(p); }
   const selectedNew: UserProgress[][] = [];
   let newCount = 0;
   for (const original of newCardGroups(progress, available, compareNew)) {
@@ -50,8 +51,8 @@ export function selectStudyQueue(progress: UserProgress[], counts: Map<string, {
   const orderedDue = options?.interdayMix === 1 ? [...reviews, ...interday] : options?.interdayMix === 2 ? [...interday, ...reviews] : mix(reviews, interday);
   const dueGroups = orderedDue.map(p => [p]);
   const result = (options?.newMix === 1 ? [...dueGroups, ...selectedNew] : options?.newMix === 2 ? [...selectedNew, ...dueGroups] : mix(dueGroups, selectedNew)).flat();
-  const ready = [...temporary.slice(0, dueLimit), ...minute.slice(0, Math.max(0, dueLimit - temporary.length)), ...result];
-  // Automatic practice shares one exact due boundary across every study mode.
-  // Early practice is an explicit studyMore request, not an empty-queue fallback.
+  const ready = [...retry.slice(0, dueLimit), ...temporary.slice(0, Math.max(0, dueLimit - retry.length)), ...minute.slice(0, Math.max(0, dueLimit - retry.length - temporary.length)), ...result];
+  // Ordinary practice uses exact due dates. Outstanding Again recall is the
+  // deliberate exception: retry intent remains eligible until a non-Again rating.
   return ready;
 }

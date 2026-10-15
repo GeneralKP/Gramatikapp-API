@@ -67,7 +67,7 @@ async function loadCountSnapshot(context: object, userId: ObjectId, now: Date, i
       "scheduler.options.newPerDay": 1, "scheduler.options.reviewsPerDay": 1,
       "scheduler.options.learnAheadSeconds": 1, "scheduler.options.newMix": 1, "scheduler.options.interdayMix": 1,
       "scheduler.options.initialEase": 1, "scheduler.options.learningSteps": 1, "scheduler.options.relearningSteps": 1,
-      nextDueDate: 1, temporaryDueDate: 1, lastReviewed: 1,
+      nextDueDate: 1, temporaryDueDate: 1, againPending: 1, lastReviewed: 1,
       ease: 1, interval: 1, repetitions: 1, totalReviews: 1, lapses: 1, createdAt: 1, updatedAt: 1,
       "anki.type": 1, "anki.queue": 1, "anki.left": 1, "anki.reps": 1,
       "anki.did": 1, "anki.odid": 1, "anki.due": 1,

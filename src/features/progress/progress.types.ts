@@ -8,6 +8,10 @@ export interface UserProgress {
   itemType: "WORD" | "PHRASE";
   relationId?: ObjectId;
   failureIndex?: number;
+  /** Article mistakes are independent of scheduling, word recall and Undo. */
+  articleFailureIndex?: number;
+  articleFailureAttemptIds?: string[];
+  lastArticleFailedAt?: Date;
   /** Advances only for manual counter adjustments; ordinary failures remain additive. */
   failureVersion?: number;
   writingReinforcementCredit?: number;
@@ -17,6 +21,8 @@ export interface UserProgress {
   sourceFailureCount?: number;
   isNew?: boolean;
   suspended?: boolean;
+  /** Outstanding failed recall remains immediately eligible until a non-Again rating. */
+  againPending?: boolean;
   supersededByAnki?: boolean;
   totalReviews?: number;
   lapses?: number;

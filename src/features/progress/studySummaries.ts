@@ -9,18 +9,6 @@ export const counterFallback = { $or: [
   { 'scheduler.phase': 'REVIEW', interval: 0 },
 ] };
 
-export function counterSummaryPipeline(query: object, eligible: object, now: Date) {
-  const phase = '$scheduler.phase';
-  const due = { $ifNull: ['$temporaryDueDate', '$nextDueDate'] };
-  return [
-    { $match: { ...query, $and: [{ $nor: [counterFallback] }, eligible] } },
-    { $group: { _id: null,
-      review: { $sum: { $cond: [{ $and: [{ $eq: [phase, 'REVIEW'] }, { $lte: [due, now] }] }, 1, 0] } },
-      learning: { $sum: { $cond: [{ $and: [{ $in: [phase, ['LEARNING', 'RELEARNING']] }, { $lte: [due, now] }] }, 1, 0] } },
-    } },
-  ];
-}
-
 export type StudyIdentity = Pick<UserProgress, 'itemId' | 'relationId' | 'itemType'> & (StudyStatusSnapshot | { graduated: boolean });
 export function isGraduatedStudyIdentity(row: StudyIdentity) {
   return 'graduated' in row ? row.graduated : isGraduatedStudyCard(row);
@@ -66,20 +54,4 @@ export interface PackedStudyIdentities {
 }
 export function unpackStudyIdentities(rows: PackedStudyIdentities[]): StudyIdentity[] {
   return [...(rows[0]?.known ?? []).flatMap(row => row.itemIds.map(itemId => ({ ...row._id, itemId }))), ...(rows[0]?.legacy ?? [])];
-}
-
-export function counterEligibility(now: Date, categoryIds: ObjectId[] | null, catalog: { words: { _id: ObjectId }[]; phrases: { _id: ObjectId }[] }) {
-  return { suspended: { $ne: true }, supersededByAnki: { $ne: true },
-    $and: [
-      { $or: [{ buriedUntil: null }, { buriedUntil: { $lte: now } }] },
-      { $or: [
-        { card: { $ne: null } },
-        ...([['WORD', catalog.words], ['PHRASE', catalog.phrases]] as const).map(([itemType, rows]) => ({ itemType, $or: [
-          { relationId: { $in: rows.map(row => row._id) } },
-          { relationId: null, itemId: { $in: rows.map(row => row._id) } },
-        ] })),
-      ] },
-      ...(categoryIds === null ? [] : [{ $or: [{ relationId: { $in: categoryIds } }, { relationId: { $exists: false }, itemId: { $in: categoryIds } }] }]),
-    ],
-  };
 }

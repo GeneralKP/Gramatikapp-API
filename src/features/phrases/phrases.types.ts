@@ -1,6 +1,5 @@
 import { ObjectId } from "mongodb";
 import type { CefrClassification, CefrLevel } from "../levels/levels.js";
-import { LearningContext } from "../words/words.types.js";
 
 export enum PhraseLevel {
   A1 = "A1",

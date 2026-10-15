@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { getDb, type Database } from "../../lib/database.js";
 import type { User } from "../auth/auth.types.js";
 import type { UserProgress, StudyCard } from "./progress.types.js";
-import { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } from "./progress.resolvers.js";
+import { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } from "./studySelection.js";
 import { combinedStudyCandidates, isCountStudyCandidate } from "./studyCandidates.js";
 import { readPackedStudyCandidates } from './studyCandidatePacking.js';
 import { withScheduler } from "./reviews.js";
@@ -21,7 +21,7 @@ import type { WordCategories } from '../phrases/wordBankGrammar.js';
 // failure/import history are fetched only for playable cards after selection.
 export const COMPACT_STUDY_SELECTION = {
   _id: 1, userId: 1, itemId: 1, itemType: 1, relationId: 1,
-  failureIndex: 1, failureVersion: 1, isNew: 1, suspended: 1, supersededByAnki: 1, buriedUntil: 1,
+  failureIndex: 1, failureVersion: 1, articleFailureIndex: 1, articleFailureAttemptIds: 1, againPending: 1, isNew: 1, suspended: 1, supersededByAnki: 1, buriedUntil: 1,
   scheduler: 1, scheduleVersion: 1,
   "anki.type": 1, "anki.queue": 1, "anki.left": 1, "anki.reps": 1,
   "anki.did": 1, "anki.odid": 1, "anki.due": 1,
@@ -53,6 +53,8 @@ export interface CompactStudyShell {
   wordCategories?: WordCategories;
   contexts: string[];
   failureIndex: number;
+  articleFailureIndex: number;
+  articleFailureAttemptIds: string[];
   failureVersion: number;
   edit: { relationId: string; version: number; flag: CardFlag };
   card: Pick<StudyCard, "sourceNoteGuid" | "direction"> | null;
@@ -159,11 +161,11 @@ async function envelope(progress: UserProgress[], cardLimit = progress.length, i
       id: String(p.itemId), type: p.itemType, german,
       ...(phraseGrammar ? { wordCategories: phraseGrammar.forPhrase(german, p.itemType === 'PHRASE' ? (pair?.translated as Phrase)?.words : [], true) } : {}),
       spanish: pair ? (p.itemType === "WORD" ? (pair.main as Word).word : (pair.main as Phrase).phrase) : "", contexts: pair?.main.contexts ?? [], failureIndex: p.failureIndex ?? 0,
-      failureVersion: p.failureVersion ?? 0, edit: { relationId: String(p.relationId ?? p.itemId), version: editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`)?.version ?? 0, flag: editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`)?.flag ?? null },
+      failureVersion: p.failureVersion ?? 0, articleFailureIndex: p.articleFailureIndex ?? 0, articleFailureAttemptIds: p.articleFailureAttemptIds ?? [], edit: { relationId: String(p.relationId ?? p.itemId), version: editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`)?.version ?? 0, flag: editMap.get(`${p.itemType}:${p.relationId ?? p.itemId}`)?.flag ?? null },
       card: p.card ? { sourceNoteGuid: p.card.sourceNoteGuid, direction: p.card.direction } : null,
       schedule: { version: p.scheduleVersion ?? 0, profile, state: {
         ease: p.ease, interval: p.interval, repetitions: p.repetitions,
-        nextDueDate: p.nextDueDate, temporaryDueDate: p.temporaryDueDate, lastReviewed: p.lastReviewed, createdAt: p.createdAt,
+        nextDueDate: p.nextDueDate, temporaryDueDate: p.temporaryDueDate, againPending: p.againPending, lastReviewed: p.lastReviewed, createdAt: p.createdAt,
         scheduler, totalReviews: p.totalReviews ?? 0, lapses: p.lapses ?? 0, isNew: p.isNew, suspended: p.suspended, buriedUntil: p.buriedUntil,
         fuzzSeed: schedulerSeed(p).toString(),
       } },

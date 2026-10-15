@@ -161,14 +161,15 @@ function collection(name:string):any {
      const flags={t:row.itemType,c:row.card!=null&&(!Array.isArray(row.card)||!row.card.includes(null)),r:row.relationId===undefined?'missing':row.relationId===null?'null':'value'};
      const itemId=row.relationId??row.itemId,key=`${JSON.stringify(flags)}:${itemId}`;
      let group=identities.get(key);if(!group)identities.set(key,group={...flags,itemId,v:0,a:0});
-     if((row.temporaryDueDate??row.nextDueDate)<=now){if(row.scheduler.phase==='REVIEW')group.v++;if(['LEARNING','RELEARNING'].includes(row.scheduler.phase))group.a++;}
+     if(row.scheduler.phase==='REVIEW'&&(row.temporaryDueDate??row.nextDueDate)<=now)group.v++;
+     if(['LEARNING','RELEARNING'].includes(row.scheduler.phase)&&(row.againPending===true||(row.temporaryDueDate??row.nextDueDate)<=now))group.a++;
     }
     const packed=new Map<string,any>();
     for(const {itemId,...flags} of identities.values()){if(!flags.v&&!flags.a)continue;const key=JSON.stringify(flags);let group=packed.get(key);if(!group)packed.set(key,group={_id:flags,ids:[]});group.ids.push(itemId);}
     return [...packed.values()];
    }
    return [{review:rows.filter((row:any)=>row.scheduler.phase==='REVIEW'&&(row.temporaryDueDate??row.nextDueDate)<=now).length,
-    learning:rows.filter((row:any)=>['LEARNING','RELEARNING'].includes(row.scheduler.phase)&&(row.temporaryDueDate??row.nextDueDate)<=now).length}];
+    learning:rows.filter((row:any)=>['LEARNING','RELEARNING'].includes(row.scheduler.phase)&&(row.againPending===true||(row.temporaryDueDate??row.nextDueDate)<=now)).length}];
   }};},
  };
  collections.set(name,result);return result;
@@ -183,6 +184,61 @@ const query=(name:string)=>queries[name];
 const dashboard='query($userId:ID!){studyQueueCounts(userId:$userId,itemType:"WORD"){new learning review total learned} learningPath(userId:$userId){id name level isUnlocked wordsTotal wordsLearned phrasesTotal phrasesLearned}}';
 try {
  const schema=makeExecutableSchema({typeDefs,resolvers});
+ // Characterize the existing public learning path before separating its pure
+ // aggregation from the resolver. Keep the rest of this fixture unchanged.
+ const pathKeys=['WORDS_ES','WORDS_DE','WORDS_ES_DE','PHRASES_ES','PHRASES_DE','PHRASES_ES_DE','userprogresses'];
+ const originalPathRows=Object.fromEntries(pathKeys.map(key=>[key,fixture[key]]));
+ try {
+  fixture.WORDS_ES=[
+   {...word(501,'uno'),contexts:['daily_routine','lang_party'],level:'A1'},
+   {...word(502,'dos'),contexts:['work'],level:'A2'},
+   {...word(503,'tres'),contexts:['community'],level:'B1'},
+   {...word(504,'cuatro'),contexts:['shared_context'],level:'C1'},
+   {...word(505,'legacy object'),contexts:{}},
+   {...word(506,'legacy flag'),contexts:true},
+  ];
+  fixture.WORDS_DE=fixture.WORDS_ES.map((row:any,index:number)=>({...word(511+index,`Wort ${index}`)}));
+  fixture.WORDS_ES_DE=fixture.WORDS_ES.map((row:any,index:number)=>({_id:id(521+index),main:row._id,translated:id(511+index),createdAt:now}));
+  fixture.PHRASES_ES=[
+   {...phrase(531,'Una frase.'),contexts:['daily_routine','colombian_compliments'],level:'B2'},
+   {...phrase(532,'Otra frase.'),contexts:['work'],level:'C2'},
+   {...phrase(533,'Compartida.'),contexts:['shared_context'],level:'A1'},
+  ];
+  fixture.PHRASES_DE=fixture.PHRASES_ES.map((row:any,index:number)=>phrase(541+index,`Satz ${index}.`));
+  fixture.PHRASES_ES_DE=fixture.PHRASES_ES.map((row:any,index:number)=>({_id:id(551+index),main:row._id,translated:id(541+index),createdAt:now}));
+  fixture.userprogresses=[
+   progress(601,'WORD',521),progress(602,'WORD',521), // Both directions count one learned relation.
+   progress(603,'PHRASE',551),
+   progress(604,'WORD',522,{interval:0,repetitions:0,isNew:false}),
+   progress(605,'WORD',524,{interval:0}),
+   progress(606,'PHRASE',523), // Existing mastery uses a shared, untyped relation ID set.
+  ];
+  fixture.userprogresses[4].scheduler.phase='REVIEW';
+  const expectedPath=[
+   {id:'daily_routine',name:'Daily Routine',level:'A1',isUnlocked:true,wordsTotal:1,wordsLearned:1,phrasesTotal:1,phrasesLearned:1},
+   {id:'lang_party',name:'Language Party',level:'A1',isUnlocked:true,wordsTotal:1,wordsLearned:1,phrasesTotal:0,phrasesLearned:0},
+   {id:'work',name:'Work',level:'A2',isUnlocked:true,wordsTotal:1,wordsLearned:0,phrasesTotal:1,phrasesLearned:0},
+   {id:'community',name:'Community',level:'B1',isUnlocked:false,wordsTotal:1,wordsLearned:1,phrasesTotal:0,phrasesLearned:0},
+   {id:'colombian_compliments',name:'Colombian Compliments',level:'B2',isUnlocked:true,wordsTotal:0,wordsLearned:0,phrasesTotal:1,phrasesLearned:1},
+   {id:'shared_context',name:'Shared Context',level:'C1',isUnlocked:true,wordsTotal:1,wordsLearned:0,phrasesTotal:1,phrasesLearned:0},
+  ];
+  const pathQuery='query($userId:ID!){learningPath(userId:$userId){id name level isUnlocked wordsTotal wordsLearned phrasesTotal phrasesLearned}}';
+  const readPath=async()=>{
+   invalidateStudyCatalog(getDb());
+   const result=await graphql({schema,source:pathQuery,variableValues:{userId:String(owner)},contextValue:{user}});
+   assert.equal(result.errors,undefined);
+   return JSON.parse(JSON.stringify(result.data)).learningPath;
+  };
+  assert.deepEqual(await readPath(),expectedPath,'direction folding, shared-context first level, zero intervals, names, ordering and immediate-previous-level unlocks');
+  fixture.userprogresses.push(progress(607,'PHRASE',552));
+  expectedPath[2].phrasesLearned=1;expectedPath[3].isUnlocked=true;
+  assert.deepEqual(await readPath(),expectedPath,'the next level unlocks at exactly 50% mastery');
+  fixture.WORDS_ES_DE=fixture.WORDS_ES_DE.slice(2,3);fixture.PHRASES_ES_DE=[];fixture.userprogresses=[];
+  assert.deepEqual(await readPath(),[{...expectedPath[3],wordsLearned:0,isUnlocked:true}],'an empty preceding level passes without progress or allocations');
+ } finally {
+  Object.assign(fixture,originalPathRows);invalidateStudyCatalog(getDb());
+ }
+ console.log('PASS complete learning-path response, directional mastery, shared contexts, 50% threshold and empty-level compatibility');
  const originalProgressForDue=fixture.userprogresses, originalNewAllowance=user.settings.dailyNewCards;
  user.settings.dailyNewCards=0;
  for(const grade of ['AGAIN','HARD','GOOD'] as const){
@@ -191,16 +247,16 @@ try {
   fixture.userprogresses=[reviewed];
   for(const itemType of ['WORD',undefined]){
    const automatic=await resolvers.Query.dueItems(null,{userId:String(owner),itemType,dueLimit:50,newLimit:0},{user} as any);
-   assert.deepEqual(automatic,[],`${grade}: switching word practice to mixed must honor the saved future due date`);
+   assert.deepEqual(automatic.map((row:any)=>row.itemId),grade==='AGAIN'?[String(fresh.itemId)]:[],`${grade}: switching word practice to mixed retains only unresolved Again before its future due date`);
    const packet=await loadCompactStudyQueue(user as any,{itemType,dueLimit:50,newLimit:0,includeCounts:true});
-   assert.deepEqual(packet.items,[],`${grade}: compact automatic queue never returns a future learning card`);
-   assert.deepEqual(packet.counts,{new:0,learning:0,review:0},`${grade}: automatic counters and queue share the exact due boundary`);
+   assert.deepEqual(packet.items.map(row=>row.id),grade==='AGAIN'?[String(fresh.itemId)]:[],`${grade}: compact automatic queue shares unresolved Again eligibility`);
+   assert.deepEqual(packet.counts,{new:0,learning:grade==='AGAIN'?1:0,review:0},`${grade}: automatic counters share the Again exception and ordinary exact due boundary`);
   }
   const futureManifest=await resolvers.Query.dueItems(null,{userId:String(owner),dueLimit:50,newLimit:0,includeLearningAhead:true},{user} as any);
   assert.equal(futureManifest.length,1,'explicit future-manifest requests retain compatibility');
  }
  fixture.userprogresses=originalProgressForDue;user.settings.dailyNewCards=originalNewAllowance;
- console.log('PASS rated words stay future-due across word/mixed GraphQL, compact starters and counters; explicit future manifests remain compatible');
+ console.log('PASS unresolved Again remains immediate across word/mixed GraphQL, compact starters and counters; other future ratings and explicit future manifests retain their boundaries');
  const dictionaryProgressQuery='query($userId:ID!,$relationIds:[ID!]){allProgress(userId:$userId,relationIds:$relationIds){id itemId relationId itemType ease interval repetitions nextDueDate lastReviewed schedulerPhase card{prompt answer}}}';
  const dictionaryOriginalProgress=fixture.userprogresses;
  fixture.userprogresses=[...dictionaryOriginalProgress.map((row:any,index:number)=>index===0?{...row,temporaryDueDate:new Date('2026-10-10T10:00:00Z')}:row),progress(8,'WORD',20,{relationId:undefined,itemId:id(20)})];
@@ -507,7 +563,7 @@ try {
   assert.equal(batches.length,0,`${label}: already-owned relation prevents duplicate allocation`);
   const pendingReads=progressQueries.filter(read=>read.query.isNew===true);
   assert.equal(pendingReads.length,1,`${label}: covered pending IDs need one identity read`);
-  assert.deepEqual(pendingReads[0].projection,{_id:0,itemId:1,itemType:1,relationId:1,scheduleVersion:1,failureVersion:1,failureIndex:1,updatedAt:1,buriedUntil:1,suspended:1,supersededByAnki:1,isNew:1,'card.sourceCardId':1,'card.sourceNoteGuid':1,'card.direction':1},'covered reads never transfer scheduler state, options or card content');
+  assert.deepEqual(pendingReads[0].projection,{_id:0,itemId:1,itemType:1,relationId:1,scheduleVersion:1,failureVersion:1,failureIndex:1,articleFailureIndex:1,articleFailureAttemptIds:1,againPending:1,updatedAt:1,buriedUntil:1,suspended:1,supersededByAnki:1,isNew:1,'card.sourceCardId':1,'card.sourceNoteGuid':1,'card.direction':1},'covered reads retain counter/retry freshness without scheduler state, options or card content');
   assert.equal(pendingReads[0].batchSize,5000,'the identity scout remains bounded without limiting the queue');
   const siblingRead=progressQueries.find(read=>read.query['card.sourceNoteGuid'])!;
   assert.ok(siblingRead.query.itemId?.$nin?.length,'already loaded sibling IDs are excluded at the database');
@@ -606,7 +662,7 @@ try {
   const unionReads=progressQueries.filter(read=>read.query.$or?.some((branch:any)=>branch.$or?.some((clause:any)=>clause['scheduler.phase'])));
   assert.equal(unionReads.length,args.context?0:1,`${label}: unscoped entry shares candidates; categorized entry retains its original query order`);
   if(unionReads.length){assert.equal(unionReads[0].batchSize,5000);assert.ok(unionReads[0].projection.scheduler,'the shared snapshot retains complete local scheduling state');}
-  assert.equal(progressQueries.filter(read=>read.query.$or?.some((clause:any)=>clause['scheduler.phase'])).length,args.context?1:0,'categorized counts retain their original scoped projection while unscoped entry avoids a duplicate snapshot');
+  assert.equal(progressQueries.filter(read=>read.query.$or?.some((clause:any)=>clause['scheduler.phase']&&clause.againPending===undefined)).length,args.context?1:0,'categorized counts retain their original scoped projection while unscoped entry avoids a duplicate snapshot');
   if(args.context){
    const dueRead=progressQueries.find(read=>read.query.$and && read.query.$or?.some((clause:any)=>clause.temporaryDueDate));
    assert.ok(dueRead,'categorized queues retain the original Mongo category filter');
