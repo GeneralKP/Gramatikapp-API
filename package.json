@@ -51,6 +51,7 @@
     "generate:browser-scheduler": "node scripts/generateBrowserScheduler.mjs",
     "test:loading": "tsx scripts/testLoading.ts",
     "test:dashboard-performance": "tsx scripts/testDashboardPerformance.ts",
+    "test:activity": "tsx scripts/testStudyActivity.ts",
     "audit:loading": "tsx scripts/auditLoading.ts",
     "test:auth": "tsx scripts/testAuthentication.ts",
     "test:catalog-cache": "tsx scripts/testCatalogCache.ts",

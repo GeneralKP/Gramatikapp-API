@@ -14,6 +14,7 @@ import { normalizedStudyPhase, STUDY_STATUS_PROJECTION } from "./studyStatus.js"
 import { toGraphQLProgress } from "./progressPresentation.js";
 import { buildLearningPath } from "./learningPath.js";
 import { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } from "./studySelection.js";
+import { loadStudyActivity } from './studyActivity.js';
 
 // Retain module compatibility for existing scripts; transports use the service.
 export { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } from "./studySelection.js";
@@ -21,6 +22,9 @@ export type { DueStudyRequest, StudyQueueCounts } from "./studySelection.js";
 
 export const progressResolvers = {
   Query: {
+    studyActivity: async (_: unknown, { userId, timezone }: { userId: string; timezone: string }, context: AuthContext) => {
+      return loadStudyActivity(requireUserId(context, userId), timezone);
+    },
     reviewHistory: async (_: unknown, { userId, itemId, limit = 50 }: { userId: string; itemId?: string; limit?: number }, context: AuthContext) => {
       requireUserId(context, userId);
       const query: any = { userId: new ObjectId(userId) };
