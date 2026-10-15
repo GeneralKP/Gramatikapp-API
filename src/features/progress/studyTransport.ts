@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { getDb, type Database } from "../../lib/database.js";
 import type { User } from "../auth/auth.types.js";
 import type { UserProgress, StudyCard } from "./progress.types.js";
-import { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } from "./progress.resolvers.js";
+import { loadDueStudyProgress, loadMoreStudyProgress, loadStudyQueueCounts } from "./studySelection.js";
 import { combinedStudyCandidates, isCountStudyCandidate } from "./studyCandidates.js";
 import { readPackedStudyCandidates } from './studyCandidatePacking.js';
 import { withScheduler } from "./reviews.js";

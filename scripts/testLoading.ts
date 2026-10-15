@@ -183,6 +183,61 @@ const query=(name:string)=>queries[name];
 const dashboard='query($userId:ID!){studyQueueCounts(userId:$userId,itemType:"WORD"){new learning review total learned} learningPath(userId:$userId){id name level isUnlocked wordsTotal wordsLearned phrasesTotal phrasesLearned}}';
 try {
  const schema=makeExecutableSchema({typeDefs,resolvers});
+ // Characterize the existing public learning path before separating its pure
+ // aggregation from the resolver. Keep the rest of this fixture unchanged.
+ const pathKeys=['WORDS_ES','WORDS_DE','WORDS_ES_DE','PHRASES_ES','PHRASES_DE','PHRASES_ES_DE','userprogresses'];
+ const originalPathRows=Object.fromEntries(pathKeys.map(key=>[key,fixture[key]]));
+ try {
+  fixture.WORDS_ES=[
+   {...word(501,'uno'),contexts:['daily_routine','lang_party'],level:'A1'},
+   {...word(502,'dos'),contexts:['work'],level:'A2'},
+   {...word(503,'tres'),contexts:['community'],level:'B1'},
+   {...word(504,'cuatro'),contexts:['shared_context'],level:'C1'},
+   {...word(505,'legacy object'),contexts:{}},
+   {...word(506,'legacy flag'),contexts:true},
+  ];
+  fixture.WORDS_DE=fixture.WORDS_ES.map((row:any,index:number)=>({...word(511+index,`Wort ${index}`)}));
+  fixture.WORDS_ES_DE=fixture.WORDS_ES.map((row:any,index:number)=>({_id:id(521+index),main:row._id,translated:id(511+index),createdAt:now}));
+  fixture.PHRASES_ES=[
+   {...phrase(531,'Una frase.'),contexts:['daily_routine','colombian_compliments'],level:'B2'},
+   {...phrase(532,'Otra frase.'),contexts:['work'],level:'C2'},
+   {...phrase(533,'Compartida.'),contexts:['shared_context'],level:'A1'},
+  ];
+  fixture.PHRASES_DE=fixture.PHRASES_ES.map((row:any,index:number)=>phrase(541+index,`Satz ${index}.`));
+  fixture.PHRASES_ES_DE=fixture.PHRASES_ES.map((row:any,index:number)=>({_id:id(551+index),main:row._id,translated:id(541+index),createdAt:now}));
+  fixture.userprogresses=[
+   progress(601,'WORD',521),progress(602,'WORD',521), // Both directions count one learned relation.
+   progress(603,'PHRASE',551),
+   progress(604,'WORD',522,{interval:0,repetitions:0,isNew:false}),
+   progress(605,'WORD',524,{interval:0}),
+   progress(606,'PHRASE',523), // Existing mastery uses a shared, untyped relation ID set.
+  ];
+  fixture.userprogresses[4].scheduler.phase='REVIEW';
+  const expectedPath=[
+   {id:'daily_routine',name:'Daily Routine',level:'A1',isUnlocked:true,wordsTotal:1,wordsLearned:1,phrasesTotal:1,phrasesLearned:1},
+   {id:'lang_party',name:'Language Party',level:'A1',isUnlocked:true,wordsTotal:1,wordsLearned:1,phrasesTotal:0,phrasesLearned:0},
+   {id:'work',name:'Work',level:'A2',isUnlocked:true,wordsTotal:1,wordsLearned:0,phrasesTotal:1,phrasesLearned:0},
+   {id:'community',name:'Community',level:'B1',isUnlocked:false,wordsTotal:1,wordsLearned:1,phrasesTotal:0,phrasesLearned:0},
+   {id:'colombian_compliments',name:'Colombian Compliments',level:'B2',isUnlocked:true,wordsTotal:0,wordsLearned:0,phrasesTotal:1,phrasesLearned:1},
+   {id:'shared_context',name:'Shared Context',level:'C1',isUnlocked:true,wordsTotal:1,wordsLearned:0,phrasesTotal:1,phrasesLearned:0},
+  ];
+  const pathQuery='query($userId:ID!){learningPath(userId:$userId){id name level isUnlocked wordsTotal wordsLearned phrasesTotal phrasesLearned}}';
+  const readPath=async()=>{
+   invalidateStudyCatalog(getDb());
+   const result=await graphql({schema,source:pathQuery,variableValues:{userId:String(owner)},contextValue:{user}});
+   assert.equal(result.errors,undefined);
+   return JSON.parse(JSON.stringify(result.data)).learningPath;
+  };
+  assert.deepEqual(await readPath(),expectedPath,'direction folding, shared-context first level, zero intervals, names, ordering and immediate-previous-level unlocks');
+  fixture.userprogresses.push(progress(607,'PHRASE',552));
+  expectedPath[2].phrasesLearned=1;expectedPath[3].isUnlocked=true;
+  assert.deepEqual(await readPath(),expectedPath,'the next level unlocks at exactly 50% mastery');
+  fixture.WORDS_ES_DE=fixture.WORDS_ES_DE.slice(2,3);fixture.PHRASES_ES_DE=[];fixture.userprogresses=[];
+  assert.deepEqual(await readPath(),[{...expectedPath[3],wordsLearned:0,isUnlocked:true}],'an empty preceding level passes without progress or allocations');
+ } finally {
+  Object.assign(fixture,originalPathRows);invalidateStudyCatalog(getDb());
+ }
+ console.log('PASS complete learning-path response, directional mastery, shared contexts, 50% threshold and empty-level compatibility');
  const originalProgressForDue=fixture.userprogresses, originalNewAllowance=user.settings.dailyNewCards;
  user.settings.dailyNewCards=0;
  for(const grade of ['AGAIN','HARD','GOOD'] as const){

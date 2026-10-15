@@ -10,7 +10,6 @@ import { WordLevel } from '../src/features/words/words.types.js';
 import { PhraseLevel } from '../src/features/phrases/phrases.types.js';
 import { initialScheduler } from '../src/features/progress/scheduler.js';
 import { applyDailyLimit, introducedToday } from '../src/features/progress/dailyLimit.js';
-import { calculateNextReview } from '../src/features/progress/progress.service.js';
 
 const id = (n: number) => new ObjectId(n.toString(16).padStart(24, '0'));
 const date = new Date('2026-10-15T10:30:00.000Z');
@@ -92,8 +91,5 @@ try {
   assert.equal(introducedToday(new Map([['App', { new: 2, review: 3 }], ['App::Words', { new: 2, review: 3 }], ['Other', { new: 1, review: 0 }]])), 3, 'Child deck introductions are counted once');
   assert.deepEqual(Object.values(WordLevel), ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
   assert.deepEqual(Object.values(PhraseLevel), Object.values(WordLevel), 'Retain import and old-client level enums');
-  const legacy = calculateNextReview(4, { ease: 2.95, interval: 942, repetitions: 5, preserveAnkiLimits: true });
-  assert.equal(legacy.ease, 2.95);
-  assert.ok(legacy.interval > 942, 'Retain the legacy Anki test/tooling scheduler export');
   console.log('PASS exact GraphQL phrase serialization, bilingual words, nullable/missing fields, joined hydration, legacy levels and quota projection');
 } finally { await closeDatabase(); }

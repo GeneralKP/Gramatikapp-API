@@ -7,6 +7,7 @@ import type { WritingAttempt, WritingExercise, WritingHint } from "./writing.typ
 import { HINT_INSTRUCTIONS, HINT_SCHEMA, SENTENCE_INSTRUCTIONS, SENTENCE_SCHEMA, WRITING_FEEDBACK_INSTRUCTIONS, WRITING_FEEDBACK_SCHEMA, WRITING_PROMPT_VERSION } from "./prompts.js";
 import { containsTerm, normalizedText, validateSentence, validateWritingFeedback } from "./validation.js";
 import { activeDifficulty, chooseWritingWords, REINFORCEMENT_CREDIT, writingFocus, writingLevel } from "./vocabulary.js";
+import { presentWritingAttempt, presentWritingExercise, presentWritingHint } from "./writing.presentation.js";
 
 const LEASE_MS = 5 * 60000;
 const commandId = (id: string) => { if (!/^[a-zA-Z0-9_-]{16,100}$/.test(id)) throw new Error("Invalid request ID"); };
@@ -18,21 +19,14 @@ async function expire(userId: ObjectId) {
     await collection.updateMany({ userId, status, lockedUntil: { $lte: now } }, { $set: { status: "FAILED", error: "The request was interrupted. Your work is saved; retry.", updatedAt: now } });
   }
 }
-export const writingAttemptForClient = (attempt: WritingAttempt) => ({ id: attempt._id.toString(), requestId: attempt.requestId, translation: attempt.translation,
-  status: attempt.status, error: attempt.error ?? null, feedback: attempt.feedback ?? null });
-export async function writingExerciseForClient(exercise: WritingExercise) {
-  const db = getDb(), filter = { userId: exercise.userId, exerciseId: exercise._id };
+async function writingExerciseForClient(exercise: WritingExercise) {
+  const db = getDb();
+  const filter = { userId: exercise.userId, exerciseId: exercise._id };
   const [lastAttempt, completed] = await Promise.all([
     db.writingAttempts.findOne(filter, { sort: { createdAt: -1, _id: -1 } }),
     db.writingAttempts.findOne({ ...filter, status: "READY" }, { projection: { _id: 1 } }),
   ]);
-  const unlocked = !!completed;
-  return { id: exercise._id.toString(), requestId: exercise.requestId, level: exercise.level, focus: exercise.focus ?? "RECENT", model: exercise.model, status: exercise.status, error: exercise.error ?? null,
-    reinforced: !!exercise.reinforcedWords?.length, selectedWordIds: exercise.selectedWordIds ?? [],
-    words: exercise.words, createdAt: exercise.createdAt.toISOString(), lastAttempt: lastAttempt ? writingAttemptForClient(lastAttempt) : null,
-    sentence: exercise.sentence ? { ...exercise.sentence, german: unlocked ? exercise.sentence.german : null,
-      mainClause: unlocked ? exercise.sentence.mainClause : null, subordinateClause: unlocked ? exercise.sentence.subordinateClause : null,
-      grammarExplanation: unlocked ? exercise.sentence.grammarExplanation : null, vocabulary: unlocked ? exercise.sentence.vocabulary : [] } : null };
+  return presentWritingExercise(exercise, lastAttempt, !!completed);
 }
 export async function writingPractice(userId: ObjectId) {
   await expire(userId);
@@ -85,7 +79,7 @@ export async function checkWritingTranslation(userId: ObjectId, exerciseId: Obje
   let attempt = await db.writingAttempts.findOne({ userId, requestId });
   const matches = (a: WritingAttempt) => a.exerciseId.equals(exerciseId) && a.translation === translation;
   if (attempt && !matches(attempt)) throw new Error("This request ID belongs to a different translation.");
-  if (attempt?.status === "READY") return writingAttemptForClient(attempt);
+  if (attempt?.status === "READY") return presentWritingAttempt(attempt);
   requireConfiguration();
   if (!attempt) {
     const now = new Date(), created: WritingAttempt = { _id: new ObjectId(), userId, exerciseId, requestId, translation, status: "FAILED", createdAt: now, updatedAt: now };
@@ -98,7 +92,7 @@ export async function checkWritingTranslation(userId: ObjectId, exerciseId: Obje
   const claimed = await db.writingAttempts.findOneAndUpdate({ _id: attempt._id, $or: [{ status: "FAILED" }, { status: "CHECKING", lockedUntil: { $lte: now } }] },
     { $set: { status: "CHECKING", error: null, generationToken: token, lockedUntil: new Date(now.getTime() + LEASE_MS), updatedAt: now } }, { returnDocument: "after" });
   if (claimed) void checkTranslation(claimed, exercise, token).catch(() => console.error("Writing feedback could not be saved; its lease will expire."));
-  return writingAttemptForClient(claimed ?? attempt);
+  return presentWritingAttempt(claimed ?? attempt);
 }
 async function checkTranslation(attempt: WritingAttempt, exercise: WritingExercise, token: string) {
   const db = getDb(), filter = { _id: attempt._id, generationToken: token, status: "CHECKING" as const };
@@ -130,7 +124,6 @@ async function checkTranslation(attempt: WritingAttempt, exercise: WritingExerci
     } finally { await session.endSession(); }
   } catch (error) { await db.writingAttempts.updateOne(filter, { $set: { status: "FAILED", error: message(error), updatedAt: new Date() }, $unset: { generationToken: "", lockedUntil: "" } }); }
 }
-const hintForClient = (hint: WritingHint) => ({ word: hint.word, status: hint.status, german: hint.german ?? null, explanation: hint.explanation ?? null, error: hint.error ?? null });
 async function hintContext(userId: ObjectId, exerciseId: ObjectId, rawWord: string) {
   const exercise = await getDb().writingExercises.findOne({ _id: exerciseId, userId, status: "READY" });
   if (!exercise?.sentence) throw new Error("Writing exercise not found or not ready");
@@ -142,12 +135,12 @@ export async function writingWordHint(userId: ObjectId, exerciseId: ObjectId, wo
   const context = await hintContext(userId, exerciseId, word);
   await expire(userId);
   const hint = await getDb().writingHints.findOne({ userId, exerciseId, word: context.word });
-  return hint ? hintForClient(hint) : null;
+  return hint ? presentWritingHint(hint) : null;
 }
 export async function translateWritingWord(userId: ObjectId, exerciseId: ObjectId, rawWord: string) {
   const { word, exercise } = await hintContext(userId, exerciseId, rawWord), db = getDb();
   let hint = await db.writingHints.findOne({ userId, exerciseId, word });
-  if (hint?.status === "READY") return hintForClient(hint);
+  if (hint?.status === "READY") return presentWritingHint(hint);
   requireConfiguration();
   if (!hint) {
     const now = new Date(), created: WritingHint = { _id: new ObjectId(), userId, exerciseId, word, status: "FAILED", createdAt: now, updatedAt: now };
@@ -159,7 +152,7 @@ export async function translateWritingWord(userId: ObjectId, exerciseId: ObjectI
   const claimed = await db.writingHints.findOneAndUpdate({ _id: hint._id, $or: [{ status: "FAILED" }, { status: "GENERATING", lockedUntil: { $lte: now } }] },
     { $set: { status: "GENERATING", error: null, generationToken: token, lockedUntil: new Date(now.getTime() + LEASE_MS), updatedAt: now } }, { returnDocument: "after" });
   if (claimed) void generateHint(claimed, exercise, token).catch(() => console.error("A word hint could not be saved; its lease will expire."));
-  return hintForClient(claimed ?? hint);
+  return presentWritingHint(claimed ?? hint);
 }
 async function generateHint(hint: WritingHint, exercise: WritingExercise, token: string) {
   const db = getDb(), filter = { _id: hint._id, generationToken: token, status: "GENERATING" as const };

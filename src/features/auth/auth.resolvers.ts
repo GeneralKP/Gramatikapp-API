@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "../../lib/database.js";
-import { User, UserSettings, defaultUserSettings } from "./auth.types.js";
+import { defaultUserSettings, type User, type UserSettings } from "./auth.types.js";
+import { requireUserId, type AuthContext } from "./auth.context.js";
 import { studyMetadata } from "../progress/studyLoading.js";
 import {
   registerWithEmail,
@@ -9,8 +10,7 @@ import {
 
 type GraphQLUser = Omit<User, "createdAt"> & { id: string; createdAt: string };
 
-// Helper to convert MongoDB doc to GraphQL format
-function toGraphQL(user: User | null) {
+function toGraphQL(user: User | null): GraphQLUser | null {
   if (!user) return null;
   return {
     ...user,
@@ -23,9 +23,7 @@ function toGraphQL(user: User | null) {
   };
 }
 
-export interface GraphQLContext {
-  user: User | null;
-}
+export interface GraphQLContext extends AuthContext {}
 
 export const authResolvers = {
   Query: {
@@ -35,7 +33,7 @@ export const authResolvers = {
     },
 
     user: async (_: unknown, { id }: { id: string }, context: GraphQLContext) => {
-      if (!context.user || context.user._id.toString() !== id) throw new Error("Unauthorized");
+      requireUserId(context, id);
       return toGraphQL(context.user);
     },
 
@@ -79,27 +77,29 @@ export const authResolvers = {
       },
       context: GraphQLContext,
     ) => {
-      if (!context.user || context.user._id.toString() !== userId) throw new Error("Unauthorized");
+      const ownerId = requireUserId(context, userId);
       const db = getDb();
 
-      const user = await db.users.findOne({ _id: new ObjectId(userId) });
+      const user = await db.users.findOne({ _id: ownerId });
       if (!user) throw new Error("User not found");
-      if (newSettings.dailyNewCards !== undefined && (!Number.isInteger(newSettings.dailyNewCards) || newSettings.dailyNewCards < 0 || newSettings.dailyNewCards > 1000)) throw new Error("Choose a daily new-card limit from 0 to 1000.");
+      const dailyLimit = newSettings.dailyNewCards;
+      if (dailyLimit !== undefined && (!Number.isInteger(dailyLimit) || dailyLimit < 0 || dailyLimit > 1000)) {
+        throw new Error("Choose a daily new-card limit from 0 to 1000.");
+      }
 
-      // Merge settings correctly
       const updatedSettings: UserSettings = {
         ...user.settings,
         ...newSettings,
       };
 
       await db.users.updateOne(
-        { _id: new ObjectId(userId) },
+        { _id: ownerId },
         {
           $set: { settings: updatedSettings, updatedAt: new Date() },
         },
       );
 
-      const updatedUser = await db.users.findOne({ _id: new ObjectId(userId) });
+      const updatedUser = await db.users.findOne({ _id: ownerId });
       return toGraphQL(updatedUser);
     },
   },
@@ -107,7 +107,11 @@ export const authResolvers = {
     dailyNewCards: (settings: UserSettings) => settings.dailyNewCards ?? 20,
   },
   User: {
-    settings: async (user: GraphQLUser, _: unknown, context: GraphQLContext) => ({ ...defaultUserSettings, ...user.settings,
-      dailyNewCards: user.settings?.dailyNewCards ?? (await studyMetadata(context, new ObjectId(user.id ?? user._id), user)).limit }),
+    settings: async (user: GraphQLUser, _: unknown, context: GraphQLContext): Promise<UserSettings & { dailyNewCards: number }> => ({
+      ...defaultUserSettings,
+      ...user.settings,
+      dailyNewCards: user.settings?.dailyNewCards
+        ?? (await studyMetadata(context, new ObjectId(user.id ?? user._id), user)).limit,
+    }),
   },
 };
