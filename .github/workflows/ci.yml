@@ -26,6 +26,7 @@ jobs:
       - run: npm run test:loading
       - run: npm run test:practice-consistency
       - run: npm run test:dashboard-performance
+      - run: npm run test:activity
       - run: npx tsx scripts/testDictionaryCatalog.ts
       - run: npx tsx scripts/testReviewedDictionaryCatalog.ts
       - run: npx tsx scripts/testReviewedWordContent.ts

@@ -1,5 +1,17 @@
 type StudyQueueCounts { new: Int! learning: Int! review: Int! total: Int! learned: Int! }
 
+type StudyActivityDay { date: String! count: Int! }
+type StudyActivity {
+  startDate: String!
+  endDate: String!
+  days: [StudyActivityDay!]!
+  totalReviews: Int!
+  activeDays: Int!
+  currentStreak: Int!
+  longestStreak: Int!
+  dailyAverage: Float!
+}
+
 type UserProgress {
   id: ID!
   userId: ID!
@@ -88,6 +100,7 @@ type LearningNode {
 }
 
 extend type Query {
+  studyActivity(userId: ID!, timezone: String!): StudyActivity!
   studyQueueCounts(userId: ID!, itemType: String, context: String): StudyQueueCounts!
   mostFailedWords(userId: ID!, limit: Int, minFailures: Int): [FailedWord!]!
   dueItems(userId: ID!, dueLimit: Int, newLimit: Int, itemType: String, context: String, includeLearningAhead: Boolean = false): [UserProgress!]!
